@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+ 
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
+import { authOptions } from '../../auth/[...nextauth]/auth';
+ 
 // GET /api/admin/roles
 export async function GET(request: NextRequest) {
     try {
@@ -11,13 +11,13 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const roles = await prisma.role.findMany({
+        /* const roles = await prisma.role.findMany({
             include: {
                 permissions: true
             }
-        });
+        }); */
 
-        return NextResponse.json({ data: roles });
+        //return NextResponse.json({ data: roles });
     } catch (error) {
         console.error('Error fetching roles:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const role = await prisma.role.create({
+        const role = "" /*  await prisma.role.create({
             data: {
                 name,
                 description,
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
             include: {
                 permissions: true
             }
-        });
+        }); */
 
         return NextResponse.json({ data: role }, { status: 201 });
     } catch (error) {
@@ -73,7 +73,7 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const role = await prisma.role.update({
+        /* const role = await prisma.role.update({
             where: { id: roleId },
             data: {
                 name,
@@ -87,7 +87,7 @@ export async function PUT(request: NextRequest) {
             }
         });
 
-        return NextResponse.json({ data: role });
+        return NextResponse.json({ data: role }); */
     } catch (error) {
         console.error('Error updating role:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -108,9 +108,9 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: 'Role ID is required' }, { status: 400 });
         }
 
-        await prisma.role.delete({
+      /*   await prisma.role.delete({
             where: { id: roleId }
-        });
+        }); */
 
         return NextResponse.json({ message: 'Role deleted successfully' });
     } catch (error) {

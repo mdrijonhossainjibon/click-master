@@ -23,7 +23,7 @@ export default function EditUser() {
     const fetchUser = async () => {
         try {
             setLoading(true);
-            const response = await api.getUser(id as string);
+          /*   const response = await api.getUser(id as string);
             setUser(response);
             form.setFieldsValue({
                 fullName: response.fullName,
@@ -31,7 +31,7 @@ export default function EditUser() {
                 telegramId: response.telegramId.replace(/^@/, ''),
                 role: response.role,
                 status: response.status
-            });
+            }); */
         } catch (error) {
             message.error('Failed to fetch user details');
             console.error('Error fetching user:', error);
@@ -136,7 +136,7 @@ export default function EditUser() {
                         <Col span={8}>
                             <Statistic
                                 title="Total Earnings"
-                                value={user?.totalEarnings || 0}
+                                value={user?.balance || 0}
                                 prefix={<DollarOutlined />}
                                 precision={2}
                             />

@@ -1,56 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { Tooltip } from 'antd';
+import { DollarCircleOutlined, PlayCircleOutlined, ClockCircleOutlined, TrophyOutlined } from '@ant-design/icons';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
 interface UserData {
-    fullName: string;
-    email: string;
     balance: number;
-    adsWatched: number;
     totalEarnings: number;
+    adsWatched: number;
     timeRemaining: number;
 }
 
-interface Session {
-    user?: {
-        id?: string;
-        name?: string;
-        email?: string;
-    };
-}
-
 export default function UserStats() {
-    const { data: session } = useSession() as { data: Session | null };
+    const { data: session } = useSession();
     const [userData, setUserData] = useState<UserData | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+   
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const response = await fetch('/api/user/me');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user data');
-                }
-                const { data } = await response.json();
-                setUserData(data.user);
-                setError(null);
-                console.log(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to fetch user data');
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { loading , balance , adsWatched , timeRemaining } = useSelector((state: RootState) => state.userStats.userState);
 
-        if (session?.user?.email) {
-            fetchUserData();
-            // Refresh data every 15 seconds
-            const interval = setInterval(fetchUserData, 5000);
-            return () => clearInterval(interval);
-        }
-    }, [ ]);
+
+     
 
     if (loading) {
         return (
@@ -67,50 +39,54 @@ export default function UserStats() {
             </div>
         );
     }
-   
-    if (error) {
-        return (
-            <div className="text-red-400 text-center py-4">
-                {error}
-                <button 
-                    onClick={() => window.location.reload()} 
-                    className="block mx-auto mt-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg text-sm"
-                >
-                    Retry
-                </button>
-            </div>
-        );
-    }
 
-
-    if (!userData) {
-        return null;
-    }
+    
 
     return (
         <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">
-                    ${userData.balance }
-                </div>
-                <div className="text-sm text-gray-400">Balance</div>
-                <div className="text-sm text-emerald-400 mt-1">
-                    ৳{(userData.balance * 85).toFixed(2)}
-                </div>
-                <div className="text-xs text-violet-400 mt-1">
-                    Total: ${userData.totalEarnings }
-                </div>
-            </div>
-            <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-400">
-                    {userData.adsWatched}
-                </div>
-                <div className="text-sm text-gray-400">Total Ads</div>
-                {userData.timeRemaining > 0 && (
-                    <div className="text-xs text-red-400 mt-1">
-                        Wait {userData.timeRemaining}s
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-gray-800/70 hover:scale-[1.02] cursor-help">
+                <Tooltip title="Your current balance. Watch more ads to increase it!" placement="top">
+                    <div className="text-center space-y-2">
+                        <div className="flex items-center justify-center text-yellow-400 mb-1">
+                            <DollarCircleOutlined className="text-xl mr-2" />
+                            <span className="text-2xl font-bold animate-pulse">
+                                ${ balance.toFixed(2)}
+                            </span>
+                        </div>
+                        <div className="text-sm text-gray-400">Available Balance</div>
+                        <div className="text-sm text-emerald-400">
+                            ৳{( balance * 123).toFixed(2)}
+                        </div>
+                        <div className="flex items-center justify-center text-xs text-violet-400">
+                            <TrophyOutlined className="mr-1" />
+                            <span>Total: $ 0</span>
+                        </div>
                     </div>
-                )}
+                </Tooltip>
+            </div>
+
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-gray-800/70 hover:scale-[1.02] cursor-help">
+                <Tooltip title="Number of ads you've watched today" placement="top">
+                    <div className="text-center space-y-2">
+                        <div className="flex items-center justify-center text-emerald-400 mb-1">
+                            <PlayCircleOutlined className="text-xl mr-2" />
+                            <span className="text-2xl font-bold">
+                                { adsWatched}
+                            </span>
+                        </div>
+                        <div className="text-sm text-gray-400">Ads Watched Today</div>
+                        { timeRemaining > 0 ? (
+                            <div className="flex items-center justify-center text-red-400 mt-1 animate-pulse">
+                                <ClockCircleOutlined className="mr-1" />
+                                <span>Wait { timeRemaining}s</span>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-emerald-400 mt-1">
+                                Ready to watch!
+                            </div>
+                        )}
+                    </div>
+                </Tooltip>
             </div>
         </div>
     );

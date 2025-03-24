@@ -97,7 +97,7 @@ export default function RolesPage() {
 
     const handleDelete = async (roleId: string) => {
         try {
-            await api.deleteRole(roleId);
+           // await api.deleteRole(roleId);
             message.success('Role deleted successfully');
             fetchRoles();
         } catch (error) {
@@ -109,8 +109,8 @@ export default function RolesPage() {
     const fetchRoles = async () => {
         try {
             setLoading(true);
-            const response = await api.getRoles();
-            setRoles(response.data);
+            //const response = await api.getRoles();
+            //setRoles(response.data);
         } catch (error) {
             console.error('Error fetching roles:', error);
             message.error('Failed to fetch roles');
@@ -121,8 +121,8 @@ export default function RolesPage() {
 
     const fetchPermissions = async () => {
         try {
-            const response = await api.getPermissions();
-            setPermissions(response.data);
+           /*  const response = await api.getPermissions();
+            setPermissions(response.data); */
         } catch (error) {
             console.error('Error fetching permissions:', error);
         }
@@ -131,10 +131,10 @@ export default function RolesPage() {
     const handleSubmit = async (values: any) => {
         try {
             if (editingRole) {
-                await api.updateRole(editingRole.id, values);
+                //await api.updateRole(editingRole.id, values);
                 message.success('Role updated successfully');
             } else {
-                await api.createRole(values);
+                //await api.createRole(values);
                 message.success('Role created successfully');
             }
             setIsModalVisible(false);

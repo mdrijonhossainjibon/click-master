@@ -91,7 +91,7 @@ export default function ActivityHistory() {
     const fetchActivities = async () => {
         try {
             setLoading(true);
-            const response = await api.getActivities({
+           /*  const response = await api.getActivities({
                 action: selectedAction !== 'all' ? selectedAction : undefined,
                 dateRange: selectedDate !== 'all' ? selectedDate : undefined,
                 search: searchText || undefined,
@@ -103,7 +103,7 @@ export default function ActivityHistory() {
             setPagination(prev => ({
                 ...prev,
                 total: response.total
-            }));
+            })); */
         } catch (error) {
             console.error('Error fetching activities:', error);
         } finally {
@@ -113,8 +113,8 @@ export default function ActivityHistory() {
 
     const fetchStats = async () => {
         try {
-            const stats = await api.getActivityStats();
-            setStats(stats);
+            /* const stats = await api.getActivityStats();
+            setStats(stats); */
         } catch (error) {
             console.error('Error fetching activity stats:', error);
         }
@@ -261,9 +261,7 @@ export default function ActivityHistory() {
                             rowKey="id"
                             loading={loading}
                             pagination={pagination}
-                            onChange={(pagination) => {
-                                setPagination(pagination);
-                            }}
+                            
                         />
                     </Card>
                 </div>

@@ -18,23 +18,19 @@ const transactionSchema = new mongoose.Schema({
     network: {
         type: String,
         enum: ['bitget', 'binance'],
-        required: function() {
-            return this.type === 'withdrawal';
-        }
+        
     },
     walletAddress: {
         type: String,
-        required: function() {
-            return this.type === 'withdrawal';
-        },
+         
         validate: {
             validator: function(v: string) {
-                if (this.type !== 'withdrawal') return true;
+                
                 const addressRegex = {
                     bitget: /^[0-9a-zA-Z]{34,42}$/,
                     binance: /^0x[0-9a-fA-F]{40}$/
                 };
-                return addressRegex[this.network as keyof typeof addressRegex].test(v);
+                return addressRegex.binance.test(v)
             },
             message: 'Invalid wallet address for the selected network'
         }

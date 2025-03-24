@@ -28,7 +28,7 @@ interface WithdrawalDetails {
     }>;
 }
 
-export default function WithdrawalDetails({ params }: { params: { id: string } }) {
+export default function WithdrawalDetails({ params }: { params: any }) {
     const [loading, setLoading] = useState(false);
     const [withdrawal, setWithdrawal] = useState<WithdrawalDetails | null>(null);
     const [collapsed, setCollapsed] = useState(false);

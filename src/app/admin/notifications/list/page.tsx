@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Layout, Table, Card, Row, Col, Space, Tag, Select, DatePicker, Input, Button, Menu } from 'antd';
 import { BellOutlined, CheckCircleOutlined, ClockCircleOutlined, WarningOutlined, InfoCircleOutlined, DashboardOutlined, TeamOutlined, HistoryOutlined, WalletOutlined, SettingOutlined } from '@ant-design/icons';
-import { api } from '@/app/services/api';
+ 
 
 const { Content, Sider } = Layout;
 const { RangePicker } = DatePicker;
@@ -11,7 +11,7 @@ const { Option } = Select;
 
 export default function NotificationsList() {
     const [loading, setLoading] = useState(false);
-    const [notifications, setNotifications] = useState([]);
+    const [notifications, setNotifications] = useState<any[]>([]);
     const [filters, setFilters] = useState({
         type: 'all',
         status: 'all',
@@ -236,7 +236,7 @@ export default function NotificationsList() {
                     <Col span={6}>
                         <RangePicker
                             style={{ width: '100%' }}
-                            onChange={(dates) => setFilters({ ...filters, dateRange: dates })}
+                            onChange={(dates) => setFilters({ ...filters, dateRange: dates as any   })}
                         />
                     </Col>
                     <Col span={6}>

@@ -4,6 +4,7 @@ import { LoadingProvider } from "./providers/LoadingProvider";
 import "./globals.css";
 import './row.css'
 import WrapperProvider from "@/provider/wrapperprovider";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+           <Script
+            src="https://telegram.org/js/telegram-web-app.js"
+            strategy="beforeInteractive"
+          />
+
         <LoadingProvider>
           <WrapperProvider>
             {children}

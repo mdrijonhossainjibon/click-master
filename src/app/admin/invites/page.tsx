@@ -107,7 +107,7 @@ export default function InvitationsPage() {
                 search: searchText || undefined
             });
 
-            setInvitations(response.data);
+             
         } catch (error) {
             console.error('Error fetching invitations:', error);
             message.error('Failed to fetch invitations');
@@ -118,8 +118,7 @@ export default function InvitationsPage() {
 
     const fetchStats = async () => {
         try {
-            const stats = await api.getInvitationStats();
-            setStats(stats);
+            
         } catch (error) {
             console.error('Error fetching invitation stats:', error);
         }
@@ -363,7 +362,7 @@ export default function InvitationsPage() {
                             >
                                 <DatePicker
                                     style={{ width: '100%' }}
-                                    disabledDate={(current) => current && current < Date.now()}
+                                    disabledDate={(current) => current && current.valueOf() < Date.now()}
                                 />
                             </Form.Item>
 

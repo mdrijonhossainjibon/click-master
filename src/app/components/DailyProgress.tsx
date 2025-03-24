@@ -6,6 +6,7 @@ interface DailyProgressProps {
 }
 
 export default function DailyProgress({ adsWatched, maxAds = 1000 }: DailyProgressProps) {
+
     const progress = Math.min((adsWatched / maxAds) * 100, 100);
 
     return (

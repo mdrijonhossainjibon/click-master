@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Montage Ads Rewarded Interstitial</title>
+    <script src="//whephiwums.com/sdk.js" data-zone="9103912" data-sdk="show_9103912"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'marquee': 'marquee 3s linear infinite',
+                        'bounce': 'bounce 1s infinite',
+                        'pulse-slow': 'pulse 3s infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(-50%)' },
+                        },
+                        bounce: {
+                            '0%, 100%': { transform: 'translateY(-25%)', animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)' },
+                            '50%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes rgbFlicker {
+            0% {
+                background: linear-gradient(to right, #ff0000, #00ff00);
+            }
+
+            25% {
+                background: linear-gradient(to right, #00ff00, #0000ff);
+            }
+
+            50% {
+                background: linear-gradient(to right, #0000ff, #ff00ff);
+            }
+
+            75% {
+                background: linear-gradient(to right, #ff00ff, #ff0000);
+            }
+
+            100% {
+                background: linear-gradient(to right, #ff0000, #00ff00);
+            }
+        }
+
+        .rgb-animate {
+            animation: rgbFlicker 1s linear infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .gradient-flow {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding-top: 4rem;
+                padding-bottom: 5rem;
+            }
+
+            .button-touch-target {
+                min-height: 48px;
+                padding: 12px 24px;
+            }
+
+            .nav-item {
+                padding: 8px 12px;
+                min-width: 80px;
+                min-height: 64px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                border-radius: 16px;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .nav-item::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+
+            .nav-item:active::before {
+                opacity: 1;
+            }
+
+            .nav-item:active {
+                transform: scale(0.95);
+                background: linear-gradient(to right, #7c3aed, #6d28d9);
+            }
+
+            .nav-icon {
+                font-size: 28px;
+                margin-bottom: 4px;
+                transition: transform 0.2s ease;
+            }
+
+            .nav-item:active .nav-icon {
+                transform: scale(0.9);
+            }
+
+            .nav-text {
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 0.3px;
+                transition: transform 0.2s ease;
+            }
+
+            .nav-item:active .nav-text {
+                transform: scale(0.95);
+            }
+
+            .bottom-nav {
+                padding: 8px 16px;
+                background: rgba(31, 41, 55, 0.98);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-container {
+                max-width: 100%;
+                margin: 0 auto;
+                padding: 0 8px;
+            }
+
+            .nav-button-wrapper {
+                position: relative;
+                padding: 4px;
+            }
+
+            .nav-button-wrapper::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 100%;
+                height: 100%;
+                background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+                transform: translate(-50%, -50%);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+
+            .nav-button-wrapper:active::after {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: translate(-50%, 20px) scale(0.3);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translate(-50%, -20px) scale(1.1);
+                opacity: 0.8;
+            }
+
+            70% {
+                transform: translate(-50%, 0) scale(0.9);
+                opacity: 0.9;
+            }
+
+            100% {
+                transform: translate(-50%, 0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            transition: width 0.3s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background: linear-gradient(to right, #10b981, #059669);
+        }
+
+        .notification.error {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+        }
+
+        .notification.warning {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            position: absolute;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        select option {
+            padding: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        select option img {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen font-['Poppins'] text-gray-100 flex flex-col items-center justify-center">
+    <!-- Top Navigation with Marquee -->
+    <nav class="fixed top-0 left-0 right-0 z-50 gradient-flow shadow-lg border-b border-gray-700">
+        <div class="relative py-2 px-4 overflow-hidden bg-black/30 backdrop-blur-sm">
+            <div class="flex whitespace-nowrap animate-marquee">
+                <span class="text-white font-bold text-sm sm:text-base mx-4 flex items-center">
+                    <span class="inline-block animate-bounce mr-2">🎉</span>
+                    Welcome to my bot! Watch ads and earn rewards!
+                </span>
+                <span class="text-white font-bold text-sm sm:text-base mx-4 flex items-center">
+                    <span class="inline-block animate-bounce mr-2">🎉</span>
+                    Welcome to my bot! Watch ads and earn rewards!
+                </span>
+            </div>
+        </div>
+    </nav>
+    <!-- Main Content Card -->
+    <div
+        class="bg-gray-800/95 backdrop-blur-md border border-gray-700 rounded-2xl shadow-xl p-4 sm:p-6 space-y-4 sm:space-y-6 w-full text-center">
+        <h1
+            class="text-2xl sm:text-3xl font-bold text-white rgb-animate py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg text-center leading-tight">
+            Watch Ads & Earn Rewards
+        </h1>
+
+
+        <div class="container mx-auto px-4 py-4 sm:py-8 max-w-4xl flex flex-col items-center justify-center">
+            <!-- User Stats Card -->
+            <div class="w-full mb-6 glass-effect rounded-2xl p-4 hover-scale">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-yellow-400">$<span id="balanceAmount">0.000</span></div>
+                        <div class="text-sm text-gray-400">Balance</div>
+                        <div class="text-sm text-emerald-400 mt-1">৳<span id="bdtBalance">0</span></div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-emerald-400"><span id="adCount">0</span></div>
+                        <div class="text-sm text-gray-400">Total Ads</div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="text-sm text-gray-400">Daily Progress</div>
+                        <div class="text-sm text-emerald-400"><span id="dailyAdCount">0</span>/1000 Ads</div>
+                    </div>
+                    <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div class="progress-bar" id="dailyProgress" style="width: 0%"></div>
+                    </div>
+                    <div id="dailyLimitMessage" class="hidden mt-2 text-center">
+                        <div class="text-red-400 font-bold">Daily Limit Reached!</div>
+                        <div class="text-sm text-gray-400">Next reset in: <span id="resetTimer">12:00:00</span></div>
+                    </div>
+                </div>
+            </div>
+
+
+            <p
+                class="text-base sm:text-lg text-white bg-gradient-to-r from-emerald-600 to-teal-800 py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg text-center leading-relaxed">
+                Click the button below to watch a video ad and earn your reward!
+            </p>
+
+            <div id="countdown" class="text-xl sm:text-2xl font-bold text-indigo-400 hidden text-center my-2">
+                Closing in: <span id="timer" class="text-2xl sm:text-3xl">15</span> seconds
+            </div>
+
+            <div class="space-y-4 sm:space-y-6 flex flex-col items-center">
+                <button
+                    class="w-full max-w-md h-16 sm:h-20 px-8 sm:px-10 text-white font-bold rounded-2xl shadow-[0_8px_30px_rgb(124,58,237,0.3)] hover:shadow-[0_8px_30px_rgb(124,58,237,0.5)] transform hover:-translate-y-1 transition-all duration-300 bg-gradient-to-r from-indigo-600 to-purple-800 hover:from-indigo-700 hover:to-purple-900 text-base sm:text-xl text-center flex items-center justify-center group relative overflow-hidden"
+                    onclick="showRewardedAd()">
+                    <div
+                        class="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-600/40 to-purple-800/40 animate-pulse">
+                    </div>
+                    <div class="relative flex items-center">
+                        <span
+                            class="text-2xl sm:text-3xl mr-3 group-hover:scale-110 transition-transform duration-300">🎬</span>
+                        <span class="group-hover:scale-105 transition-transform duration-300">Watch Ads</span>
+                    </div>
+                </button>
+
+                <button
+                    class="auto-ads-btn w-full max-w-md h-16 sm:h-20 px-8 sm:px-10 text-white font-bold rounded-2xl shadow-[0_8px_30px_rgb(245,158,11,0.3)] hover:shadow-[0_8px_30px_rgb(245,158,11,0.5)] transform hover:-translate-y-1 transition-all duration-300 bg-gradient-to-r from-amber-600 to-orange-800 hover:from-amber-700 hover:to-orange-900 text-base sm:text-xl text-center flex items-center justify-center group relative overflow-hidden"
+                    onclick="startAutoAds()">
+                    <div
+                        class="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-600/40 to-orange-800/40 animate-pulse">
+                    </div>
+                    <div class="relative flex items-center">
+                        <span
+                            class="text-2xl sm:text-3xl mr-3 group-hover:scale-110 transition-transform duration-300">⚡</span>
+                        <span class="group-hover:scale-105 transition-transform duration-300">Auto Show Ads</span>
+                    </div>
+                </button>
+            </div>
+
+            <br>
+
+            <div
+                class="w-full max-w-md mx-auto mb-6 p-4 bg-gradient-to-r from-red-900/50 to-pink-900/50 rounded-2xl border border-red-500/20 backdrop-blur-sm shadow-xl">
+                <div class="flex flex-col items-center space-y-1">
+
+                    <h3
+                        class="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-400 text-center">
+                        Are you over 18 years old?
+                    </h3>
+                    <p class="text-gray-300 text-sm sm:text-base text-center leading-relaxed">
+                        The following links contain adult content. Please confirm you are over 18 years old to continue.
+                    </p>
+
+
+
+                    <div class="space-y-3 sm:space-y-4 flex flex-col items-center my-8">
+                        <button id="directLink1"
+                            class="w-full max-w-md h-12 sm:h-14 px-6 sm:px-8 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 bg-gradient-to-r from-rose-600 to-pink-800 hover:from-rose-700 hover:to-pink-900 text-sm sm:text-base text-center flex items-center justify-center mb-3 sm:mb-4"
+                            onclick="handleDirectLink1()">
+                            <span class="mr-2">🔗</span> Direct Link 1
+                        </button>
+                        <button id="directLink2"
+                            class="w-full max-w-md h-12 sm:h-14 px-6 sm:px-8 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 bg-gradient-to-r from-cyan-600 to-blue-800 hover:from-cyan-700 hover:to-blue-900 text-sm sm:text-base text-center flex items-center justify-center mb-3 sm:mb-4"
+                            onclick="handleDirectLink2()">
+                            <span class="mr-2">🔗</span> Direct Link 2
+                        </button>
+                        <button id="directLink3"
+                            class="w-full max-w-md h-12 sm:h-14 px-6 sm:px-8 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 bg-gradient-to-r from-violet-600 to-purple-800 hover:from-violet-700 hover:to-purple-900 text-sm sm:text-base text-center flex items-center justify-center mb-3 sm:mb-4"
+                            onclick="handleDirectLink3()">
+                            <span class="mr-2">🔗</span> Direct Link 3
+                        </button>
+                        <button id="directLink4"
+                            class="w-full max-w-md h-12 sm:h-14 px-6 sm:px-8 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 bg-gradient-to-r from-fuchsia-600 to-pink-800 hover:from-fuchsia-700 hover:to-pink-900 text-sm sm:text-base text-center flex items-center justify-center mb-3 sm:mb-4"
+                            onclick="handleDirectLink4()">
+                            <span class="mr-2">🔗</span> Direct Link 4
+                        </button>
+                        <button id="directLink5"
+                            class="w-full max-w-md h-12 sm:h-14 px-6 sm:px-8 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 bg-gradient-to-r from-rose-600 to-red-800 hover:from-rose-700 hover:to-red-900 text-sm sm:text-base text-center flex items-center justify-center mb-3 sm:mb-4"
+                            onclick="handleDirectLink5()">
+                            <span class="mr-2">🔗</span> Direct Link 5
+                        </button>
+                    </div>
+
+                    <p
+                        class="text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg bg-gradient-to-r from-amber-600 to-orange-800 text-sm sm:text-base text-center mt-4">
+                        Watch the complete ad to receive your reward
+                    </p>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <nav
+                class="fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-t border-gray-800/50 shadow-2xl">
+                <div class="max-w-screen-xl mx-auto px-4">
+                    <div class="flex justify-around items-center py-2">
+                        <button class="group flex flex-col items-center justify-center min-w-[80px] min-h-[64px] px-4 py-2 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-800 hover:from-violet-700 hover:to-purple-900 active:scale-95 active:from-violet-800 active:to-purple-900 transition-all duration-200 ease-out shadow-lg hover:shadow-xl hover:-translate-y-0.5" onclick="showPaymentInfo()">
+                            <span class="text-2xl mb-1 group-active:scale-90 transition-transform duration-200">💰</span>
+                            <span class="text-xs font-semibold tracking-wide group-active:scale-95 transition-transform duration-200">Withdraw</span>
+                        </button>
+                        <button class="group flex flex-col items-center justify-center min-w-[80px] min-h-[64px] px-4 py-2 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-800 hover:from-violet-700 hover:to-purple-900 active:scale-95 active:from-violet-800 active:to-purple-900 transition-all duration-200 ease-out shadow-lg hover:shadow-xl hover:-translate-y-0.5" onclick="showTopUsers()">
+                            <span class="text-2xl mb-1 group-active:scale-90 transition-transform duration-200">👑</span>
+                           
+                            <span class="text-xs font-semibold tracking-wide group-active:scale-95 transition-transform duration-200">Top Users</span>
+                        </button>
+                        <button class="group flex flex-col items-center justify-center min-w-[80px] min-h-[64px] px-4 py-2 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-800 hover:from-violet-700 hover:to-purple-900 active:scale-95 active:from-violet-800 active:to-purple-900 transition-all duration-200 ease-out shadow-lg hover:shadow-xl hover:-translate-y-0.5" onclick="showRules()">
+                            <span class="text-2xl mb-1 group-active:scale-90 transition-transform duration-200">📜</span>
+                            <span class="text-xs font-semibold tracking-wide group-active:scale-95 transition-transform duration-200">Rules</span>
+                        </button>
+                        <button class="group flex flex-col items-center justify-center min-w-[80px] min-h-[64px] px-4 py-2 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-800 hover:from-violet-700 hover:to-purple-900 active:scale-95 active:from-violet-800 active:to-purple-900 transition-all duration-200 ease-out shadow-lg hover:shadow-xl hover:-translate-y-0.5" onclick="showSupport()">
+                            <span class="text-2xl mb-1 group-active:scale-90 transition-transform duration-200">💬</span>
+                            <span class="text-xs font-semibold tracking-wide group-active:scale-95 transition-transform duration-200">Support</span>
+                        </button>
+                        <button class="group flex flex-col items-center justify-center min-w-[80px] min-h-[64px] px-4 py-2 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-800 hover:from-violet-700 hover:to-purple-900 active:scale-95 active:from-violet-800 active:to-purple-900 transition-all duration-200 ease-out shadow-lg hover:shadow-xl hover:-translate-y-0.5" onclick="showabout()">
+                            <span class="text-2xl mb-1 group-active:scale-90 transition-transform duration-200">ℹ️</span>
+                            <span class="text-xs font-semibold tracking-wide group-active:scale-95 transition-transform duration-200">About</span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Montage Ads Script -->
+        <script>
+            // Initialize variables
+            let successfulAds = parseInt(localStorage.getItem('successfulAds')) || 0;
+            let dailyAdCount = parseInt(localStorage.getItem('dailyAdCount')) || 0;
+            let balance = parseFloat(localStorage.getItem('balance')) || 0;
+            let autoAdsInterval = null;
+            let isAutoAdsRunning = false;
+            let lastDailyReset = localStorage.getItem('lastDailyReset') || new Date().toDateString();
+            let resetTimerInterval = null;
+
+            // Update UI on load
+            document.getElementById('adCount').textContent = successfulAds;
+            document.getElementById('dailyAdCount').textContent = dailyAdCount;
+            document.getElementById('balanceAmount').textContent = balance.toFixed(3);
+            document.getElementById('bdtBalance').textContent = (balance * 100).toFixed(1);
+            updateDailyProgress();
+
+            // Check for daily reset
+            function checkDailyReset() {
+                const today = new Date().toDateString();
+                if (today !== lastDailyReset) {
+                    dailyAdCount = 0;
+                    localStorage.setItem('dailyAdCount', dailyAdCount);
+                    lastDailyReset = today;
+                    localStorage.setItem('lastDailyReset', today);
+                    document.getElementById('dailyAdCount').textContent = dailyAdCount;
+                    updateDailyProgress();
+                    enableAllButtons();
+                }
+            }
+
+            function updateResetTimer() {
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+
+                const timeLeft = tomorrow - now;
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                document.getElementById('resetTimer').textContent =
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(resetTimerInterval);
+                    checkDailyReset();
+                }
+            }
+
+            function disableAllButtons() {
+                // Only disable ad-related buttons
+                const adButtons = document.querySelectorAll('button[id^="directLink"], .auto-ads-btn, button[onclick^="showRewardedAd"]');
+                adButtons.forEach(button => {
+                    button.disabled = true;
+                    button.style.opacity = '0.5';
+                    button.style.pointerEvents = 'none';
+                });
+                document.getElementById('dailyLimitMessage').classList.remove('hidden');
+                resetTimerInterval = setInterval(updateResetTimer, 1000);
+            }
+
+            function enableAllButtons() {
+                // Only enable ad-related buttons
+                const adButtons = document.querySelectorAll('button[id^="directLink"], .auto-ads-btn, button[onclick^="showRewardedAd"]');
+                adButtons.forEach(button => {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                    button.style.pointerEvents = 'auto';
+                });
+                document.getElementById('dailyLimitMessage').classList.add('hidden');
+                if (resetTimerInterval) {
+                    clearInterval(resetTimerInterval);
+                }
+            }
+
+            function updateDailyProgress() {
+                const progress = (dailyAdCount / 1000) * 100;
+                document.getElementById('dailyProgress').style.width = `${Math.min(progress, 100)}%`;
+
+                if (dailyAdCount >= 1000) {
+                    showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    disableAllButtons();
+                }
+            }
+
+            // Call checkDailyReset when page loads
+            checkDailyReset();
+
+            // Update balance periodically
+            setInterval(fetchBalance, 30000);
+            setInterval(checkDailyReset, 60000); // Check for daily reset every minute
+
+            function updateBalance() {
+                balance += 0.001;
+                localStorage.setItem('balance', balance);
+                document.getElementById('balanceAmount').textContent = balance.toFixed(3);
+                document.getElementById('bdtBalance').textContent = (balance * 100).toFixed(1);
+                showNotification('Success! Earned $0.001', 'success');
+                createConfetti();
+            }
+
+            function showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type} text-white px-4 py-2 rounded-lg shadow-lg`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            function createConfetti() {
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 5000);
+                }
+            }
+
+            function startAutoAds() {
+                if (dailyAdCount >= 1000) {
+                    showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    return;
+                }
+
+                if (isAutoAdsRunning) {
+                    stopAutoAds();
+                    return;
+                }
+
+                isAutoAdsRunning = true;
+                const autoAdsBtn = document.querySelector('.auto-ads-btn');
+                autoAdsBtn.textContent = '⚡ Stop Auto Ads';
+                autoAdsBtn.style.background = 'linear-gradient(to right, #f44336, #d32f2f)';
+
+                showRewardedAd();
+
+                autoAdsInterval = setInterval(() => {
+                    if (isAutoAdsRunning && dailyAdCount < 1000) {
+                        showRewardedAd();
+                    } else if (dailyAdCount >= 1000) {
+                        stopAutoAds();
+                        showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    }
+                }, 20000);
+            }
+
+            function stopAutoAds() {
+                isAutoAdsRunning = false;
+                if (autoAdsInterval) {
+                    clearInterval(autoAdsInterval);
+                    autoAdsInterval = null;
+                }
+                const autoAdsBtn = document.querySelector('.auto-ads-btn');
+                autoAdsBtn.textContent = '⚡ Auto Show Ads';
+                autoAdsBtn.style.background = 'linear-gradient(to right, #f59e0b, #d97706)';
+            }
+
+            function showRewardedAd() {
+                if (dailyAdCount >= 1000) {
+                    showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    return;
+                }
+
+                if (!isAutoAdsRunning) {
+                    const countdownElement = document.getElementById('countdown');
+                    const timerElement = document.getElementById('timer');
+                    countdownElement.style.display = 'block';
+
+                    let timeLeft = 15;
+                    const countdownInterval = setInterval(() => {
+                        timeLeft--;
+                        timerElement.textContent = timeLeft;
+
+                        if (timeLeft <= 0) {
+                            clearInterval(countdownInterval);
+                            countdownElement.style.display = 'none';
+                            closeAd();
+                        }
+                    }, 1000);
+                }
+
+                show_9103912().then(() => {
+                    setTimeout(() => {
+                        closeAd();
+                        if (isAutoAdsRunning) {
+                            successfulAds++;
+                            dailyAdCount++;
+                            localStorage.setItem('successfulAds', successfulAds);
+                            localStorage.setItem('dailyAdCount', dailyAdCount);
+                            document.getElementById('adCount').textContent = successfulAds;
+                            document.getElementById('dailyAdCount').textContent = dailyAdCount;
+                            updateBalance();
+                            updateDailyProgress();
+                        }
+                    }, 15000);
+                }).catch((error) => {
+                    console.error('Ad error:', error);
+                    showNotification('Error loading ad. Please try again.', 'error');
+                });
+            }
+
+            function closeAd() {
+                function findAndClickCloseButton() {
+                    const closeButtonSelectors = [
+                        'button[aria-label="Close"]',
+                        'button[class*="close"]',
+                        'button[class*="Close"]',
+                        'div[class*="close"]',
+                        'div[class*="Close"]',
+                        'span[class*="close"]',
+                        'span[class*="Close"]'
+                    ];
+
+                    for (const selector of closeButtonSelectors) {
+                        const closeButton = document.querySelector(selector);
+                        if (closeButton) {
+                            closeButton.click();
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                findAndClickCloseButton();
+
+                if (!isAutoAdsRunning) {
+                    successfulAds++;
+                    dailyAdCount++;
+                    localStorage.setItem('successfulAds', successfulAds);
+                    localStorage.setItem('dailyAdCount', dailyAdCount);
+                    document.getElementById('adCount').textContent = successfulAds;
+                    document.getElementById('dailyAdCount').textContent = dailyAdCount;
+                    updateBalance();
+                    updateDailyProgress();
+                }
+            }
+
+            function showPaymentInfo() {
+                const modalHtml = `
+                <div id="withdrawalModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full mx-4 border border-gray-700 shadow-xl">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-white text-center">Withdraw Funds</h2>
+                            <button onclick="showWithdrawalHistory()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95 flex items-center">
+                                <span class="mr-2">📜</span>
+                                History
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-gray-700/50 rounded-xl p-4">
+                                <p class="text-yellow-400 font-bold mb-2">Available Balance:</p>
+                                <p class="text-2xl font-bold text-white">$${balance.toFixed(3)}</p>
+                                ${balance < 0.002 ? `
+                                <p class="text-red-400 text-sm mt-2 font-medium">
+                                    ⚠️ Your balance is below the minimum withdrawal amount ($0.002)
+                                </p>
+                                ` : ''}
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">Select Payment Method</label>
+                                <select id="network" class="w-full bg-gray-700 text-white rounded-xl p-3 pl-10 border border-gray-600 focus:border-purple-500 focus:outline-none appearance-none" ${balance < 0.002 ? 'disabled' : ''} onchange="updateWithdrawalForm()">
+                                    <option value="bkash" data-logo="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2UyMTM2ZSIgZD0iTTEyIDJDNi40NyAyIDIgNi40NyAyIDEyczQuNDcgMTAgMTAgMTAgMTAtNC40NyAxMC0xMFMxNy41MyAyIDEyIDJ6bTUgMTMuNTljLS43Ny40Ny0yLjAzIDEuMTYtNC4wMyAxLjE2LTMuODMgMC02LjUtMy4yMS02LjUtNy4yOUMxMS4yIDUuMjIgMTQuODQgMyAxOCAzYy42OSAwIDEuMzIuMTIgMS45MS4yOGwtLjE2LjU4Yy0uNTItLjE0LTEuMDUtLjIxLTEuNTgtLjIxLTMuOTIgMC02LjUgMy4yMS02LjUgNy4yOSAwIDQuMDggMi41OCA3LjI5IDYuNSA3LjI5IDEuNTYgMCAyLjk3LS42MyAzLjk3LTEuMzRsLjE0LjV6Ii8+PC9zdmc+">
+                                        <span class="flex items-center">
+                                            <img src="https://download.logo.wine/logo/BKash/BKash-Icon-Logo.wine.png" class="w-6 h-6 mr-2" alt="bKash">
+                                            bKash
+                                        </span>
+                                    </option>
+                                    <option value="nagad" data-logo="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmNTcyMiIgZD0iTTEyIDJDNi40NyAyIDIgNi40NyAyIDEyczQuNDcgMTAgMTAgMTAgMTAtNC40NyAxMC0xMFMxNy41MyAyIDEyIDJ6bTUgMTMuNTljLS43Ny40Ny0yLjAzIDEuMTYtNC4wMyAxLjE2LTMuODMgMC02LjUtMy4yMS02LjUtNy4yOUMxMS4yIDUuMjIgMTQuODQgMyAxOCAzYy42OSAwIDEuMzIuMTIgMS45MS4yOGwtLjE2LjU4Yy0uNTItLjE0LTEuMDUtLjIxLTEuNTgtLjIxLTMuOTIgMC02LjUgMy4yMS02LjUgNy4yOSAwIDQuMDggMi41OCA3LjI5IDYuNSA3LjI5IDEuNTYgMCAyLjk3LS42MyAzLjk3LTEuMzRsLjE0LjV6Ii8+PC9zdmc+">
+                                        <span class="flex items-center">
+                                            <img src="https://play-lh.googleusercontent.com/Mf_EWEgQxYzP8saqQw9MaKFGJWnlUNKw0UVbY4p79L0c98lRGj1o4e4CG2Ofs3nOXA" class="w-6 h-6 mr-2" alt="Nagad">
+                                            Nagad
+                                        </span>
+                                    </option>
+                                    <option value="bitget" data-logo="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzE0YjM5NyIgZD0iTTEyIDJDNi40NyAyIDIgNi40NyAyIDEyczQuNDcgMTAgMTAgMTAgMTAtNC40NyAxMC0xMFMxNy41MyAyIDEyIDJ6bTUgMTMuNTljLS43Ny40Ny0yLjAzIDEuMTYtNC4wMyAxLjE2LTMuODMgMC02LjUtMy4yMS02LjUtNy4yOUMxMS4yIDUuMjIgMTQuODQgMyAxOCAzYy42OSAwIDEuMzIuMTIgMS45MS4yOGwtLjE2LjU4Yy0uNTItLjE0LTEuMDUtLjIxLTEuNTgtLjIxLTMuOTIgMC02LjUgMy4yMS02LjUgNy4yOSAwIDQuMDggMi41OCA3LjI5IDYuNSA3LjI5IDEuNTYgMCAyLjk3LS42MyAzLjk3LTEuMzRsLjE0LjV6Ii8+PC9zdmc+">
+                                        <span class="flex items-center">
+                                            <img src="https://bitget.com/favicon.ico" class="w-6 h-6 mr-2" alt="Bitget">
+                                            Bitget USDT
+                                        </span>
+                                    </option>
+                                    <option value="binance" data-logo="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2YwYjkwYiIgZD0iTTEyIDJDNi40NyAyIDIgNi40NyAyIDEyczQuNDcgMTAgMTAgMTAgMTAtNC40NyAxMC0xMFMxNy41MyAyIDEyIDJ6bTUgMTMuNTljLS43Ny40Ny0yLjAzIDEuMTYtNC4wMyAxLjE2LTMuODMgMC02LjUtMy4yMS02LjUtNy4yOUMxMS4yIDUuMjIgMTQuODQgMyAxOCAzYy42OSAwIDEuMzIuMTIgMS45MS4yOGwtLjE2LjU4Yy0uNTItLjE0LTEuMDUtLjIxLTEuNTgtLjIxLTMuOTIgMC02LjUgMy4yMS02LjUgNy4yOSAwIDQuMDggMi41OCA3LjI5IDYuNSA3LjI5IDEuNTYgMCAyLjk3LS42MyAzLjk3LTEuMzRsLjE0LjV6Ii8+PC9zdmc+">
+                                        <span class="flex items-center">
+                                            <img src="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png" class="w-6 h-6 mr-2" alt="Binance">
+                                            Binance USDT (BEP20)
+                                        </span>
+                                    </option>
+                                </select>
+                            </div>
+                            <div id="mobilePaymentFields" class="space-y-4">
+                                <div>
+                                    <label class="block text-gray-300 mb-2">Mobile Number</label>
+                                    <input type="number" 
+                                        id="mobileNumber" 
+                                        placeholder="Enter your mobile number" 
+                                        pattern="[0-9]*"
+                                        inputmode="numeric"
+                                        oninput="validateMobileNumber(this)"
+                                        maxlength="11"
+                                        ${balance < 0.002 ? 'disabled' : ''}
+                                        class="w-full bg-gray-700 text-white rounded-xl p-3 border border-gray-600 focus:border-purple-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                    <p class="text-sm text-gray-400 mt-1">Format: 01XXXXXXXXX</p>
+                                    <div id="mobileNumberError" class="hidden text-red-400 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-300 mb-2">Amount (BDT)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">৳</span>
+                                        <input type="number" 
+                                            id="bdtAmount" 
+                                            placeholder="0" 
+                                            step="1" 
+                                            min="50"
+                                            ${balance < 0.002 ? 'disabled' : ''}
+                                            class="w-full bg-gray-700 text-white rounded-xl p-3 pl-7 pr-20 border border-gray-600 focus:border-purple-500 focus:outline-none"
+                                            oninput="validateBdtAmount(this)">
+                                        <button 
+                                            onclick="setMaxBdtAmount()"
+                                            class="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 active:scale-95">
+                                            MAX
+                                        </button>
+                                    </div>
+                                    <div id="bdtAmountError" class="hidden text-red-400 text-sm mt-1"></div>
+                                </div>
+                            </div>
+                            <div id="cryptoPaymentFields" class="space-y-4 hidden">
+                                <div>
+                                    <label class="block text-gray-300 mb-2">Withdrawal Amount (USD)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                                        <input type="number" 
+                                            id="withdrawAmount" 
+                                            placeholder="0.000" 
+                                            step="0.001" 
+                                            min="0.002"
+                                            ${balance < 0.002 ? 'disabled' : ''}
+                                            class="w-full bg-gray-700 text-white rounded-xl p-3 pl-7 pr-20 border border-gray-600 focus:border-purple-500 focus:outline-none"
+                                            oninput="validateWithdrawAmount(this)">
+                                        <button 
+                                            onclick="setMaxAmount()"
+                                            class="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 active:scale-95">
+                                            MAX
+                                        </button>
+                                    </div>
+                                    <div id="amountError" class="hidden text-red-400 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-300 mb-2">Wallet Address</label>
+                                    <input type="text" 
+                                        id="walletAddress" 
+                                        placeholder="Enter your wallet address" 
+                                        ${balance < 0.002 ? 'disabled' : ''}
+                                        class="w-full bg-gray-700 text-white rounded-xl p-3 border border-gray-600 focus:border-purple-500 focus:outline-none">
+                                </div>
+                            </div>
+                            <div class="bg-gray-700/50 rounded-xl p-4">
+                                <p class="text-gray-300 text-sm" id="withdrawalInfo">
+                                    • Minimum withdrawal: ৳50 ($0.50)<br>
+                                    • Available for withdrawal: $${balance.toFixed(3)} (৳${(balance * 100).toFixed(1)})<br>
+                                    • Maximum withdrawal: ৳5000<br>
+                                    • Rate: $0.001 = ৳0.1<br>
+                                    • Processing time: 24-48 hours<br>
+                                    • Make sure to enter the correct number
+                                </p>
+                            </div>
+                            <button onclick="submitWithdrawal()" 
+                                class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                ${balance < 0.002 ? 'disabled' : ''}>
+                                ${balance < 0.002 ? 'Insufficient Balance' : 'Request Withdrawal'}
+                            </button>
+                            <button onclick="closeWithdrawalModal()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl mt-2 transition-all duration-300">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                document.getElementById('withdrawalModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'withdrawalModal') {
+                        closeWithdrawalModal();
+                    }
+                });
+            }
+
+            function updateWithdrawalForm() {
+                const network = document.getElementById('network').value;
+                const mobileFields = document.getElementById('mobilePaymentFields');
+                const cryptoFields = document.getElementById('cryptoPaymentFields');
+                const withdrawalInfo = document.getElementById('withdrawalInfo');
+
+                // Update payment method logo in the header
+                const methodLogo = document.querySelector(`option[value="${network}"] img`).src;
+                const methodName = document.querySelector(`option[value="${network}"]`).textContent.trim();
+
+                if (network === 'bkash' || network === 'nagad') {
+                    mobileFields.classList.remove('hidden');
+                    cryptoFields.classList.add('hidden');
+                    withdrawalInfo.innerHTML = `
+                    <div class="flex items-center mb-4">
+                        <img src="${methodLogo}" class="w-8 h-8 mr-2" alt="${methodName}">
+                        <span class="text-lg font-bold text-white">${methodName}</span>
+                    </div>
+                    • Minimum withdrawal: ৳50 ($0.50)<br>
+                    • Available for withdrawal: $${balance.toFixed(3)} (৳${(balance * 100).toFixed(1)})<br>
+                    • Maximum withdrawal: ৳5000<br>
+                    • Rate: $0.001 = ৳0.1<br>
+                    • Processing time: 24-48 hours<br>
+                    • Make sure to enter the correct number
+                `;
+                } else {
+                    mobileFields.classList.add('hidden');
+                    cryptoFields.classList.remove('hidden');
+                    withdrawalInfo.innerHTML = `
+                    <div class="flex items-center mb-4">
+                        <img src="${methodLogo}" class="w-8 h-8 mr-2" alt="${methodName}">
+                        <span class="text-lg font-bold text-white">${methodName}</span>
+                    </div>
+                    • Minimum withdrawal: $0.50<br>
+                    • Available for withdrawal: $${balance.toFixed(3)}<br>
+                    • Maximum withdrawal limit: $10.00<br>
+                    • Processing time: 24-48 hours<br>
+                    • Make sure to enter the correct address
+                `;
+                }
+            }
+
+            function setMaxBdtAmount() {
+                const input = document.getElementById('bdtAmount');
+                // Convert USD balance to BDT (multiply by 100 since 1 USD = 100 BDT)
+                const maxBdtAmount = Math.min(balance * 100, 5000);
+                input.value = Math.floor(maxBdtAmount);
+                validateBdtAmount(input);
+            }
+
+            function validateBdtAmount(input) {
+                const errorDiv = document.getElementById('bdtAmountError');
+                const amount = parseInt(input.value) || 0;
+                const usdEquivalent = amount / 100; // Convert BDT to USD (1 BDT = $0.01)
+
+                if (amount < 50) {
+                    errorDiv.textContent = '⚠️ Minimum withdrawal amount is ৳50 ($0.50)';
+                    errorDiv.classList.remove('hidden');
+                    input.classList.add('border-red-500');
+                }
+                else if (amount > 5000) {
+                    input.value = '5000';
+                    errorDiv.textContent = '⚠️ Maximum withdrawal limit is ৳5000 ($50.00)';
+                    errorDiv.classList.remove('hidden');
+                    input.classList.add('border-red-500');
+                }
+                else if (usdEquivalent > balance) {
+                    errorDiv.textContent = '⚠️ Amount exceeds your available balance';
+                    errorDiv.classList.remove('hidden');
+                    input.classList.add('border-red-500');
+                }
+                else {
+                    errorDiv.classList.add('hidden');
+                    input.classList.remove('border-red-500');
+                }
+            }
+
+            function submitWithdrawal() {
+                const network = document.getElementById('network').value;
+
+                if (network === 'bkash' || network === 'nagad') {
+                    const mobileNumber = document.getElementById('mobileNumber').value;
+                    const bdtAmount = parseInt(document.getElementById('bdtAmount').value) || 0;
+
+                    if (!mobileNumber || !/^01[3-9][0-9]{8}$/.test(mobileNumber)) {
+                        showNotification('Please enter a valid mobile number', 'error');
+                        return;
+                    }
+
+                    if (bdtAmount < 50) {
+                        showNotification('Minimum withdrawal amount is ৳50', 'error');
+                        return;
+                    }
+
+                    if (bdtAmount > 5000) {
+                        showNotification('Maximum withdrawal limit is ৳5000', 'error');
+                        return;
+                    }
+
+                    // Show success modal with mobile payment details
+                    showSuccessModal(network, mobileNumber, bdtAmount);
+                } else {
+                    // Crypto withdrawal logic
+                    const walletAddress = document.getElementById('walletAddress').value;
+                    const withdrawAmount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+
+                    if (!walletAddress) {
+                        showNotification('Please enter a wallet address', 'error');
+                        return;
+                    }
+
+                    if (withdrawAmount < 0.50) {
+                        showNotification('Minimum withdrawal amount is $0.50', 'error');
+                        return;
+                    }
+
+                    if (withdrawAmount > 10.00) {
+                        showNotification('Maximum withdrawal limit is $10.00', 'error');
+                        return;
+                    }
+
+                    if (withdrawAmount > balance) {
+                        showNotification('Withdrawal amount cannot exceed your available balance', 'error');
+                        return;
+                    }
+
+                    // Show success modal with crypto payment details
+                    showSuccessModal(network, walletAddress, withdrawAmount);
+                }
+
+                balance -= withdrawAmount;
+                localStorage.setItem('balance', balance);
+                document.getElementById('balanceAmount').textContent = balance.toFixed(3);
+                closeWithdrawalModal();
+            }
+
+            function showSuccessModal(network, recipient, amount) {
+                const isMobilePayment = network === 'bkash' || network === 'nagad';
+                const successModalHtml = `
+                <div id="successModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.3s_ease-out]">
+                    <div class="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl p-6 max-w-md w-full mx-4 border border-green-500/20 shadow-2xl transform transition-all duration-300 animate-[slideIn_0.3s_ease-out]">
+                        <div class="relative">
+                            <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-500 rounded-full p-4 shadow-lg border-4 border-gray-800 animate-[bounceIn_0.5s_ease-out]">
+                                <span class="text-4xl">✅</span>
+                            </div>
+                            
+                            <h2 class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 mt-8 mb-6 text-center">
+                                Withdrawal Successful!
+                            </h2>
+
+                            <div class="space-y-6">
+                                <div class="bg-gray-800/50 backdrop-blur-md rounded-2xl p-5 border border-green-500/20 shadow-lg space-y-4">
+                                    <div class="flex items-center justify-between py-2 border-b border-gray-700">
+                                        <span class="text-gray-400">Amount:</span>
+                                        <span class="text-green-400 font-bold">${isMobilePayment ? '৳' + amount : '$' + amount.toFixed(3)}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between py-2 border-b border-gray-700">
+                                        <span class="text-gray-400">${isMobilePayment ? 'Number' : 'Network'}:</span>
+                                        <span class="text-blue-400 font-bold">${recipient}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between py-2 border-b border-gray-700">
+                                        <span class="text-gray-400">Payment Method:</span>
+                                        <span class="text-purple-400 font-bold">${network.toUpperCase()}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between py-2">
+                                        <span class="text-gray-400">Status:</span>
+                                        <span class="text-emerald-400 font-bold">Processing</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                                    <p class="text-blue-400 text-sm text-center font-medium">
+                                        Your withdrawal request is being processed. Please allow 24-48 hours for the transaction to complete.
+                                    </p>
+                                </div>
+
+                                <button onclick="closeSuccessModal()" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95">
+                                    Got it!
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                document.body.insertAdjacentHTML('beforeend', successModalHtml);
+            }
+
+            function closeSuccessModal() {
+                const modal = document.getElementById('successModal');
+                if (modal) {
+                    modal.classList.add('animate-[fadeOut_0.3s_ease-out]');
+                    setTimeout(() => modal.remove(), 300);
+                }
+            }
+
+            function closeWithdrawalModal() {
+                const modal = document.getElementById('withdrawalModal');
+                if (modal) {
+                    modal.remove();
+                }
+            }
+
+            function showRules() {
+                const modalHtml = `
+                <div id="rulesModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div class="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl p-6 max-w-md w-full mx-4 border border-gray-700/50 shadow-2xl transform transition-all duration-300">
+                        <div class="relative">
+                            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-red-500 rounded-full p-3 shadow-lg border-4 border-gray-800">
+                                <span class="text-3xl">⚠️</span>
+                            </div>
+                            <br>
+                            <h2 class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600 mt-6 mb-6 text-center">
+                                Important Rules
+                            </h2>
+
+                            <div class="space-y-6">
+                                <div class="bg-gray-800/50 backdrop-blur-md rounded-2xl p-5 border border-red-500/20 shadow-lg">
+                                    <div class="space-y-4">
+                                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                                            <div class="flex items-start space-x-3 group">
+                                                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span class="text-white text-lg">❌</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="text-red-400 font-semibold mb-1">Multiple Accounts</h3>
+                                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                                        Multiple accounts from the same device are strictly prohibited and will result in immediate account termination.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                                            <div class="flex items-start space-x-3 group">
+                                                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span class="text-white text-lg">👤</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="text-yellow-400 font-semibold mb-1">One Account Policy</h3>
+                                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                                        Only one account per person is allowed. Multiple registrations will lead to permanent suspension.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                                            <div class="flex items-start space-x-3 group">
+                                                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span class="text-white text-lg">🔒</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="text-purple-400 font-semibold mb-1">VPN/Proxy Usage</h3>
+                                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                                        Using VPN or proxy services to create multiple accounts is prohibited and will result in permanent ban.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                                            <div class="flex items-start space-x-3 group">
+                                                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span class="text-white text-lg">⚖️</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="text-blue-400 font-semibold mb-1">Violation Consequences</h3>
+                                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                                        Any violation of these rules will result in immediate account termination and balance forfeiture.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                                    <p class="text-red-400 text-sm text-center font-medium">
+                                        Please follow these rules to maintain a fair environment for all users.
+                                    </p>
+                                </div>
+
+                                <button onclick="closeRulesModal()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95">
+                                    I Understand and Agree
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                document.getElementById('rulesModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'rulesModal') {
+                        closeRulesModal();
+                    }
+                });
+            }
+
+            function closeRulesModal() {
+                const modal = document.getElementById('rulesModal');
+                if (modal) {
+                    modal.remove();
+                }
+            }
+
+            function showSupport() {
+                window.open('https://t.me/Nur6432', '_blank');
+            }
+
+            function handleDirectLink1() {
+                if (dailyAdCount >= 1000) {
+                    showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    return;
+                }
+
+                const button = document.getElementById('directLink1');
+                const originalText = button.textContent;
+                let timeLeft = 30;
+
+                button.disabled = true;
+                button.style.pointerEvents = 'none';
+                button.style.opacity = '0.7';
+                button.textContent = `Wait ${timeLeft}s`;
+
+                window.open('https://ptukseew.top/4/9104058', '_blank');
+
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    button.textContent = `Wait ${timeLeft}s`;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        button.disabled = false;
+                        button.style.pointerEvents = 'auto';
+                        button.style.opacity = '1';
+                        button.textContent = originalText;
+
+                        successfulAds++;
+                        dailyAdCount++;
+                        localStorage.setItem('successfulAds', successfulAds);
+                        localStorage.setItem('dailyAdCount', dailyAdCount);
+                        document.getElementById('adCount').textContent = successfulAds;
+                        document.getElementById('dailyAdCount').textContent = dailyAdCount;
+                        updateBalance();
+                        updateDailyProgress();
+                    }
+                }, 1000);
+            }
+
+            function handleDirectLink2() {
+                if (dailyAdCount >= 1000) {
+                    showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    return;
+                }
+
+                const button = document.getElementById('directLink2');
+                const originalText = button.textContent;
+                let timeLeft = 30;
+
+                button.disabled = true;
+                button.style.pointerEvents = 'none';
+                button.style.opacity = '0.7';
+                button.textContent = `Wait ${timeLeft}s`;
+
+                window.open('https://ptukseew.top/4/9104835', '_blank');
+
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    button.textContent = `Wait ${timeLeft}s`;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        button.disabled = false;
+                        button.style.pointerEvents = 'auto';
+                        button.style.opacity = '1';
+                        button.textContent = originalText;
+
+                        successfulAds++;
+                        dailyAdCount++;
+                        localStorage.setItem('successfulAds', successfulAds);
+                        localStorage.setItem('dailyAdCount', dailyAdCount);
+                        document.getElementById('adCount').textContent = successfulAds;
+                        document.getElementById('dailyAdCount').textContent = dailyAdCount;
+                        updateBalance();
+                        updateDailyProgress();
+                    }
+                }, 1000);
+            }
+
+            function handleDirectLink3() {
+                if (dailyAdCount >= 1000) {
+                    showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    return;
+                }
+
+                const button = document.getElementById('directLink3');
+                const originalText = button.textContent;
+                let timeLeft = 30;
+
+                button.disabled = true;
+                button.style.pointerEvents = 'none';
+                button.style.opacity = '0.7';
+                button.textContent = `Wait ${timeLeft}s`;
+
+                window.open('https://whoushex.top/4/9113347', '_blank');
+
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    button.textContent = `Wait ${timeLeft}s`;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        button.disabled = false;
+                        button.style.pointerEvents = 'auto';
+                        button.style.opacity = '1';
+                        button.textContent = originalText;
+
+                        successfulAds++;
+                        dailyAdCount++;
+                        localStorage.setItem('successfulAds', successfulAds);
+                        localStorage.setItem('dailyAdCount', dailyAdCount);
+                        document.getElementById('adCount').textContent = successfulAds;
+                        document.getElementById('dailyAdCount').textContent = dailyAdCount;
+                        updateBalance();
+                        updateDailyProgress();
+                    }
+                }, 1000);
+            }
+
+            function handleDirectLink4() {
+                if (dailyAdCount >= 1000) {
+                    showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    return;
+                }
+
+                const button = document.getElementById('directLink4');
+                const originalText = button.textContent;
+                let timeLeft = 30;
+
+                button.disabled = true;
+                button.style.pointerEvents = 'none';
+                button.style.opacity = '0.7';
+                button.textContent = `Wait ${timeLeft}s`;
+
+                window.open('https://whoushex.top/4/9109236', '_blank');
+
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    button.textContent = `Wait ${timeLeft}s`;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        button.disabled = false;
+                        button.style.pointerEvents = 'auto';
+                        button.style.opacity = '1';
+                        button.textContent = originalText;
+
+                        successfulAds++;
+                        dailyAdCount++;
+                        localStorage.setItem('successfulAds', successfulAds);
+                        localStorage.setItem('dailyAdCount', dailyAdCount);
+                        document.getElementById('adCount').textContent = successfulAds;
+                        document.getElementById('dailyAdCount').textContent = dailyAdCount;
+                        updateBalance();
+                        updateDailyProgress();
+                    }
+                }, 1000);
+            }
+
+            function handleDirectLink5() {
+                if (dailyAdCount >= 1000) {
+                    showNotification('Daily ad limit reached! Come back tomorrow.', 'warning');
+                    return;
+                }
+
+                const button = document.getElementById('directLink5');
+                const originalText = button.textContent;
+                let timeLeft = 30;
+
+                button.disabled = true;
+                button.style.pointerEvents = 'none';
+                button.style.opacity = '0.7';
+                button.textContent = `Wait ${timeLeft}s`;
+
+                window.open('https://whoushex.top/4/9115978', '_blank');
+
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    button.textContent = `Wait ${timeLeft}s`;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        button.disabled = false;
+                        button.style.pointerEvents = 'auto';
+                        button.style.opacity = '1';
+                        button.textContent = originalText;
+
+                        successfulAds++;
+                        dailyAdCount++;
+                        localStorage.setItem('successfulAds', successfulAds);
+                        localStorage.setItem('dailyAdCount', dailyAdCount);
+                        document.getElementById('adCount').textContent = successfulAds;
+                        document.getElementById('dailyAdCount').textContent = dailyAdCount;
+                        updateBalance();
+                        updateDailyProgress();
+                    }
+                }, 1000);
+            }
+
+            function setMaxAmount() {
+                const input = document.getElementById('withdrawAmount');
+                input.value = Math.min(balance, 10.00).toFixed(3);
+                validateWithdrawAmount(input);
+            }
+
+            function validateWithdrawAmount(input) {
+                const errorDiv = document.getElementById('amountError');
+                const amount = parseFloat(input.value) || 0;
+
+                if (amount < 0.50) {
+                    errorDiv.textContent = '⚠️ Minimum withdrawal amount is $0.50';
+                    errorDiv.classList.remove('hidden');
+                    input.classList.add('border-red-500');
+                }
+                else if (amount > 10.00) {
+                    input.value = '10.00';
+                    errorDiv.textContent = '⚠️ Maximum withdrawal limit is $10.00';
+                    errorDiv.classList.remove('hidden');
+                    input.classList.add('border-red-500');
+                }
+                else if (amount > balance) {
+                    errorDiv.textContent = '⚠️ Amount cannot exceed your available balance';
+                    errorDiv.classList.remove('hidden');
+                    input.classList.add('border-red-500');
+                }
+                else {
+                    errorDiv.classList.add('hidden');
+                    input.classList.remove('border-red-500');
+                }
+            }
+
+            function validateMobileNumber(input) {
+                const errorDiv = document.getElementById('mobileNumberError');
+                let value = input.value;
+
+                // Remove any non-numeric characters
+                value = value.replace(/\D/g, '');
+
+                // Limit to 11 digits
+                if (value.length > 11) {
+                    value = value.slice(0, 11);
+                }
+
+                // Update input value
+                input.value = value;
+
+                // Validate format (must start with '01' and be 11 digits)
+                if (value.length === 11) {
+                    if (!value.startsWith('01')) {
+                        errorDiv.textContent = '⚠️ Number must start with 01';
+                        errorDiv.classList.remove('hidden');
+                        input.classList.add('border-red-500');
+                    } else {
+                        errorDiv.classList.add('hidden');
+                        input.classList.remove('border-red-500');
+                    }
+                } else if (value.length > 0) {
+                    errorDiv.textContent = '⚠️ Number must be 11 digits';
+                    errorDiv.classList.remove('hidden');
+                    input.classList.add('border-red-500');
+                } else {
+                    errorDiv.classList.add('hidden');
+                    input.classList.remove('border-red-500');
+                }
+            }
+
+            function showabout() {
+                const modalHtml = `
+                <div id="aboutModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div class="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl p-6 max-w-md w-full mx-4 border border-blue-500/20 shadow-2xl transform transition-all duration-300">
+                        <div class="relative">
+                            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-blue-500 rounded-full p-3 shadow-lg border-4 border-gray-800">
+                                <span class="text-3xl">📢</span>
+                            </div>
+                            <BR>
+                            <h2 class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mt-6 mb-6 text-center">
+                                About
+                            </h2>
+
+                            <div class="space-y-6">
+                                <div class="bg-gray-800/50 backdrop-blur-md rounded-2xl p-5 border border-blue-500/20 shadow-lg">
+                                    <div class="space-y-4">
+                                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                                            <div class="flex items-start space-x-3 group">
+                                                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span class="text-white text-lg">💰</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="text-green-400 font-semibold mb-1">Earn Money</h3>
+                                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                                        Watch ads and earn $0.001 (৳0.1) for each completed view!
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                                            <div class="flex items-start space-x-3 group">
+                                                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span class="text-white text-lg">🎯</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="text-blue-400 font-semibold mb-1">Daily Limit</h3>
+                                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                                        Watch up to 1000 ads per day and earn up to $1 (৳100) daily!
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                                            <div class="flex items-start space-x-3 group">
+                                                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span class="text-white text-lg">💳</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="text-yellow-400 font-semibold mb-1">Withdrawal Options</h3>
+                                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                                        Withdraw your earnings via bKash, Nagad, or cryptocurrency (minimum ৳50 or $0.50)
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                                            <div class="flex items-start space-x-3 group">
+                                                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span class="text-white text-lg">⚡</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="text-purple-400 font-semibold mb-1">Auto Ads Feature</h3>
+                                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                                        Use Auto Show Ads feature to earn automatically without manual clicking!
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                                    <p class="text-blue-400 text-sm text-center font-medium">
+                                        Start watching ads now and earn money from home! 🚀
+                                    </p>
+                                </div>
+
+                                <button onclick="closeaboutModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95">
+                                    Got it!
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                document.getElementById('aboutModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'aboutModal') {
+                        closeaboutModal();
+                    }
+                });
+            }
+
+            function closeaboutModal() {
+                const modal = document.getElementById('aboutModal');
+                if (modal) {
+                    modal.remove();
+                }
+            }
+
+            function showTopUsers() {
+                const modalHtml = `
+                    <div id="topUsersModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div class="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl p-6 max-w-md w-full mx-4 border border-yellow-500/20 shadow-2xl transform transition-all duration-300">
+                            <div class="relative">
+                                <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-yellow-500 rounded-full p-3 shadow-lg border-4 border-gray-800">
+                                    <span class="text-3xl">👑</span>
+                                </div>
+                                <br> 
+                                
+                                <h2 class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 mt-6 mb-6 text-center">
+                                    Top 50 Users
+                                </h2>
+
+                                <div class="space-y-6">
+                                    <div class="bg-gray-800/50 backdrop-blur-md rounded-2xl p-5 border border-yellow-500/20 shadow-lg">
+                                        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                            ${generateTopUsersList()}
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                                        <p class="text-yellow-400 text-sm text-center font-medium">
+                                            Keep watching ads to climb the leaderboard! 🏆
+                                        </p>
+                                    </div>
+
+                                    <button onclick="closeTopUsersModal()" class="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                document.getElementById('topUsersModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'topUsersModal') {
+                        closeTopUsersModal();
+                    }
+                });
+            }
+
+            function generateTopUsersList() {
+                // Sample data - replace with actual user data from your backend
+                const topUsers = [
+                    { rank: 1, name: "User1", balance: 50.000, crown: "👑", regDate: "2024-03-15" },
+                    { rank: 2, name: "User2", balance: 45.500, crown: "🥈", regDate: "2024-03-10" },
+                    { rank: 3, name: "User3", balance: 40.200, crown: "🥉", regDate: "2024-03-12" },
+                    // ... generate more sample users
+                ];
+
+                let html = '';
+                for (let i = 0; i < 50; i++) {
+                    const rankColor = i === 0 ? 'text-yellow-400' : 
+                                    i === 1 ? 'text-gray-400' : 
+                                    i === 2 ? 'text-amber-600' : 'text-white';
+                    const crown = i < 3 ? topUsers[i].crown : '';
+                    
+                    // Generate a random past date within the last 30 days for sample data
+                    const today = new Date();
+                    const randomDays = Math.floor(Math.random() * 30);
+                    const regDate = new Date(today.setDate(today.getDate() - randomDays));
+                    const formattedDate = regDate.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+
+                    html += `
+                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                            <div class="flex items-center justify-between p-3 bg-gray-700/30 rounded-xl border border-gray-700/50">
+                                <div class="flex items-center space-x-3 flex-1">
+                                    <span class="text-lg ${rankColor} font-bold min-w-[24px]">${i + 1}</span>
+                                    <span class="text-xl">${crown}</span>
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-300">User${i + 1}</span>
+                                        <span class="text-xs text-gray-500">Joined: ${formattedDate}</span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-yellow-400 font-bold">$${(50 - i * 0.5).toFixed(3)}</span>
+                                    <div class="text-xs text-gray-400">৳${((50 - i * 0.5) * 100).toFixed(1)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                return html;
+            }
+
+            function closeTopUsersModal() {
+                const modal = document.getElementById('topUsersModal');
+                if (modal) {
+                    modal.remove();
+                }
+            }
+
+            // Add new function for withdrawal history
+            function showWithdrawalHistory() {
+                const modalHtml = `
+                    <div id="withdrawalHistoryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div class="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl p-6 max-w-md w-full mx-4 border border-blue-500/20 shadow-2xl transform transition-all duration-300">
+                            <div class="relative">
+                                <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-blue-500 rounded-full p-3 shadow-lg border-4 border-gray-800">
+                                    <span class="text-3xl">📜</span>
+                                </div>
+                                <br>
+                                <h2 class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600 mt-6 mb-6 text-center">
+                                    Withdrawal History
+                                </h2>
+
+                                <div class="space-y-6">
+                                    <div class="bg-gray-800/50 backdrop-blur-md rounded-2xl p-5 border border-blue-500/20 shadow-lg">
+                                        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                            ${generateWithdrawalHistory()}
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                                        <p class="text-blue-400 text-sm text-center font-medium">
+                                            All withdrawal requests are processed within 24-48 hours
+                                        </p>
+                                    </div>
+
+                                    <button onclick="closeWithdrawalHistoryModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                document.getElementById('withdrawalHistoryModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'withdrawalHistoryModal') {
+                        closeWithdrawalHistoryModal();
+                    }
+                });
+            }
+
+            function generateWithdrawalHistory() {
+                // Sample withdrawal history - replace with actual data from your backend
+                const withdrawals = [
+                    { 
+                        date: "15 Mar 2024",
+                        amount: "৳100.0",
+                        usdAmount: "$1.000",
+                        method: "bKash",
+                        status: "Completed",
+                        recipient: "01712345678"
+                    },
+                    { 
+                        date: "14 Mar 2024",
+                        amount: "৳75.0",
+                        usdAmount: "$0.750",
+                        method: "Nagad",
+                        status: "Processing",
+                        recipient: "01812345678"
+                    },
+                    { 
+                        date: "13 Mar 2024",
+                        amount: "$0.500",
+                        usdAmount: "$0.500",
+                        method: "Binance USDT",
+                        status: "Completed",
+                        recipient: "0x1234...5678"
+                    }
+                    // Add more sample history items
+                ];
+
+                let html = '';
+                withdrawals.forEach((withdrawal, index) => {
+                    const statusColor = withdrawal.status === 'Completed' ? 'text-green-400' : 
+                                      withdrawal.status === 'Processing' ? 'text-yellow-400' : 
+                                      'text-red-400';
+                    
+                    html += `
+                        <div class="transform transition-all duration-300 hover:translate-x-1">
+                            <div class="bg-gray-700/30 rounded-xl border border-gray-700/50 p-4 space-y-3">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-gray-400">${withdrawal.date}</span>
+                                    </div>
+                                    <span class="${statusColor} font-semibold">${withdrawal.status}</span>
+                                </div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <div class="flex flex-col">
+                                        <span class="text-white font-bold">${withdrawal.amount}</span>
+                                        ${withdrawal.method !== 'bKash' && withdrawal.method !== 'Nagad' ? 
+                                            `<span class="text-sm text-gray-400">${withdrawal.usdAmount}</span>` : ''}
+                                    </div>
+                                    <div class="flex flex-col items-end">
+                                        <span class="text-blue-400 font-semibold">${withdrawal.method}</span>
+                                        <span class="text-sm text-gray-400">${withdrawal.recipient}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                return html || `
+                    <div class="text-center py-4">
+                        <p class="text-gray-400">No withdrawal history found</p>
+                    </div>
+                `;
+            }
+
+            function closeWithdrawalHistoryModal() {
+                const modal = document.getElementById('withdrawalHistoryModal');
+                if (modal) {
+                    modal.remove();
+                }
+            }
+        </script>
+</body>
+
+</html>

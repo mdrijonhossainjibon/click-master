@@ -14,7 +14,7 @@ import { UserState, UserStats, DirectLink } from './types';
 
 // API functions
 async function fetchUserStateAPI(payload : { email ? : string , telegramId ?: string }) {
-    const response = await fetch(`/api/user-state? ${payload.email ? `email=${payload.email}` : ''} ${payload.telegramId ? `&telegramId=${payload.telegramId}` : ''}`);
+    const response = await fetch(`/api/user-state?${payload.email ?`email=${payload.email}` : ''}${payload.telegramId ?`&telegramId=${payload.telegramId}` : ''}`);
     if (!response.ok) throw new Error('Failed to fetch user state');
     const data = await response.json();
     return data.success ? data : Promise.reject(new Error('Failed to fetch user state'));

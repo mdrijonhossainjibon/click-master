@@ -55,7 +55,7 @@ export default function UserStats() {
                         </div>
                         <div className="text-sm text-gray-400">Available Balance</div>
                         <div className="text-sm text-emerald-400">
-                            ৳{( balance * 123).toFixed(2)}
+                            ৳{( balance * 100).toFixed(2)}
                         </div>
                         <div className="flex items-center justify-center text-xs text-violet-400">
                             <TrophyOutlined className="mr-1" />

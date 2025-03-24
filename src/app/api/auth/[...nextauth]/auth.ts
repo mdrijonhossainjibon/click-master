@@ -9,31 +9,28 @@ export const authOptions: AuthOptions = {
         CredentialsProvider({
             name: 'credentials',
             credentials: {
-                email: { label: 'Email', type: 'text' },
-                password: { label: 'Password', type: 'password' }
+                
+                telegramId : { label: 'Telegram ID', type: 'text' }
             },
             async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) {
+                 
+                if (!credentials?.telegramId) {
                     throw new Error('Invalid credentials');
                 }
-
+                  
                 await dbConnect();
 
-                const user = await User.findOne({ email: credentials.email });
+                const user = await User.findOne({  telegramId: credentials.telegramId });
                 if (!user) {
                     throw new Error('Invalid credentials');
                 }
-
-                const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-                if (!isPasswordValid) {
-                    throw new Error('Invalid credentials');
-                }
-
+ 
                 return {
                     id: user._id.toString(),
                     email: user.email,
                     name: user.fullName,
-                    role: user.role
+                    role: user.role,
+                    telegramId: user.telegramId
                 };
             }
         })
@@ -54,10 +51,7 @@ export const authOptions: AuthOptions = {
             return session;
         }
     },
-    pages: {
-        signIn: '/auth',
-        error: '/auth?error=true'
-    },
+  
     session: {
         strategy: 'jwt',
         maxAge: 24 * 60 * 60, // 24 hours

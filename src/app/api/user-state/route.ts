@@ -12,16 +12,16 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('userId');
-
-        if (!userId) {
-            const errorResponse = { error: 'User ID is required', status: 400 };
-            handleApiError(errorResponse);
-            return NextResponse.json(errorResponse, { status: 400 });
-        }
-
+        const telegramId = searchParams.get('telegramId');
         await connectDB();
 
-        const user = await User.findOne({ email: userId });
+        let user;
+        if (userId) {
+            user = await User.findOne({ email: userId });
+        } else if (telegramId) {
+            user = await User.findOne({ telegramId: telegramId });
+        }
+
         if (!user) {
             const errorResponse = { error: 'User not found', status: 404 };
             handleApiError(errorResponse);

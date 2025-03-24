@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import WithdrawalModal from './components/WithdrawalModal';
 import WithdrawalHistoryModal from './components/WithdrawalHistoryModal';
 import TopEarnersModal from './components/TopEarnersModal';
@@ -69,16 +69,25 @@ export default function Home() {
     const [isInitializing, setIsInitializing] = useState(true);
 
     useEffect(() => {
+     
+
+
+
         if (session?.user?.email) {
-            dispatch(fetchUserState(session.user.email));
+            dispatch(fetchUserState({ email : session.user.email }));
         }
+ 
+
+
         dispatch(fetchDirectLinks('adult'));
 
         // Set up interval to refresh user state every 15 seconds
         const interval = setInterval(() => {
             if (session?.user?.email) {
-                dispatch(fetchUserState(session.user.email));
+                dispatch(fetchUserState({ email : session.user.email }));
             }
+
+            dispatch(fetchUserState({ telegramId : '12621545445' }))
         }, 25000);
 
         return () => clearInterval(interval);
@@ -100,7 +109,7 @@ export default function Home() {
                     
                     if (watchAd.fulfilled.match(resultAction)) {
                         
-                        dispatch(fetchUserState(userEmail));
+                        dispatch(fetchUserState( { email : userEmail }));
                     } else if (watchAd.rejected.match(resultAction)) {
                         throw new Error(resultAction.payload as string);
                     }
@@ -217,6 +226,7 @@ export default function Home() {
                             disabled={adState.loading}
                         />
 
+                     
                         <DirectLinks
                             links={directLinks.data}
                             onLinkClick={handleDirectLinkClick}

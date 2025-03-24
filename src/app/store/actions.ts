@@ -5,9 +5,9 @@ export const FETCH_USER_STATE = 'FETCH_USER_STATE';
 export const FETCH_USER_STATE_SUCCESS = 'FETCH_USER_STATE_SUCCESS';
 export const FETCH_USER_STATE_FAILURE = 'FETCH_USER_STATE_FAILURE';
 
-export const fetchUserState = (userId: string) => ({
+export const fetchUserState = (payload : { email ? : string , telegramId ?: string }) => ({
     type: FETCH_USER_STATE,
-    payload: { userId }
+    payload 
 });
 
 export const fetchUserStateSuccess = (data: UserState) => ({

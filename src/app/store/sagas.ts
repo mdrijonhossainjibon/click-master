@@ -13,8 +13,8 @@ import {
 import { UserState, UserStats, DirectLink } from './types';
 
 // API functions
-async function fetchUserStateAPI(userId: string) {
-    const response = await fetch(`/api/user-state?userId=${userId}`);
+async function fetchUserStateAPI(payload : { email ? : string , telegramId ?: string }) {
+    const response = await fetch(`/api/user-state? ${payload.email ? `email=${payload.email}` : ''} ${payload.telegramId ? `&telegramId=${payload.telegramId}` : ''}`);
     if (!response.ok) throw new Error('Failed to fetch user state');
     const data = await response.json();
     return data.success ? data : Promise.reject(new Error('Failed to fetch user state'));
@@ -35,9 +35,9 @@ async function fetchDirectLinksAPI(category: string) {
 }
 
 // Sagas
-function* fetchUserStateSaga(action: { payload: { userId: string } }): Generator<any, void, UserState> {
+function* fetchUserStateSaga(action:  { payload: { email ? : string , telegramId ?: string } }): Generator<any, void, UserState> {
     try {
-        const data = yield call(fetchUserStateAPI, action.payload.userId);
+        const data = yield call(fetchUserStateAPI,  action.payload);
         yield put(fetchUserStateSuccess(data));
     } catch (error) {
         yield put(fetchUserStateFailure(error instanceof Error ? error.message : 'Unknown error'));

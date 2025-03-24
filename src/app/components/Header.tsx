@@ -7,6 +7,7 @@ import { Avatar, Badge, Breadcrumb, Button, Dropdown, Space, Tooltip, message } 
 import type { MenuProps } from 'antd';
 import Link from 'next/link';
 import Image from 'next/image';
+
 import {
   SunOutlined,
   MoonOutlined,
@@ -21,6 +22,7 @@ import {
   MenuOutlined,
   HomeOutlined
 } from '@ant-design/icons';
+import { signOut } from 'next-auth/react';
 
 // Types
 interface HeaderProps {
@@ -105,18 +107,9 @@ export default function Header({
       icon: <LogoutOutlined />,
       label: 'Logout',
       danger: true,
-      onClick: async () => {
-        if (onLogout) {
-          try {
-            setIsLoading(true);
-            await onLogout();
-            message.success('Logged out successfully');
-          } catch (error) {
-            message.error('Failed to logout. Please try again.');
-          } finally {
-            setIsLoading(false);
-          }
-        }
+      onClick:  () => {
+         signOut()
+         message.success('Logged out successfully');
       }
     }
   ], [onLogout]);

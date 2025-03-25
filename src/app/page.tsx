@@ -18,7 +18,8 @@ import Loading from './components/Loading';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from './store';
 import { fetchUserState, fetchDirectLinks, watchAd } from './store';
- 
+import { useRouter } from 'next/navigation';
+import { QRCode, Typography, theme } from 'antd';
 
 interface Session {
     user?: {
@@ -31,6 +32,19 @@ interface Session {
 declare global {
     interface Window {
         show_9132294: any;
+        Telegram: {
+            WebApp: {
+                initData: string;
+                initDataUnsafe: {
+                    user?: {
+                        id: number;
+                        username?: string;
+                        first_name?: string;
+                        last_name?: string;
+                    };
+                };
+            };
+        };
     }
 }
  
@@ -43,26 +57,48 @@ export default function Home() {
     
     const adState = useSelector((state: RootState) => state.ad);
 
+    const [telegramUser, setTelegramUser] = useState<{id: number, username?: string} | null>(null);
+
+    const [isTelegramApp, setIsTelegramApp] = useState(true);
+
     const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [isTopEarnersModalOpen, setIsTopEarnersModalOpen] = useState(false);
     const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
     const [isLiveSupportModalOpen, setIsLiveSupportModalOpen] = useState(false);
- 
+    const router = useRouter();
+    const { token } = theme.useToken();
 
     useEffect(() => {
-     
-      if (session?.user?.email) {
-            dispatch(fetchUserState({ email : session.user.email }));
+        // Check if running in Telegram Mini App
+        const isTelegramMiniApp = window.Telegram?.WebApp;
+        //setIsTelegramApp(!!isTelegramMiniApp);
+        
+        if (isTelegramMiniApp) {
+            const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+            if (tgUser) {
+                setTelegramUser({
+                    id: tgUser.id,
+                    username: tgUser.username
+                });
+                // Fetch user state using Telegram ID
+                dispatch(fetchUserState({ telegramId: tgUser.id.toString() }));
+                dispatch(fetchDirectLinks('adult'));
+                return;
+            }
+        }
+
+        // Fallback to session-based auth
+        if (session?.user?.email) {
+            dispatch(fetchUserState({ email: session.user.email }));
             dispatch(fetchDirectLinks('adult'));
             return;
-    }
-
-      dispatch(fetchUserState({ telegramId : '12621545445' }))
- 
-  
-    }, [  dispatch]);
+        }
+        router.push('/telegram');
+        // Default fallback if neither Telegram nor session auth is available
+        dispatch(fetchUserState({ telegramId: '12621545445' }));
+    }, [dispatch, session]);
 
     const handleWatchAd = async () => {
         if (!session?.user?.email) {
@@ -132,6 +168,7 @@ export default function Home() {
     };
 
    
+     
     return (
         <div className="min-h-screen bg-gray-900 text-white">
             {/* Top Navigation with Marquee */}

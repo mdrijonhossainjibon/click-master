@@ -2,6 +2,7 @@ import     { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import FacebookProvider from "next-auth/providers/facebook";
+import CoinbaseProvider from "next-auth/providers/coinbase";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 
@@ -19,6 +20,10 @@ export const authOptions : AuthOptions = {
         GithubProvider({
             clientId: process.env.GITHUB_ID || "",
             clientSecret: process.env.GITHUB_SECRET || "",
+        }),
+        CoinbaseProvider({
+            clientId: process.env.COINBASE_CLIENT_ID || "",
+            clientSecret: process.env.COINBASE_CLIENT_SECRET || "",
         }),
         
     ],

@@ -155,7 +155,7 @@ export default function Header({
   const handleNavigation = useCallback(async (path: string) => {
     try {
       setIsLoading(true);
-      await router.push(path);
+       router.push(path);
     } catch (error) {
       message.error('Navigation failed. Please try again.');
     } finally {
@@ -166,7 +166,7 @@ export default function Header({
   const handleBack = useCallback(async () => {
     try {
       setIsLoading(true);
-      await router.back();
+     router.back();
     } catch (error) {
       message.error('Navigation failed. Please try again.');
     } finally {
@@ -209,62 +209,63 @@ export default function Header({
   [notifications]);
 
   return (
-    <div className="header-wrapper">
+    <div className="header-wrapper hidden lg:block">
       <header 
-        className="site-header sticky top-0 z-50 px-4 md:px-6" 
+        className="site-header sticky top-0 z-50 px-6 py-4" 
         style={HEADER_STYLES}
         role="banner"
       >
-        <div className="flex items-center justify-between h-full">
-          <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center justify-between h-full max-w-7xl mx-auto">
+          <div className="flex items-center gap-6">
             {showBackButton && (
               <Button 
                 type="text"
                 icon={<ArrowLeftOutlined />}
                 onClick={handleBack}
-                className="header-button hover:opacity-80 transition-opacity"
+                className="header-button hover:opacity-80 transition-all duration-300"
                 style={{ color: BUTTON_TEXT_COLOR }}
                 aria-label="Go back"
                 loading={isLoading}
               />
             )}
-            <h1 className="hidden md:block text-lg font-semibold text-white m-0">
+            <h1 className="text-xl font-semibold text-white m-0 tracking-tight">
               {title}
             </h1>
 
             <Dropdown 
               menu={{ items: navigationItems }} 
               placement="bottomLeft"
-              trigger={['click']}
+              trigger={['hover']}
             >
               <Button
                 type="text"
                 icon={<MenuOutlined />}
-                className="header-button md:ml-2 hover:opacity-80 transition-opacity"
+                className="header-button ml-4 hover:opacity-80 transition-all duration-300"
                 style={{ color: BUTTON_TEXT_COLOR }}
                 aria-label="Navigation menu"
               />
+              
             </Dropdown>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <Image
               src="/vercel.svg"
               alt="Company Logo"
-              width={32}
-              height={32}
-              className="hidden md:block hover:opacity-80 transition-opacity"
+              width={36}
+              height={36}
+              className="hover:opacity-80 transition-all duration-300"
               priority
             />
           </div>
 
-          <Space size={16} className="items-center ml-auto">
+          <Space size={20} className="items-center">
             <Tooltip title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
               <Button
                 type="text"
                 icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
                 onClick={toggleTheme}
-                className="header-button hover:opacity-80 transition-opacity"
+                className="header-button hover:opacity-80 transition-all duration-300"
                 style={{ color: BUTTON_TEXT_COLOR }}
                 aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               />
@@ -273,15 +274,15 @@ export default function Header({
             <Dropdown 
               menu={{ items: notificationItems }} 
               placement="bottomRight"
-              trigger={['click']}
+              trigger={['hover']}
               overlayClassName="notification-dropdown"
             >
-              <div className="header-notification">
+              <div className="header-notification group">
                 <Badge count={unreadCount} size="small">
                   <Button
                     type="text"
                     icon={<BellOutlined />}
-                    className="header-button hover:opacity-80 transition-opacity"
+                    className="header-button hover:opacity-80 transition-all duration-300 group-hover:scale-105"
                     style={{ color: BUTTON_TEXT_COLOR }}
                     aria-label={`${unreadCount} unread notifications`}
                   />
@@ -292,12 +293,13 @@ export default function Header({
             <Dropdown 
               menu={{ items: userMenuItems }} 
               placement="bottomRight"
-              trigger={['click']}
+              trigger={['hover']}
               overlayClassName="user-dropdown"
             >
               <Avatar 
-                className="header-avatar cursor-pointer hover:opacity-80 transition-opacity"
+                className="header-avatar cursor-pointer hover:opacity-80 transition-all duration-300 hover:scale-105"
                 style={{ backgroundColor: '#1890ff' }}
+                size="large"
                 icon={<UserOutlined />}
                 alt="User avatar"
               />
@@ -306,8 +308,14 @@ export default function Header({
         </div>
       </header>
       
-      <nav className="header-breadcrumb px-4 md:px-6 py-2" style={BREADCRUMB_STYLES} aria-label="Breadcrumb">
-        <Breadcrumb items={breadcrumbItems} />
+      <nav 
+        className="header-breadcrumb px-6 py-3" 
+        style={BREADCRUMB_STYLES} 
+        aria-label="Breadcrumb"
+      >
+        <div className="max-w-7xl mx-auto">
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
       </nav>
     </div>
   );

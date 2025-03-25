@@ -1,39 +1,19 @@
 'use client';
-
+ 
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 
 export default function AuthPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e : any) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (result?.error) {
-        setError(result.error);
-      } else {
-        // Handle successful login (e.g., redirect)
-        window.location.href = '/dashboard';
-      }
-    } catch (err) {
-      setError('An unexpected error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const { data: session } = useSession();
+  const router = useRouter();
+ 
+  if (session?.user) {
+    router.push('/admin');
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -82,7 +62,7 @@ export default function AuthPage() {
             </button>
 
             <button
-              onClick={() => signIn('telegram', { callbackUrl: '/admin' })}
+              onClick={() => signIn('coinbase', { callbackUrl: '/admin' })}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#0088cc] hover:bg-[#0077b3] rounded-lg border border-[#0088cc] transition-all duration-200 text-white font-medium"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

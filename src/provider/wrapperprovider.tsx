@@ -23,7 +23,7 @@ export default function WrapperProvider({ children }: { children: React.ReactNod
                 background: '#00000',
                 color: 'rgba(255,255,255,0.85)'
               }}>
-               { isMobile ? null : <Header  title=''/> }
+              <Header  title=''/>  
                 {children}
               </div>
               </App>

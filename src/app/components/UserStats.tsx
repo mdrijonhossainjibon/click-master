@@ -15,8 +15,6 @@ interface UserData {
 }
 
 export default function UserStats() {
-    const { data: session } = useSession();
-    const [userData, setUserData] = useState<UserData | null>(null);
    
 
     const { loading , balance , adsWatched , timeRemaining } = useSelector((state: RootState) => state.userStats.userState);

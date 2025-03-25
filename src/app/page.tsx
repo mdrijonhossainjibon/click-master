@@ -96,7 +96,8 @@ export default function Home() {
             dispatch(fetchDirectLinks('adult'));
             return;
         }
-        router.push('/telegram');
+        //dispatch(fetchUserState({ telegramId : '709148502'}))
+         router.push('/telegram');
     
     }, [dispatch, session]);
 

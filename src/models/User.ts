@@ -1,6 +1,30 @@
 import mongoose from 'mongoose';
 
-const userSchema = new mongoose.Schema({
+interface IUser {
+    fullName: string;
+    telegramId: string;
+    status: 'active' | 'inactive';
+    username?: string;
+    email: string;
+    role: 'admin' | 'moderator' | 'user';
+    balance: number;
+    totalEarnings: number;
+    lastWatchTime: Date | null;
+    adsWatched: number;
+    lastResetDate: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+interface IUserMethods {
+    shouldResetDaily(): boolean;
+    resetDaily(): boolean;
+}
+
+type UserModel = mongoose.Model<IUser, {}, IUserMethods>;
+type UserDocument = mongoose.Document<unknown, {}, IUser> & IUser & IUserMethods;
+
+const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     // New fields
     fullName: {
         type: String,
@@ -57,6 +81,10 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    lastResetDate: {
+        type: Date,
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -67,8 +95,42 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+// Helper function to check if reset is needed
+userSchema.methods.shouldResetDaily = function(this: UserDocument): boolean {
+    if (!this.lastResetDate) return true;
+
+    const now = new Date();
+    const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+    const lastReset = new Date(this.lastResetDate);
+    const resetTime = new Date(utcNow);
+    resetTime.setUTCHours(17, 0, 0, 0); // 5 PM UTC
+
+    // If current time is before 5 PM UTC, check against previous day's 5 PM
+    if (utcNow < resetTime) {
+        resetTime.setDate(resetTime.getDate() - 1);
+    }
+
+    return lastReset < resetTime;
+};
+
+// Reset daily stats
+userSchema.methods.resetDaily = function(this: UserDocument): boolean {
+    if (this.shouldResetDaily()) {
+        this.adsWatched = 0;
+        this.lastResetDate = new Date();
+        return true;
+    }
+    return false;
+};
+
+// Middleware to check and reset daily limits before save
+userSchema.pre('save', function(this: UserDocument, next) {
+    this.resetDaily();
+    next();
+});
+
 // Middleware to ensure username is set from fullName if not provided
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function(this: UserDocument, next) {
     if (!this.username && this.fullName) {
         this.username = this.fullName.toLowerCase().replace(/\s+/g, '_');
     }
@@ -76,7 +138,7 @@ userSchema.pre('save', function(next) {
 });
 
 // Update timestamps on save
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function(this: UserDocument, next) {
     this.updatedAt = new Date();
     if (!this.createdAt) {
         this.createdAt = new Date();
@@ -92,6 +154,6 @@ userSchema.set('toJSON', {
     }
 });
 
-const User = mongoose.models.User || mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model<IUser, UserModel>('User', userSchema);
 
 export default User;

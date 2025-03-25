@@ -83,6 +83,7 @@ export default function Home() {
                     username: tgUser.username
                 });
                 // Fetch user state using Telegram ID
+                
                 dispatch(fetchUserState({ telegramId: tgUser.id.toString() }));
                 dispatch(fetchDirectLinks('adult'));
                 return;
@@ -111,7 +112,7 @@ export default function Home() {
         //const userEmail = session.user.email;
 
         try {
-            window.show_9132294?.('pop').then(async () => {
+            window.show_9132294?.().then(async () => {
                 try {
                     // Dispatch the watchAd action after the ad is shown
                    /*  const resultAction = await dispatch(watchAd({ userId: userEmail }));

@@ -96,7 +96,7 @@ export default function Home() {
             return;
         }
           //dispatch(fetchUserState({ telegramId : '709148502'}))
-         router.push('/telegram');
+          router.push('/telegram');
     
     }, [dispatch, session]);
 
@@ -125,23 +125,6 @@ export default function Home() {
         }
     };
 
-    const handleAutoShowAds = async () => {
-        
-        
-
-        try {
-            // Show ads every 15 seconds
-            const interval = setInterval(handleWatchAd, 15000);
-
-            // Stop after 1 hour
-            setTimeout(() => {
-                clearInterval(interval);
-            }, 3600000);
-        } catch (err) {
-            console.error('Error in auto show ads:', err);
-            alert(err instanceof Error ? err.message : 'Failed to start auto show');
-        }
-    };
 
   
 
@@ -197,7 +180,7 @@ export default function Home() {
 
                         <AdButtons
                             onWatchAd={handleWatchAd}
-                            onAutoShowAds={handleAutoShowAds}
+                             
                             disabled={false}
                         />
 

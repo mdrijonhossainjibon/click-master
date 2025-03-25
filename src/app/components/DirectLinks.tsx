@@ -1,12 +1,12 @@
 'use client';
 
-import { Empty } from "antd";
+import { Empty, message } from "antd";
 import { motion } from "framer-motion";
 import { RootState } from "../store";
 import { useSelector } from "react-redux";
 
 interface DirectLink {
-    id: string;
+    _id: string;
     title: string;
     url: string;
     icon: string;
@@ -14,11 +14,6 @@ interface DirectLink {
         from: string;
         to: string;
     };
-}
-
-interface DirectLinksProps {
-    links: DirectLink[];
-    onLinkClick: (linkId: string) => void;
 }
 
 const container = {
@@ -36,14 +31,28 @@ const item = {
     show: { opacity: 1, y: 0 }
 };
 
-export default function DirectLinks({   onLinkClick }: {  onLinkClick : (linkId : string) => void }) {
-
+export default function DirectLinks() {
     const userState = useSelector((state: RootState) => state.userStats.userState); 
-     
+    const links = userState?.directLinks || []; 
 
-   const links  =  userState?.directLinks || []; 
+    const handleDirectLinkClick = async (link: DirectLink) => {
+        try {
+            // Record the click
+            await fetch('/api/direct-links/click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ linkId: link._id }),
+            });
 
-   
+            // Open link in new tab
+            window.open(link.url, '_blank', 'noopener,noreferrer');
+        } catch (error) {
+            console.error('Error clicking link:', error);
+            message.error('Failed to open link. Please try again.');
+        }
+    };
 
     return (
         <div className="w-full max-w-4xl mx-auto mb-6 p-6 bg-gradient-to-r from-red-900/50 to-pink-900/50 rounded-2xl border border-red-500/20 backdrop-blur-sm shadow-xl">
@@ -76,18 +85,18 @@ export default function DirectLinks({   onLinkClick }: {  onLinkClick : (linkId 
                     >
                         {links.map(link => (
                             <motion.button
-                                key={link.id}
+                                key={link._id}
                                 variants={item}
-                                onClick={() => onLinkClick(link.id)}
-                                className={`group relative flex items-center justify-center w-full h-16 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:scale-105`}
+                                onClick={() => handleDirectLinkClick(link)}
+                                className={`group relative flex items-center justify-center w-full h-16 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl`}
                                 style={{
                                     background: `linear-gradient(to right, var(--tw-gradient-from-${link.gradient.from}), var(--tw-gradient-to-${link.gradient.to}))`
                                 }}
                             >
                                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-2xl">{link.icon}</span>
-                                    <span className="text-white text-sm sm:text-base font-bold">
+                                <div className="flex items-center space-x-2 relative z-10">
+                                    <span className="text-2xl group-hover:scale-110 transition-transform">{link.icon}</span>
+                                    <span className="text-white text-sm sm:text-base font-bold group-hover:text-opacity-90">
                                         {link.title}
                                     </span>
                                 </div>

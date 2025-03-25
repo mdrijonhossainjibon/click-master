@@ -145,20 +145,7 @@ export default function Home() {
         }
     };
 
-    const handleDirectLinkClick = async (linkId: string) => {
-        try {
-            const response = await fetch('/api/direct-links', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ linkId })
-            });
-
-            if (!response.ok) throw new Error('Failed to record link click');
-        } catch (err) {
-            console.error('Error clicking link:', err);
-        } 
-
-    };
+  
 
    
      
@@ -217,7 +204,7 @@ export default function Home() {
                         />
 
                      
-                        <DirectLinks onLinkClick={handleDirectLinkClick} />
+                        <DirectLinks />
                     </div>
                 </main>
             )}

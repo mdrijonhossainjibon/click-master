@@ -41,7 +41,7 @@ export async function GET(request: Request) {
             directLinks
         });
     } catch (error) {
-        const errorResponse = { error: 'Failed to fetch user state', status: 500 };
+        const errorResponse = { error:  error instanceof Error ? error.message : 'Internal Server Error', status: 500 };
         handleApiError(errorResponse);
         return NextResponse.json(errorResponse, { status: 500 });
     }
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         handleApiError(errorResponse);
         return NextResponse.json(errorResponse, { status: 400 });
     } catch (error) {
-        const errorResponse = { error: 'Failed to process request', status: 500 };
+        const errorResponse = { error: error instanceof Error ? error.message : 'Internal Server Error', status: 500 };
         handleApiError(errorResponse);
         return NextResponse.json(errorResponse, { status: 500 });
     }

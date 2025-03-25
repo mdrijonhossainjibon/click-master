@@ -53,11 +53,7 @@ const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     },
     email: {
         type: String,
-        required: [true, 'Email is required'],
-        unique: true,
-        trim: true,
-        lowercase: true,
-        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email address']
+        default : null
     },
     role: {
         type: String,

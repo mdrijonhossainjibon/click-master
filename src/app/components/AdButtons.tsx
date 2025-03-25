@@ -73,7 +73,7 @@ export default function AdButtons({ onWatchAd, disabled }: AdButtonsProps) {
                 </div>
             </button>
             <button
-                onClick={handleAutoShowAds}
+              
                 disabled={disabled}
                 className={`auto-ads-btn w-full max-w-md h-16 sm:h-20 px-8 sm:px-10 text-white font-bold rounded-2xl transform hover:-translate-y-1 transition-all duration-300 text-base sm:text-xl text-center flex items-center justify-center group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed ${
                     isAutoPlaying 

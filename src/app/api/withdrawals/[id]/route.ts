@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Withdrawal, { IWithdrawal } from '@/app/models/Withdrawal';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+ 
 import { Types } from 'mongoose';
 import User from '@/models/User';
+import { authOptions } from '@/lib/authOptions';
 
 interface UserPopulated {
     _id: Types.ObjectId;

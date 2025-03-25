@@ -28,6 +28,11 @@ interface Session {
     };
 }
 
+declare global {
+    interface Window {
+        show_9132294: any;
+    }
+}
  
 
 export default function Home() {
@@ -62,23 +67,25 @@ export default function Home() {
     const handleWatchAd = async () => {
         if (!session?.user?.email) {
             //alert('Please login to watch ads');
-            return;
+            //return;
         }
 
-        const userEmail = session.user.email;
+        console.log('Watching ad...');
+
+        //const userEmail = session.user.email;
 
         try {
-            window.show_8876485?.().then(async () => {
+            window.show_9132294?.('pop').then(async () => {
                 try {
                     // Dispatch the watchAd action after the ad is shown
-                    const resultAction = await dispatch(watchAd({ userId: userEmail }));
+                   /*  const resultAction = await dispatch(watchAd({ userId: userEmail }));
                     
                     if (watchAd.fulfilled.match(resultAction)) {
                         
                         dispatch(fetchUserState( { email : userEmail }));
                     } else if (watchAd.rejected.match(resultAction)) {
                         throw new Error(resultAction.payload as string);
-                    }
+                    } */
                 } catch (error) {
                     throw error;
                 }
@@ -124,20 +131,7 @@ export default function Home() {
 
     };
 
-    useEffect(() => {
-        if (window.show_8876485) {
-            return
-        }
-
-        const tag = document.createElement('script')
-        tag.src = '//whephiwums.com/vignette.min.js'
-        tag.dataset.zone = '8876485'
-        tag.dataset.sdk = 'show_8876485'
-
-        tag.onload = () =>  console.log('Script loaded');
-        document.body.appendChild(tag)
-    }, [])
-
+   
     return (
         <div className="min-h-screen bg-gray-900 text-white">
             {/* Top Navigation with Marquee */}
@@ -189,7 +183,7 @@ export default function Home() {
                         <AdButtons
                             onWatchAd={handleWatchAd}
                             onAutoShowAds={handleAutoShowAds}
-                            disabled={adState.loading}
+                            disabled={false}
                         />
 
                      
@@ -211,7 +205,7 @@ export default function Home() {
             <WithdrawalModal
                 isOpen={isWithdrawalModalOpen}
                 onClose={() => setIsWithdrawalModalOpen(false)}
-                balance={0}
+                
                 onHistoryClick={() => {
                     setIsWithdrawalModalOpen(false);
                     setIsHistoryModalOpen(true);

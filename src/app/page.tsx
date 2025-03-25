@@ -97,32 +97,24 @@ export default function Home() {
             return;
         }
         router.push('/telegram');
-        // Default fallback if neither Telegram nor session auth is available
-        dispatch(fetchUserState({ telegramId: '12621545445' }));
+    
     }, [dispatch, session]);
 
     const handleWatchAd = async () => {
-        if (!session?.user?.email) {
-            //alert('Please login to watch ads');
-            //return;
-        }
-
-        console.log('Watching ad...');
-
-        //const userEmail = session.user.email;
-
+       
         try {
             window.show_9132294?.().then(async () => {
                 try {
-                    // Dispatch the watchAd action after the ad is shown
-                   /*  const resultAction = await dispatch(watchAd({ userId: userEmail }));
+                   if(telegramUser){
+                     // Dispatch the watchAd action after the ad is shown
+                     const resultAction = await dispatch(watchAd({  telegramId : telegramUser.id.toString() }));
                     
-                    if (watchAd.fulfilled.match(resultAction)) {
-                        
-                        dispatch(fetchUserState( { email : userEmail }));
-                    } else if (watchAd.rejected.match(resultAction)) {
-                        throw new Error(resultAction.payload as string);
-                    } */
+                     if (watchAd.fulfilled.match(resultAction)) {
+                          dispatch(fetchUserState( { telegramId : telegramUser.id.toString()  }));
+                     } else if (watchAd.rejected.match(resultAction)) {
+                         throw new Error(resultAction.payload as string);
+                     }
+                   }
                 } catch (error) {
                     throw error;
                 }

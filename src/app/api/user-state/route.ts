@@ -49,9 +49,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        const { userId, action } = await request.json();
+        const { telegramId , action } = await request.json();
 
-        if (!userId || !action) {
+        if (!telegramId || !action) {
             const errorResponse = { error: 'User ID and action are required', status: 400 };
             handleApiError(errorResponse);
             return NextResponse.json(errorResponse, { status: 400 });
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
          
         await connectDB();
 
-        const user = await User.findOne({ email: userId });
+        const user = await User.findOne({ telegramId });
         if (!user) {
             const errorResponse = { error: 'User not found', status: 404 };
             handleApiError(errorResponse);

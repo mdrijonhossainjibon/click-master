@@ -14,7 +14,7 @@ const initialState: AdState = {
 
 export const watchAd = createAsyncThunk(
     'ad/watchAd',
-    async ({ userId }: { userId: string }, { rejectWithValue }) => {
+    async ({ telegramId }: { telegramId : string }, { rejectWithValue }) => {
         try {
             const response = await fetch('/api/user-state', {
                 method: 'POST',
@@ -22,7 +22,7 @@ export const watchAd = createAsyncThunk(
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    userId,
+                    telegramId,
                     action: 'watch_ad'
                 }),
             });

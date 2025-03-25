@@ -30,7 +30,7 @@ const initialState: AppState = {
         balance: 0,
         adsWatched: 0,
         timeRemaining: 0,
-        directLinks: {},
+        directLinks: [],
         loading: false,
         error: null
     },

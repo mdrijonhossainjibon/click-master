@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { handleApiError } from '@/lib/errorHandler';
+import { DirectLink } from '@/models/DirectLink';
 
-const directLinks = {
-    link1: 'https://example1.com',
-    link2: 'https://example2.com'
-};
+ 
 
 export async function GET(request: Request) {
     try {
@@ -32,6 +30,8 @@ export async function GET(request: Request) {
         const timeRemaining = user.lastWatchTime 
             ? Math.max(0, 15 - Math.floor((now.getTime() - user.lastWatchTime.getTime()) / 1000))
             : 0;
+
+            const directLinks = await DirectLink.find({}).sort({ createdAt: -1 });
 
         return NextResponse.json({
             success: true,

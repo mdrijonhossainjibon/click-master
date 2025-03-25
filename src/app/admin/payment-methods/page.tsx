@@ -212,11 +212,22 @@ export default function PaymentMethods() {
                         visible={isAddModalVisible}
                         onCancel={() => setIsAddModalVisible(false)}
                         footer={null}
+                        className="payment-method-modal"
+                        width="100%"
+                        style={{ maxWidth: '100vw', margin: 0, padding: 0, top: 0 }}
+                        modalRender={modal => (
+                            <div className="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center z-50 p-4 animate-fadeIn">
+                                <div className="bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 w-full max-w-2xl border border-gray-700/50 shadow-2xl transform transition-all duration-300 scale-100 animate-modalSlideIn">
+                                    {modal}
+                                </div>
+                            </div>
+                        )}
                     >
                         <Form
                             form={form}
                             layout="vertical"
                             onFinish={handleSubmit}
+                            className="space-y-6"
                         >
                             <Form.Item
                                 name="name"

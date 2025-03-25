@@ -2,6 +2,8 @@
 
 import { Empty } from "antd";
 import { motion } from "framer-motion";
+import { RootState } from "../store";
+import { useSelector } from "react-redux";
 
 interface DirectLink {
     id: string;
@@ -34,7 +36,15 @@ const item = {
     show: { opacity: 1, y: 0 }
 };
 
-export default function DirectLinks({ links, onLinkClick }: DirectLinksProps) {
+export default function DirectLinks({   onLinkClick }: {  onLinkClick : (linkId : string) => void }) {
+
+    const userState = useSelector((state: RootState) => state.userStats.userState); 
+     
+
+   const links  =  userState?.directLinks || []; 
+
+   
+
     return (
         <div className="w-full max-w-4xl mx-auto mb-6 p-6 bg-gradient-to-r from-red-900/50 to-pink-900/50 rounded-2xl border border-red-500/20 backdrop-blur-sm shadow-xl">
             <div className="flex flex-col items-center space-y-4">

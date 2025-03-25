@@ -18,27 +18,7 @@ import Loading from './components/Loading';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from './store';
 import { fetchUserState, fetchDirectLinks, watchAd } from './store';
-import { message } from 'antd';
-
-interface DirectLink {
-    id: string;
-    title: string;
-    url: string;
-    icon: string;
-    gradient: {
-        from: string;
-        to: string;
-    };
-    clicks: number;
-    position: number;
-}
-
-interface UserState {
-    balance: number;
-    adsWatched: number;
-    timeRemaining: number;
-    directLinks: Record<string, string>;
-}
+ 
 
 interface Session {
     user?: {
@@ -48,16 +28,14 @@ interface Session {
     };
 }
 
-declare var window: any & {
-    show_9103912?: () => Promise<void>;
-};
+ 
 
 export default function Home() {
     const { data: session } = useSession() as { data: Session | null };
     const dispatch = useDispatch<AppDispatch>();
 
     const userState = useSelector((state: RootState) => state.userStats.userState);
-    const directLinks =  { loading: false, error: null, data: [ ]}
+    
     const adState = useSelector((state: RootState) => state.ad);
 
     const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
@@ -66,31 +44,19 @@ export default function Home() {
     const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
     const [isLiveSupportModalOpen, setIsLiveSupportModalOpen] = useState(false);
-    const [isInitializing, setIsInitializing] = useState(true);
+ 
 
     useEffect(() => {
      
-
-
-
-        if (session?.user?.email) {
+      if (session?.user?.email) {
             dispatch(fetchUserState({ email : session.user.email }));
-        }
+            dispatch(fetchDirectLinks('adult'));
+            return;
+    }
+
+    // dispatch(fetchUserState({ telegramId : '12621545445' }))
  
-
-
-        dispatch(fetchDirectLinks('adult'));
-
-        // Set up interval to refresh user state every 15 seconds
-        const interval = setInterval(() => {
-            if (session?.user?.email) {
-                dispatch(fetchUserState({ email : session.user.email }));
-            }
-
-            dispatch(fetchUserState({ telegramId : '12621545445' }))
-        }, 25000);
-
-        return () => clearInterval(interval);
+  
     }, [session?.user?.email, dispatch]);
 
     const handleWatchAd = async () => {
@@ -154,12 +120,12 @@ export default function Home() {
             if (!response.ok) throw new Error('Failed to record link click');
         } catch (err) {
             console.error('Error clicking link:', err);
-        }
+        } 
+
     };
 
     useEffect(() => {
         if (window.show_8876485) {
-            setIsInitializing(false)
             return
         }
 
@@ -168,7 +134,7 @@ export default function Home() {
         tag.dataset.zone = '8876485'
         tag.dataset.sdk = 'show_8876485'
 
-        tag.onload = () => setIsInitializing(false)
+        tag.onload = () =>  console.log('Script loaded');
         document.body.appendChild(tag)
     }, [])
 
@@ -227,10 +193,7 @@ export default function Home() {
                         />
 
                      
-                        <DirectLinks
-                            links={directLinks.data}
-                            onLinkClick={handleDirectLinkClick}
-                        />
+                        <DirectLinks onLinkClick={handleDirectLinkClick} />
                     </div>
                 </main>
             )}

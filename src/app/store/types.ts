@@ -2,7 +2,7 @@ export interface UserState {
     balance: number;
     adsWatched: number;
     timeRemaining: number;
-    directLinks: Record<string, string>;
+    directLinks: any[];
     loading: boolean;
     error: string | null;
 }

@@ -58,8 +58,7 @@ export default function Home() {
     const adState = useSelector((state: RootState) => state.ad);
 
     const [telegramUser, setTelegramUser] = useState<{id: number, username?: string} | null>(null);
-
-    const [isTelegramApp, setIsTelegramApp] = useState(true);
+ 
 
     const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
@@ -96,8 +95,8 @@ export default function Home() {
             dispatch(fetchDirectLinks('adult'));
             return;
         }
-        //dispatch(fetchUserState({ telegramId : '709148502'}))
-          router.push('/telegram');
+          //dispatch(fetchUserState({ telegramId : '709148502'}))
+         router.push('/telegram');
     
     }, [dispatch, session]);
 
@@ -127,10 +126,8 @@ export default function Home() {
     };
 
     const handleAutoShowAds = async () => {
-        if (!session?.user?.email) {
-            alert('Please login to watch ads');
-            return;
-        }
+        
+        
 
         try {
             // Show ads every 15 seconds

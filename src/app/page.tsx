@@ -54,14 +54,14 @@ export default function Home() {
             return;
     }
 
-    // dispatch(fetchUserState({ telegramId : '12621545445' }))
+      dispatch(fetchUserState({ telegramId : '12621545445' }))
  
   
-    }, [session?.user?.email, dispatch]);
+    }, [  dispatch]);
 
     const handleWatchAd = async () => {
         if (!session?.user?.email) {
-            alert('Please login to watch ads');
+            //alert('Please login to watch ads');
             return;
         }
 

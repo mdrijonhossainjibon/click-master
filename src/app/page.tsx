@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from './store';
 import { fetchUserState, fetchDirectLinks, watchAd } from './store';
 import { useRouter } from 'next/navigation';
-import { QRCode, Typography, theme } from 'antd';
+ 
 
 interface Session {
     user?: {
@@ -68,7 +68,7 @@ export default function Home() {
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
     const [isLiveSupportModalOpen, setIsLiveSupportModalOpen] = useState(false);
     const router = useRouter();
-    const { token } = theme.useToken();
+  
 
     useEffect(() => {
         // Check if running in Telegram Mini App
@@ -97,7 +97,7 @@ export default function Home() {
             return;
         }
         //dispatch(fetchUserState({ telegramId : '709148502'}))
-         router.push('/telegram');
+          router.push('/telegram');
     
     }, [dispatch, session]);
 

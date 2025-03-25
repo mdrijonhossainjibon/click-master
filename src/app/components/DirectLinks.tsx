@@ -42,6 +42,29 @@ const item = {
     show: { opacity: 1, y: 0 }
 };
 
+// RGB Animation keyframes
+const rgbAnimation = `
+@keyframes rgbBorder {
+    0% { border-color: rgb(255, 0, 0); box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); }
+    33% { border-color: rgb(0, 255, 0); box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
+    66% { border-color: rgb(0, 0, 255); box-shadow: 0 0 15px rgba(0, 0, 255, 0.5); }
+    100% { border-color: rgb(255, 0, 0); box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); }
+}
+@keyframes rgbText {
+    0% { color: rgb(255, 0, 0); }
+    33% { color: rgb(0, 255, 0); }
+    66% { color: rgb(0, 0, 255); }
+    100% { color: rgb(255, 0, 0); }
+}
+.rgb-border-animation {
+    animation: rgbBorder 4s linear infinite;
+    border: 2px solid;
+}
+.rgb-text-animation {
+    animation: rgbText 4s linear infinite;
+}
+`;
+
 export default function DirectLinks() {
     const userState = useSelector((state: RootState) => state.userStats.userState); 
     const links = userState?.directLinks || [];
@@ -74,6 +97,16 @@ export default function DirectLinks() {
         return updated;
     });
 
+    // Add RGB animation styles
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = rgbAnimation;
+        document.head.appendChild(style);
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
     // Persist button states to localStorage
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(buttonStates));
@@ -93,7 +126,7 @@ export default function DirectLinks() {
                         hasUpdates = true;
                     }
                     if (newStates[linkId].countdown === 0) {
-                        delete newStates[linkId]; // Remove completed countdowns
+                        delete newStates[linkId];
                         hasUpdates = true;
                     }
                 });
@@ -105,7 +138,6 @@ export default function DirectLinks() {
         return () => clearInterval(interval);
     }, []);
 
-    // Memoized click handler
     const handleDirectLinkClick = useCallback(async (link: DirectLink) => {
         if (buttonStates[link._id]?.isLocked) {
             message.warning('Please wait for the countdown to finish');
@@ -113,7 +145,6 @@ export default function DirectLinks() {
         }
 
         try {
-            // Lock the button and start countdown
             setButtonStates(prev => ({
                 ...prev,
                 [link._id]: {
@@ -123,21 +154,12 @@ export default function DirectLinks() {
                 }
             }));
 
-            // Record the click
-            await fetch('/api/direct-links/click', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ linkId: link._id }),
-            });
+           
 
-            // Open link in new tab
-            window.open(link.url, '_blank' );
+            window.open(link.url, '_blank');
         } catch (error) {
             console.error('Error clicking link:', error);
             message.error('Failed to open link. Please try again.');
-            // Reset button state on error
             setButtonStates(prev => {
                 const newState = { ...prev };
                 delete newState[link._id];
@@ -146,7 +168,6 @@ export default function DirectLinks() {
         }
     }, [buttonStates]);
 
-    // Memoized link buttons
     const linkButtons = useMemo(() => {
         return links.map(link => {
             const buttonState = buttonStates[link._id];
@@ -160,27 +181,37 @@ export default function DirectLinks() {
                     onClick={() => handleDirectLinkClick(link)}
                     disabled={isLocked}
                     className={`group relative flex items-center justify-center w-full h-16 rounded-xl shadow-lg overflow-hidden transition-all duration-300 
-                        ${isLocked ? 'opacity-75 cursor-not-allowed' : 'hover:scale-105 hover:shadow-2xl'}`}
+                        ${isLocked ? 'opacity-75 cursor-not-allowed' : 'rgb-border-animation hover:scale-105 hover:shadow-2xl'}`}
                     style={{
                         background: `linear-gradient(to right, var(--tw-gradient-from-${link.gradient.from}), var(--tw-gradient-to-${link.gradient.to}))`
                     }}
                 >
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
                     <div className="flex flex-col items-center justify-center relative z-10">
-                        <div className="flex items-center space-x-2">
-                            <span className="text-2xl group-hover:scale-110 transition-transform">{link.icon}</span>
-                            <span className="text-white text-sm sm:text-base font-bold group-hover:text-opacity-90">
-                                {link.title}
-                            </span>
-                        </div>
-                        {isLocked && (
-                            <div className="absolute -bottom-6 left-0 right-0 text-center">
-                                <span className="text-amber-400 text-sm font-medium animate-pulse">
+                        {isLocked ? (
+                            <div className="flex items-center justify-center">
+                                <span className="text-2xl text-amber-400 font-bold animate-pulse">
                                     {countdown}s
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center space-x-2">
+                                <span className={`text-2xl transition-transform group-hover:scale-110 rgb-text-animation`}>
+                                    {link.icon}
+                                </span>
+                                <span className="text-sm sm:text-base font-bold text-white group-hover:text-opacity-90">
+                                    {link.title}
                                 </span>
                             </div>
                         )}
                     </div>
+                    {isLocked && (
+                        <div className="absolute -bottom-6 left-0 right-0 text-center">
+                            <span className="text-amber-400 text-sm font-medium animate-pulse">
+                                {countdown}s
+                            </span>
+                        </div>
+                    )}
                 </motion.button>
             );
         });

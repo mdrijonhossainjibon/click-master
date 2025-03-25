@@ -48,17 +48,14 @@ export default function UserStats() {
                         <div className="flex items-center justify-center text-yellow-400 mb-1">
                             <DollarCircleOutlined className="text-xl mr-2" />
                             <span className="text-2xl font-bold animate-pulse">
-                                ${ balance.toFixed(2)}
+                                ${ balance.toFixed(4)}
                             </span>
                         </div>
                         <div className="text-sm text-gray-400">Available Balance</div>
                         <div className="text-sm text-emerald-400">
                             ৳{( balance * 100).toFixed(2)}
                         </div>
-                        <div className="flex items-center justify-center text-xs text-violet-400">
-                            <TrophyOutlined className="mr-1" />
-                            <span>Total: $ 0</span>
-                        </div>
+                         
                     </div>
                 </Tooltip>
             </div>

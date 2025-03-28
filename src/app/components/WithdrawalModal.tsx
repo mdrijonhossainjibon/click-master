@@ -1,9 +1,8 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useForm, Controller, FieldValues } from 'react-hook-form';
-import { Select } from 'antd';
 import Image from 'next/image';
 import { RootState } from '../store';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -18,6 +17,63 @@ import {
   BDT_PROCESSING_TIME,
   NETWORK_FEE_MESSAGE
 } from '../constants/withdrawal';
+
+// Custom Select Component
+interface SelectOption {
+  value: string;
+  label: string | React.ReactNode;
+  icon?: string;
+  description?: string;
+}
+
+interface CustomSelectProps {
+  options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+function CustomSelect({ options, value, onChange, disabled, className, style }: CustomSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedOption = options.find(opt => opt.value === value);
+
+  return (
+    <div className="relative" style={style}>
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full text-left bg-[#2C2D30] border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 transition-all duration-200 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-600'} ${className}`}
+      >
+        {selectedOption?.label}
+        <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          <svg className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </span>
+      </button>
+      
+      {isOpen && !disabled && (
+        <div className="absolute z-50 w-full mt-1 bg-[#2C2D30] border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-auto">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`w-full text-left p-3 hover:bg-[#3A3B3E] transition-colors ${value === option.value ? 'bg-[#3A3B3E]' : ''}`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Types and Enums
 enum PaymentMethod {
@@ -191,7 +247,7 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
       const response = await fetch('/api/withdrawals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify( { ...data,telegramId: telegramId }),
+        body: JSON.stringify({ ...data, telegramId: telegramId }),
       });
 
       if (!response.ok) {
@@ -219,7 +275,7 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0  dark:bg-black/90   backdrop-blur-lg flex items-center justify-center z-50 p-0 sm:p-4 animate-fadeIn overflow-y-auto">
+    <div className="fixed inset-0 dark:bg-black/90 backdrop-blur-lg flex items-center justify-center z-50 p-0 sm:p-4 animate-fadeIn overflow-y-auto">
       <div className="bg-[#1A1B1E] rounded-2xl w-full h-full sm:h-auto sm:max-w-2xl border border-gray-800 shadow-2xl transform transition-all duration-300 scale-100 animate-modalSlideIn relative sm:my-4">
         {/* Header */}
         <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800">
@@ -276,12 +332,11 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
               name="method"
               control={control}
               render={({ field }) => (
-                <Select
+                <CustomSelect
                   {...field}
                   disabled={isDisabled}
-                  className="w-full bg-[#2C2D30] "
-                  style={{ width: '100%' , height : '60px' }}
-                  optionLabelProp="label"
+                  className="w-full"
+                  style={{ height: '60px' }}
                   options={paymentMethodOptions.map(option => ({
                     ...option,
                     label: (
@@ -301,11 +356,6 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
                       </div>
                     )
                   }))}
-                  dropdownStyle={{
-                    background: 'bg-[#2C2D30]',
-                    borderColor: '#374151'
-                  }}
-                  popupClassName="custom-dark-select"
                 />
               )}
             />
@@ -323,11 +373,11 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
                 control={control}
                 rules={{ required: 'Please select a network' }}
                 render={({ field }) => (
-                  <Select
-                    {...field}
+                  <CustomSelect
+                    {...field as any}
                     disabled={isDisabled}
                     className="w-full"
-                    style={{ width: '100%', height : '40px' }}
+                    style={{ height: '40px' }}
                     options={networkOptions[selectedMethod].map(network => ({
                       value: network.value,
                       label: (
@@ -352,14 +402,12 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
                         </div>
                       )
                     }))}
-                    dropdownStyle={{
-                      background: '#1A1B1E',
-                      borderColor: '#374151'
-                    }}
-                    popupClassName="custom-dark-select"
                   />
                 )}
               />
+              {errors.network && (
+                <p className="mt-1 text-sm text-red-500">{errors.network.message}</p>
+              )}
             </div>
           )}
 

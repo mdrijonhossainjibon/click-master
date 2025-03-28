@@ -17,45 +17,54 @@ import {
   TeamOutlined,
   HistoryOutlined,
 } from '@ant-design/icons';
+import { API_CALL } from '@/lib/client';
 
 interface User {
-  id: string;
+  _id: string;
+  fullName: string;
+  telegramId: string;
+  status: 'active' | 'inactive';
   username: string;
   email: string;
-  status: 'active' | 'inactive';
-  joinedDate: string;
+  role: string;
+  balance: number;
+  totalEarnings: number;
+  lastWatchTime: string | null;
+  adsWatched: number;
+  lastResetDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Stats {
+  totalUsers: number;
+  totalBalance: number;
+  totalEarnings: number;
+  totalAdsWatched: number;
+  newUsersLast24h: number;
+  totalWithdrawals: number;
+  pendingWithdrawals: number;
 }
 
 export default function UsersPage() {
   const router = useRouter();
   const pathname = usePathname();
   const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock data - replace with actual API call
   useEffect(() => {
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        username: 'johndoe',
-        email: 'john@example.com',
-        status: 'active',
-        joinedDate: '2024-03-28'
-      },
-      {
-        id: '2',
-        username: 'janedoe',
-        email: 'jane@example.com',
-        status: 'active',
-        joinedDate: '2024-03-27'
-      }
-    ];
-
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setLoading(false);
-    }, 1000);
+    API_CALL({ url: '/api/admin/users' })
+      .then(res => {
+        setUsers(res.response?.result?.users);
+        setStats(res.response?.result?.stats || null);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching users:', error);
+        setLoading(false);
+      });
   }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,6 +170,54 @@ export default function UsersPage() {
               </div>
             </div>
 
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                <div className="flex items-center">
+                  <div className="p-4 rounded-xl bg-blue-900/20 group-hover:bg-blue-900/40 transition-all duration-300">
+                    <UserOutlined className="text-blue-400 text-2xl group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Total Users</h2>
+                    <p className="text-3xl font-bold text-white mt-1">{stats?.totalUsers || 0}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                <div className="flex items-center">
+                  <div className="p-4 rounded-xl bg-green-900/20 group-hover:bg-green-900/40 transition-all duration-300">
+                    <DashboardOutlined className="text-green-400 text-2xl group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Total Earnings</h2>
+                    <p className="text-3xl font-bold text-white mt-1">${stats?.totalEarnings || 0}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                <div className="flex items-center">
+                  <div className="p-4 rounded-xl bg-yellow-900/20 group-hover:bg-yellow-900/40 transition-all duration-300">
+                    <TeamOutlined className="text-yellow-400 text-2xl group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">New Users (24h)</h2>
+                    <p className="text-3xl font-bold text-white mt-1">{stats?.newUsersLast24h || 0}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                <div className="flex items-center">
+                  <div className="p-4 rounded-xl bg-purple-900/20 group-hover:bg-purple-900/40 transition-all duration-300">
+                    <HistoryOutlined className="text-purple-400 text-2xl group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Total Ads Watched</h2>
+                    <p className="text-3xl font-bold text-white mt-1">{stats?.totalAdsWatched || 0}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Search Bar */}
             <div className="mb-6">
               <div className="relative">
@@ -203,37 +260,57 @@ export default function UsersPage() {
                       </tr>
                     ) : (
                       filteredUsers.map((user) => (
-                        <tr key={user.id} className="hover:bg-gray-800/50 transition-colors duration-200">
+                        <tr key={user._id} className="hover:bg-gray-800/50 transition-colors duration-200">
                           <td className="px-6 py-4">
                             <div className="flex items-center">
                               <div className="h-8 w-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center">
                                 <UserOutlined className="text-gray-400" />
                               </div>
-                              <span className="ml-3 font-medium text-gray-100">{user.username}</span>
+                              <div className="ml-3">
+                                <span className="font-medium text-gray-100">{user.username}</span>
+                                <p className="text-sm text-gray-400">{user.fullName}</p>
+                              </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-gray-300">{user.email}</td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                              ${user.status === 'active' 
-                                ? 'bg-green-900/20 text-green-400' 
-                                : 'bg-gray-900/20 text-gray-400'
-                              }`}>
-                              {user.status}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-gray-300">{user.email}</span>
+                              <span className="text-sm text-gray-400">ID: {user.telegramId}</span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 text-gray-300">{user.joinedDate}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                ${user.status === 'active' 
+                                  ? 'bg-green-900/20 text-green-400' 
+                                  : 'bg-gray-900/20 text-gray-400'
+                                }`}>
+                                {user.status}
+                              </span>
+                              <span className="text-xs text-blue-400">{user.role}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-gray-300">{new Date(user.createdAt).toLocaleDateString()}</span>
+                              <span className="text-sm text-gray-400">
+                                Earnings: ${user.totalEarnings}
+                              </span>
+                            </div>
+                          </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <button
                                 onClick={() => {/* Handle edit */}}
                                 className="p-2 text-gray-400 hover:text-blue-400 transition-colors duration-200"
+                                title="Edit User"
                               >
                                 <EditOutlined />
                               </button>
                               <button
                                 onClick={() => {/* Handle delete */}}
                                 className="p-2 text-gray-400 hover:text-red-400 transition-colors duration-200"
+                                title="Delete User"
                               >
                                 <DeleteOutlined />
                               </button>

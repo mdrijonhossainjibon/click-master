@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     try {
         const session = await getServerSession();
         
+        console.log(session);
         if (!session?.user?.email || !(await isAdmin(session.user.email))) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
             pendingWithdrawals
         };
 
-        return NextResponse.json({ users, stats });
+        return NextResponse.json({ result:{ user : users, stats} });
     } catch (error) {
         const errorResponse = { error: 'Failed to fetch users', status: 500 };
         handleApiError(errorResponse);

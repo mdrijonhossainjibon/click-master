@@ -44,12 +44,13 @@ export type Method =
   };
 
   type result = {
-    user?: any;
+    users?: any;
     data?: any[];
     result: any;
     history: any
     csrf_token ? : string;
-    _id : string
+    _id : string;
+    stats : any
   }
 
 
@@ -74,8 +75,9 @@ export type Method =
 
   
 export const API_CALL = async (props: API_CALL_PROPS): Promise<TypeApiPromise> => {
-    const apiUrl = `http://localhost:3000/api`
+    const apiUrl = `${ window.location.origin }/api`
   
+     
     const api = axios.create({
       baseURL: props?.baseURL || apiUrl
     });

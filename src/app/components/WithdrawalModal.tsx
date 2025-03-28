@@ -219,7 +219,7 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center z-50 p-0 sm:p-4 animate-fadeIn overflow-y-auto">
+    <div className="fixed inset-0  dark:bg-black/90   backdrop-blur-lg flex items-center justify-center z-50 p-0 sm:p-4 animate-fadeIn overflow-y-auto">
       <div className="bg-[#1A1B1E] rounded-2xl w-full h-full sm:h-auto sm:max-w-2xl border border-gray-800 shadow-2xl transform transition-all duration-300 scale-100 animate-modalSlideIn relative sm:my-4">
         {/* Header */}
         <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800">
@@ -279,7 +279,7 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
                 <Select
                   {...field}
                   disabled={isDisabled}
-                  className="w-full"
+                  className="w-full bg-[#2C2D30] "
                   style={{ width: '100%' , height : '60px' }}
                   optionLabelProp="label"
                   options={paymentMethodOptions.map(option => ({
@@ -302,7 +302,7 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
                     )
                   }))}
                   dropdownStyle={{
-                    background: '#1A1B1E',
+                    background: 'bg-[#2C2D30]',
                     borderColor: '#374151'
                   }}
                   popupClassName="custom-dark-select"

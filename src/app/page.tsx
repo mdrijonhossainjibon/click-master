@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from './store';
 import { fetchUserState, fetchDirectLinks, watchAd } from './store';
 import { useRouter } from 'next/navigation';
+import { useTheme } from './providers/ThemeProvider';
  
 
 interface Session {
@@ -68,6 +69,7 @@ export default function Home() {
     const [isLiveSupportModalOpen, setIsLiveSupportModalOpen] = useState(false);
     const router = useRouter();
   
+    const { theme,   toggleTheme } = useTheme();
 
     useEffect(() => {
         // Check if running in Telegram Mini App
@@ -94,6 +96,13 @@ export default function Home() {
           ///router.push('/telegram');
     
     }, [dispatch ]);
+
+  useEffect(() =>{
+   
+     if(theme === 'light'){
+        toggleTheme()
+     }
+  }, [toggleTheme])
 
     const handleWatchAd = async () => {
        

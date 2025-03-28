@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { LoadingProvider } from "./providers/LoadingProvider";
 import "./globals.css";
+import 'antd/dist/reset.css';
 import './row.css'
 import WrapperProvider from "@/provider/wrapperprovider";
 import Script from "next/script";

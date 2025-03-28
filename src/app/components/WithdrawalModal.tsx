@@ -3,6 +3,8 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useForm, Controller, FieldValues } from 'react-hook-form';
+import { Select } from 'antd';
+import Image from 'next/image';
 import { RootState } from '../store';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
@@ -36,6 +38,7 @@ interface WithdrawalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onHistoryClick?: () => void;
+  telegramId: string;
 }
 
 interface WithdrawalFormData extends FieldValues {
@@ -45,6 +48,34 @@ interface WithdrawalFormData extends FieldValues {
   recipient: string;
   memo?: string;
 }
+
+// Payment Method Configuration
+const paymentMethodOptions = [
+  {
+    value: PaymentMethod.BKASH,
+    label: 'bKash - Mobile Banking',
+    icon: '/images/BKash-Icon-Logo.wine.svg',
+    description: 'Fast local transfers'
+  },
+  {
+    value: PaymentMethod.NAGAD,
+    label: 'Nagad - Digital Wallet',
+    icon: '/images/nagad-logo.png',
+    description: 'Secure digital payments'
+  },
+  {
+    value: PaymentMethod.BITGET,
+    label: 'Bitget USDT',
+    icon: '/images/tether-usdt-logo.png',
+    description: 'Crypto exchange transfer'
+  },
+  {
+    value: PaymentMethod.BINANCE,
+    label: 'Binance USDT',
+    icon: '/images/tether-usdt-logo.png',
+    description: 'Multi-network support'
+  }
+];
 
 // Network Configuration
 const networkOptions: Record<PaymentMethod, Array<{
@@ -74,7 +105,25 @@ const inputStyles = "w-full bg-gray-700/90 text-white rounded-xl p-3 border bord
 const selectStyles = `${inputStyles} appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="%239CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')] bg-no-repeat bg-right-1 bg-[length:20px] pr-10`;
 const buttonStyles = "w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none group";
 
-export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: WithdrawalModalProps) {
+// Validation helpers
+const validateUSDTAddress = (address: string, network?: NetworkType): boolean => {
+  if (!address) return false;
+  
+  const patterns = {
+    [NetworkType.TRC20]: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
+    [NetworkType.ERC20]: /^0x[a-fA-F0-9]{40}$/,
+    [NetworkType.BEP20]: /^0x[a-fA-F0-9]{40}$/,
+    [NetworkType.BEP2]: /^bnb[0-9a-z]{39}$/i
+  };
+  
+  return network ? patterns[network]?.test(address) ?? false : true;
+};
+
+const validateMobileNumber = (number: string): boolean => {
+  return /^01[3-9]\d{8}$/.test(number);
+};
+
+export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, telegramId }: WithdrawalModalProps) {
   const { balance } = useSelector((state: RootState) => state.userStats.userState);
   
   const {
@@ -119,12 +168,30 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
     return true;
   }, [isCryptoPayment, balance]);
 
+  const validateRecipient = useCallback((value: string) => {
+    if (!value) return 'This field is required';
+    
+    if (isCryptoPayment) {
+      const network = watch('network');
+      if (!validateUSDTAddress(value, network)) {
+        return `Invalid ${network?.toUpperCase()} address format`;
+      }
+    } else {
+      if (!validateMobileNumber(value)) {
+        return 'Invalid mobile number format (e.g., 01712345678)';
+      }
+    }
+    return true;
+  }, [isCryptoPayment, watch]);
+
   const onSubmit = async (data: WithdrawalFormData) => {
+
+    console.log(data)
     try {
       const response = await fetch('/api/withdrawals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify( { ...data,telegramId: telegramId }),
       });
 
       if (!response.ok) {
@@ -152,14 +219,14 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center z-50 p-4 animate-fadeIn">
-      <div className="bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 w-full max-w-lg border border-gray-700/50 shadow-2xl transform transition-all duration-300 scale-100 animate-modalSlideIn relative">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">Withdraw Funds</h2>
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center z-50 p-0 sm:p-4 animate-fadeIn overflow-y-auto">
+      <div className="bg-gray-800/80 backdrop-blur-xl rounded-2xl p-4 sm:p-6 w-full h-full sm:h-auto sm:max-w-lg border border-gray-700/50 shadow-2xl transform transition-all duration-300 scale-100 animate-modalSlideIn relative sm:my-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Withdraw Funds</h2>
           {onHistoryClick && (
             <button
               onClick={onHistoryClick}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95 flex items-center"
+              className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95 flex items-center justify-center sm:justify-start"
             >
               <span className="mr-2">📜</span>
               History
@@ -167,12 +234,12 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
           )}
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="bg-gray-700/60 backdrop-blur-sm rounded-xl p-4">
-            <p className="text-yellow-400 font-bold mb-2">Available Balance</p>
-            <p className="text-2xl font-bold text-white">${balance.toFixed(3)}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6 h-[calc(100vh-120px)] sm:h-auto overflow-y-auto pb-4 sm:pb-0">
+          <div className="bg-gray-700/60 backdrop-blur-sm rounded-xl p-3 sm:p-4">
+            <p className="text-yellow-400 font-bold mb-1 sm:mb-2 text-sm sm:text-base">Available Balance</p>
+            <p className="text-xl sm:text-2xl font-bold text-white">${balance.toFixed(3)}</p>
             {balance < MIN_CRYPTO_AMOUNT && (
-              <p className="text-red-400 text-sm mt-2 font-medium">
+              <p className="text-red-400 text-xs sm:text-sm mt-2 font-medium">
                 ⚠️ Your balance is below the minimum withdrawal amount (${MIN_CRYPTO_AMOUNT})
               </p>
             )}
@@ -182,12 +249,37 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
             name="method"
             control={control}
             render={({ field }) => (
-              <select {...field} className={inputStyles} disabled={isDisabled}>
-                <option value={PaymentMethod.BKASH}>🏦 bKash - Mobile Banking</option>
-                <option value={PaymentMethod.NAGAD}>💳 Nagad - Digital Wallet</option>
-                <option value={PaymentMethod.BITGET}>₿ Bitget USDT</option>
-                <option value={PaymentMethod.BINANCE}>🌐 Binance USDT</option>
-              </select>
+              <Select
+                {...field}
+                disabled={isDisabled}
+                className="w-full"
+                style={{ width: '100%' }}
+                optionLabelProp="label"
+                options={paymentMethodOptions.map(option => ({
+                  ...option,
+                  label: (
+                    <div className="flex items-center gap-3 py-2">
+                      <div className="w-8 h-8 relative flex-shrink-0">
+                        <Image
+                          src={option.icon}
+                          alt={option.label}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                      <div>
+                        <div className="font-medium text-white">{option.label}</div>
+                        <div className="text-gray-400 text-sm">{option.description}</div>
+                      </div>
+                    </div>
+                  )
+                }))}
+                dropdownStyle={{
+                  background: '#1F2937',
+                  borderColor: '#374151'
+                }}
+                popupClassName="custom-dark-select"
+              />
             )}
           />
 
@@ -201,13 +293,28 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
                   <label className="block text-gray-300 mb-2">
                     <span className="flex items-center gap-2">🌐 Network</span>
                   </label>
-                  <select {...field} className={inputStyles} disabled={isDisabled}>
-                    {networkOptions[selectedMethod].map((network) => (
-                      <option key={network.value} value={network.value}>
-                        {network.label} - Fee: {network.fee} ({network.processingTime})
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    {...field}
+                    disabled={isDisabled}
+                    className="w-full"
+                    style={{ width: '100%' }}
+                    options={networkOptions[selectedMethod].map(network => ({
+                      value: network.value,
+                      label: (
+                        <div className="flex flex-col gap-1">
+                          <div className="font-medium">{network.label}</div>
+                          <div className="text-sm text-gray-400">
+                            Fee: {network.fee} • {network.processingTime}
+                          </div>
+                        </div>
+                      )
+                    }))}
+                    dropdownStyle={{
+                      background: '#1F2937',
+                      borderColor: '#374151'
+                    }}
+                    popupClassName="custom-dark-select"
+                  />
                 </div>
               )}
             />
@@ -218,12 +325,7 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
             control={control}
             rules={{
               required: 'This field is required',
-              validate: (value: string) => {
-                if (!isCryptoPayment && value.length !== 11) {
-                  return VALIDATION_MESSAGES.INVALID_MOBILE;
-                }
-                return true;
-              }
+              validate: validateRecipient
             }}
             render={({ field }) => (
               <div>
@@ -234,13 +336,31 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
                 </label>
                 <input
                   {...field}
-                  type="text"
-                  className={inputStyles}
-                  placeholder={isCryptoPayment ? 'Enter your wallet address' : 'Enter your mobile number'}
+                  type={isCryptoPayment ? "text" : "tel"}
+                  inputMode={isCryptoPayment ? "text" : "numeric"}
+                  pattern={isCryptoPayment ? undefined : "[0-9]*"}
+                  className={`${inputStyles} ${errors.recipient ? 'border-red-500 focus:border-red-500' : ''}`}
+                  placeholder={isCryptoPayment ? `Enter your ${watch('network')?.toUpperCase()} address` : 'Enter your mobile number (e.g., 01712345678)'}
                   disabled={isDisabled}
+                  onChange={(e) => {
+                    if (!isCryptoPayment) {
+                      // Only allow numbers for mobile input
+                      const value = e.target.value.replace(/\D/g, '');
+                      field.onChange(value);
+                    } else {
+                      field.onChange(e.target.value.trim());
+                    }
+                  }}
                 />
                 {errors.recipient && (
                   <ErrorMessage message={errors.recipient.message || ''} />
+                )}
+                {!errors.recipient && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    {isCryptoPayment 
+                      ? `Make sure this is a valid ${watch('network')?.toUpperCase()} address`
+                      : 'Enter your 11-digit mobile number starting with 01'}
+                  </p>
                 )}
               </div>
             )}
@@ -267,15 +387,18 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
                   <input
                     {...field}
                     type="number"
+                    inputMode="decimal"
                     step={isCryptoPayment ? '0.001' : '1'}
-                    className={`${inputStyles} pl-7 pr-20`}
+                    className={`${inputStyles} pl-7 pr-20 ${errors.amount ? 'border-red-500 focus:border-red-500' : ''}`}
                     disabled={isDisabled}
+                    min={isCryptoPayment ? MIN_CRYPTO_AMOUNT : MIN_BDT_AMOUNT}
+                    max={isCryptoPayment ? balance : MAX_BDT_AMOUNT}
                   />
                   <button
                     type="button"
                     onClick={setMaxAmount}
                     disabled={isDisabled}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 active:scale-95"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     MAX
                   </button>
@@ -287,8 +410,8 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
             )}
           />
 
-          <div className="bg-gray-700/60 backdrop-blur-sm rounded-xl p-4">
-            <p className="text-gray-300 text-sm space-y-1">
+          <div className="bg-gray-700/60 backdrop-blur-sm rounded-xl p-3 sm:p-4">
+            <p className="text-gray-300 text-xs sm:text-sm space-y-1">
               {isCryptoPayment ? (
                 <>
                   • Minimum withdrawal: ${MIN_CRYPTO_AMOUNT}<br />
@@ -323,11 +446,11 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick }: Wit
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <button
               type="submit"
               disabled={isDisabled || isSubmitting}
-              className={buttonStyles}
+              className={`${buttonStyles} text-sm sm:text-base py-2.5 sm:py-3`}
             >
               {isSubmitting ? (
                 <LoadingSpinner />

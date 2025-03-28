@@ -1,31 +1,30 @@
 import { NextResponse } from 'next/server';
  
 import Withdrawal from '@/app/models/Withdrawal';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/authOptions';
-import { Session } from 'next-auth';
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 
-interface CustomSession extends Session {
-    user: {
-        id: string;
-        email?: string | null;
-        name?: string | null;
-        image?: string | null;
-    };
+// Constants for conversion
+const USD_TO_BDT_RATE = 100; // 1 USD = 100 BDT
+const MIN_CRYPTO_AMOUNT = 0.002;
+const MIN_BDT_AMOUNT = 100;
+const MAX_BDT_AMOUNT = 25000;
+
+// Helper function to convert USDT to BDT
+function convertUSDTtoBDT(usdtAmount: number): number {
+    return usdtAmount * USD_TO_BDT_RATE;
+}
+
+// Helper function to convert BDT to USDT
+function convertBDTtoUSDT(bdtAmount: number): number {
+    return bdtAmount / USD_TO_BDT_RATE;
 }
 
 export async function GET(req: Request) {
     try {
         await dbConnect();
-        const session = await getServerSession(authOptions) as CustomSession | null;
-        
-        if (!session?.user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const user = await User.findOne({ email: session.user.email });
+          
+        const user = await User.findOne({  telegramId : '709148502' });
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
@@ -35,7 +34,17 @@ export async function GET(req: Request) {
             .populate('userId', 'name email')
             .lean();
 
-        return NextResponse.json(withdrawals);
+        // Add converted amounts to the response
+        const withdrawalsWithConversion = withdrawals.map(w => ({
+            ...w,
+            bdtAmount: w.method.toLowerCase() === 'bkash' || w.method.toLowerCase() === 'nagad' 
+                ? w.amount 
+                : convertUSDTtoBDT(w.amount)
+        }));
+  
+        
+
+        return NextResponse.json({ result : withdrawalsWithConversion });
     } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -45,15 +54,12 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         await dbConnect();
-        const session = await getServerSession(authOptions) as CustomSession | null;
-        
-        if (!session?.user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+      
+     
 
         const data = await req.json();
-        const { method, amount, recipient } = data;
-
+        const { method, amount, recipient , telegramId, network } = data;
+ 
         // Validate required fields
         if (!method || !amount || !recipient) {
             return NextResponse.json(
@@ -62,44 +68,108 @@ export async function POST(req: Request) {
             );
         }
 
-        // Validate amount
-        if (amount < 0.002) {
-            return NextResponse.json(
-                { error: 'Minimum withdrawal amount is 0.002' },
-                { status: 400 }
-            );
+        const isCryptoPayment = method.toLowerCase() === 'binance' || method.toLowerCase() === 'bitget';
+        const amountInUSDT = isCryptoPayment ? parseFloat(amount) : convertBDTtoUSDT(parseFloat(amount));
+
+        // Validate amount based on payment method
+        if (isCryptoPayment) {
+            if (amountInUSDT < MIN_CRYPTO_AMOUNT) {
+                return NextResponse.json(
+                    { error: `Minimum withdrawal amount is ${MIN_CRYPTO_AMOUNT} USDT` },
+                    { status: 400 }
+                );
+            }
+        } else {
+            const bdtAmount = parseFloat(amount);
+            if (bdtAmount < MIN_BDT_AMOUNT) {
+                return NextResponse.json(
+                    { error: `Minimum withdrawal amount is ${MIN_BDT_AMOUNT} BDT` },
+                    { status: 400 }
+                );
+            }
+            if (bdtAmount > MAX_BDT_AMOUNT) {
+                return NextResponse.json(
+                    { error: `Maximum withdrawal amount is ${MAX_BDT_AMOUNT} BDT` },
+                    { status: 400 }
+                );
+            }
         }
 
-        const user = await User.findOne({ email: session.user.email });
+        const user = await User.findOne({ telegramId });
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        // Check if user has sufficient balance
-        if (user.balance < amount) {
+        // Check if user has sufficient balance (always check in USDT)
+        if (user.balance < amountInUSDT) {
             return NextResponse.json(
                 { error: 'Insufficient balance' },
                 { status: 400 }
             );
         }
 
-        // Create withdrawal and update user balance in a transaction
+        // Create withdrawal record
         const withdrawal = await Withdrawal.create({
             userId: user._id,
             method,
-            amount: parseFloat(amount),
+            amount: amountInUSDT, // Always store amount in USDT
             recipient,
-            status: 'pending'
+            network,
+            status: 'pending',
+            originalAmount: parseFloat(amount), // Store original amount for reference
+            currency: isCryptoPayment ? 'USDT' : 'BDT'
         });
 
-        // Update user balance
+        // Update user balance (in USDT)
         await User.findByIdAndUpdate(user._id, {
-            $inc: { balance: -amount }
+            $inc: { balance: -amountInUSDT }
         });
 
-        return NextResponse.json(withdrawal);
+        return NextResponse.json({
+            message: 'Withdrawal request submitted successfully',
+            withdrawal: {
+                ...withdrawal.toObject(),
+                bdtAmount: isCryptoPayment ? convertUSDTtoBDT(amountInUSDT) : parseFloat(amount)
+            }
+        });
     } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function DELETE ( req : Request , context : any){
+ try {
+    
+    const { id } = await req.json();
+    if (!id) {
+        return NextResponse.json({ error: 'Missing withdrawal ID' }, { status: 400 });
+    }
+
+    const withdrawal = await Withdrawal.findById(id);
+    if (!withdrawal) {
+        return NextResponse.json({ error: 'Withdrawal not found' }, { status: 404 });
+    }
+
+    if (withdrawal.status !== 'pending') {
+        return NextResponse.json({ error: 'Can only cancel pending withdrawals' }, { status: 400 });
+    }
+
+    // Refund the USDT amount to user's balance
+    await User.findByIdAndUpdate(withdrawal.userId, {
+        $inc: { balance: withdrawal.amount }
+    });
+
+    await Withdrawal.findByIdAndDelete(id);
+    
+
+   return NextResponse.json({ 
+        message: 'Withdrawal cancelled successfully',
+        refundedAmount: withdrawal.amount,
+        refundedAmountBDT: convertUSDTtoBDT(withdrawal.amount)
+    });
+ } catch (error) {
+    console.error(error);
+     return NextResponse.json({ error: 'Failed to cancel withdrawal' }, { status: 500 });
+ }
+} 

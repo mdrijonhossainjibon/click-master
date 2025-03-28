@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import WithdrawalDetailsModal from './WithdrawalDetailsModal';
 import axios from 'axios';
+ 
+import { API_CALL } from '@/lib/client';
+ 
 
 
 interface WithdrawalHistoryModalProps {
@@ -40,8 +43,8 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
     const fetchWithdrawals = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get('/api/withdrawals');
-            setHistory(response.data);
+            const { response } = await  API_CALL({ url : 'withdrawals' , body : { telegramId : '709148502' } }); 
+            setHistory(response?.result   as any);
         } catch (error: any) {
            // toast.error(error.response?.data?.error || 'Failed to load withdrawals');
         } finally {
@@ -51,7 +54,8 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
 
     const handleDelete = async (id: string) => {
         try {
-            await axios.delete(`/api/withdrawals/${id}`);
+            const { response } = await API_CALL({ url:  'withdrawals', body: { id } , method : 'DELETE' });
+            
             //toast.success('Withdrawal cancelled successfully');
             fetchWithdrawals();
         } catch (error: any) {
@@ -77,15 +81,15 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
     const getMethodIcon = (method: string) => {
         switch (method.toLowerCase()) {
             case 'bkash':
-                return '/images/bkash.png';
+                return '/images/BKash-Icon-Logo.wine.svg';
             case 'nagad':
-                return '/images/nagad.png';
+                return '/images/BKash-Icon-Logo.wine.svg';
             case 'binance':
-                return '/images/binance.png';
+                return '/images/BKash-Icon-Logo.wine.svg';
             case 'bitget':
-                return '/images/bitget.png';
+                return '/images/BKash-Icon-Logo.wine.svg';
             default:
-                return '/images/usdt.png';
+                return '/images/BKash-Icon-Logo.wine.svg';
         }
     };
 
@@ -141,7 +145,7 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
                                                 className="rounded-full hover:opacity-80 transition-opacity duration-200"
                                             />
                                             <Image
-                                                src="/images/usdt.png"
+                                                src="/images/tether-usdt-logo.png"
                                                 alt="USDT"
                                                 width={16}
                                                 height={16}
@@ -162,7 +166,7 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
                                     <div className="text-right">
                                         <div className="flex items-center justify-end space-x-1">
                                             <Image
-                                                src="/images/usdt.png"
+                                                src="/images/tether-usdt-logo.png"
                                                 alt="USDT"
                                                 width={16}
                                                 height={16}
@@ -207,7 +211,7 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
                                 <p className="text-gray-400 text-sm">Total</p>
                                 <div className="flex items-center justify-center space-x-1">
                                     <Image
-                                        src="/images/usdt.png"
+                                        src="/images/tether-usdt-logo.png"
                                         alt="USDT"
                                         width={16}
                                         height={16}
@@ -221,7 +225,7 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
                                 <p className="text-gray-400 text-sm">Pending</p>
                                 <div className="flex items-center justify-center space-x-1">
                                     <Image
-                                        src="/images/usdt.png"
+                                        src="/images/tether-usdt-logo.png"
                                         alt="USDT"
                                         width={16}
                                         height={16}
@@ -236,7 +240,7 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
                                 <p className="text-gray-400 text-sm">Approved</p>
                                 <div className="flex items-center justify-center space-x-1">
                                     <Image
-                                        src="/images/usdt.png"
+                                        src="/images/tether-usdt-logo.png"
                                         alt="USDT"
                                         width={16}
                                         height={16}

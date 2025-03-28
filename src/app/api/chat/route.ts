@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
-
+import axios from 'axios';
 import { Message, IMessage } from '@/models/Message';
 import connectDB from '@/lib/db';
+import OpenAI from "openai";
 
-const responses = [
-    "Thank you for reaching out! How can I assist you today?",
-    "Hello! I'm here to help. What can I do for you?",
-    "Welcome to ClickMasterAds support! How may I help you?",
-    "Hi there! I'm your support agent. What brings you here today?",
-    "Thanks for contacting support! How can I make your day better?",
-];
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+
+const systemPrompt = `You are a helpful customer support agent for ClickMasterAds, a digital advertising platform. 
+Be professional, friendly, and concise in your responses. If you don't know something specific about the platform, 
+be honest and offer to connect the user with a human agent.`;
 
 export async function POST(req: Request) {
     try {
@@ -20,20 +20,44 @@ export async function POST(req: Request) {
         const userMessage = await Message.create({
             text: message,
             sender: 'user',
-            userId,
+            userId: '709148502',
             userName,
             timestamp: new Date(),
             status: 'sent'
         });
 
-        // Create and save support response
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        // Get chat history for context
+        const chatHistory = await Message.find({
+            userId,
+            timestamp: { $gte: new Date(Date.now() - 30 * 60 * 1000) } // Last 30 minutes
+        }).sort({ timestamp: 1 }).limit(10).lean();
+
+        // Prepare messages for DeepSeek
+        const messages = [
+            { role: 'system', content: systemPrompt },
+            ...chatHistory.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.text
+            })),
+            { role: 'user', content: message }
+        ];
+
+        const openai = new OpenAI({
+            baseURL: 'https://api.deepseek.com',
+            apiKey:  DEEPSEEK_API_KEY
+    });
+ 
+    
+
+         
+
+        // Create and save AI response
         const supportMessage = await Message.create({
-            text: randomResponse,
+            text: 'aiResponse',
             sender: 'support',
             userId: 'support',
-            userName: 'Support Agent',
-            timestamp: new Date(Date.now() + 2000),
+            userName: 'AI Support Agent',
+            timestamp: new Date(),
             status: 'sent'
         });
 
@@ -62,7 +86,7 @@ export async function POST(req: Request) {
         });
     } catch (error) {
         console.error('Chat error:', error);
-        return NextResponse.json({ error:  'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 

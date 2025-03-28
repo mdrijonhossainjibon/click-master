@@ -95,7 +95,7 @@ export default function Home() {
             dispatch(fetchDirectLinks('adult'));
             return;
         }
-          ////dispatch(fetchUserState({ telegramId : '709148502'}))
+         //dispatch(fetchUserState({ telegramId : '709148502'}))
           ///router.push('/telegram');
     
     }, [dispatch, session]);
@@ -203,7 +203,7 @@ export default function Home() {
             <WithdrawalModal
                 isOpen={isWithdrawalModalOpen}
                 onClose={() => setIsWithdrawalModalOpen(false)}
-                
+                telegramId={ telegramUser?.id.toString() || '709148502'}
                 onHistoryClick={() => {
                     setIsWithdrawalModalOpen(false);
                     setIsHistoryModalOpen(true);

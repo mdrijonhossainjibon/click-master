@@ -3,7 +3,7 @@
 import React from 'react';
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
-import Header from '@/app/components/Header';
+
 import { StyleProvider } from '@ant-design/cssinjs';
 import { Provider as ReduxProvider } from 'react-redux';
 import { store } from '@/app/store';
@@ -23,7 +23,7 @@ export default function WrapperProvider({ children }: { children: React.ReactNod
                 background: '#00000',
                 color: 'rgba(255,255,255,0.85)'
               }}>
-              <Header  title=''/>  
+      
                 {children}
               </div>
               </App>

@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
         const withdrawals = await Withdrawal.find({ userId: user._id })
             .sort({ createdAt: -1 })
-            .populate('userId', 'name email')
+            .populate('userId', 'name email username')
             .lean();
 
         // Add converted amounts to the response

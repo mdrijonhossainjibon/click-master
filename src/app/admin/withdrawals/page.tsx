@@ -1,346 +1,339 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Layout, Table, Card, Row, Col, Space, Tag, Select, DatePicker, Input, Button, Menu, Statistic } from 'antd';
-import { DashboardOutlined, TeamOutlined, HistoryOutlined, WalletOutlined, SettingOutlined, DollarOutlined } from '@ant-design/icons';
-import { api } from '@/app/services/api';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  RedoOutlined,
+  DashboardOutlined,
+  UserOutlined,
+  WalletOutlined,
+  CreditCardOutlined,
+  SettingOutlined,
+  BellOutlined,
+  TeamOutlined,
+  HistoryOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ClockCircleOutlined,
+} from '@ant-design/icons';
+import { API_CALL } from '@/lib/client';
 
-const { Content, Sider } = Layout;
-const { RangePicker } = DatePicker;
-const { Option } = Select;
+interface Withdrawal {
+  id: string;
+  userId: {
+    email: string;
+   username: string;
+  };
+  amount: number;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  method: string;
+   
+  
+}
 
-export default function WithdrawalsList() {
-    const [loading, setLoading] = useState(false);
-    const [withdrawals, setWithdrawals] = useState<any[]>([]);
-    const [filters, setFilters] = useState({
-        status: 'all',
-        dateRange: null,
-        search: ''
-    });
-    const [stats, setStats] = useState({
-        totalWithdrawals: 0,
-        pendingAmount: 0,
-        completedAmount: 0,
-        todayWithdrawals: 0
-    });
+export default function WithdrawalsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [loading, setLoading] = useState(false);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
-    const columns = [
-        {
-            title: 'User',
-            dataIndex: 'user',
-            key: 'user',
-            render: (user: any) => (
-                <Space direction="vertical" size="small">
-                    <span>{user.fullName}</span>
-                    <span className="text-gray-500 text-sm">@{user.telegramId}</span>
-                </Space>
-            )
-        },
-        {
-            title: 'Amount (USD)',
-            dataIndex: 'amount',
-            key: 'amount',
-            render: (amount: number) => `$${amount.toFixed(2)}`
-        },
-        {
-            title: 'Wallet Address',
-            dataIndex: 'walletAddress',
-            key: 'walletAddress',
-            width: '25%',
-            render: (address: string) => (
-                <span className="font-mono text-sm">{address}</span>
-            )
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: string) => {
-                const statusColors = {
-                    pending: 'processing',
-                    approved: 'success',
-                    rejected: 'error',
-                    completed: 'success'
-                };
-                return (
-                    <Tag color={statusColors[status as keyof typeof statusColors]}>
-                        {status.toUpperCase()}
-                    </Tag>
-                );
-            }
-        },
-        {
-            title: 'Requested At',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            render: (date: string) => new Date(date).toLocaleString()
-        },
-        {
-            title: 'Actions',
-            key: 'actions',
-            render: (_: any, record: any) => (
-                <Space size="middle">
-                    {record.status === 'pending' && (
-                        <>
-                            <Button type="primary" size="small" onClick={() => handleApprove(record.id)}>
-                                Approve
-                            </Button>
-                            <Button danger size="small" onClick={() => handleReject(record.id)}>
-                                Reject
-                            </Button>
-                        </>
+  useEffect(() => {
+    setLoading(true);
+    API_CALL({ url: '/withdrawals' })
+      .then((res) => {
+         setWithdrawals(res.response?.result as any);
+        console.log(res.response?.result);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleRefresh = () => {
+    
+    API_CALL({ url: '/withdrawals' })
+      .then((res) => {
+        setWithdrawals(res.response?.result as any);
+        console.log(res.response?.result);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const filteredWithdrawals = withdrawals.filter(withdrawal => {
+    const matchesSearch = (withdrawal.userId.username?.toLowerCase() || withdrawal.userId.email.toLowerCase()).includes(searchTerm.toLowerCase()) ||
+                         withdrawal.method.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = selectedStatus === 'all' || withdrawal.status === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const stats = {
+    total: withdrawals.reduce((sum, w) => sum + w.amount, 0),
+    approved: withdrawals.filter(w => w.status === 'approved').length,
+    pending: withdrawals.filter(w => w.status === 'pending').length
+  };
+
+  const menuItems = [
+    {
+      key: '/admin',
+      icon: <DashboardOutlined />,
+      label: 'Dashboard'
+    },
+    {
+      key: '/admin/users',
+      icon: <UserOutlined />,
+      label: 'Users'
+    },
+    {
+      key: '/admin/withdrawals',
+      icon: <WalletOutlined />,
+      label: 'Withdrawals'
+    },
+    {
+      key: '/admin/payment-methods',
+      icon: <CreditCardOutlined />,
+      label: 'Payment Methods'
+    },
+    {
+      key: '/admin/notifications',
+      icon: <BellOutlined />,
+      label: 'Notifications'
+    },
+    {
+      key: '/admin/roles',
+      icon: <TeamOutlined />,
+      label: 'Roles'
+    },
+    {
+      key: '/admin/history',
+      icon: <HistoryOutlined />,
+      label: 'History'
+    },
+    {
+      key: '/admin/settings',
+      icon: <SettingOutlined />,
+      label: 'Settings'
+    }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'text-green-400';
+      case 'rejected':
+        return 'text-red-400';
+      default:
+        return 'text-yellow-400';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <CheckCircleOutlined className="text-green-400" />;
+      case 'rejected':
+        return <CloseCircleOutlined className="text-red-400" />;
+      default:
+        return <ClockCircleOutlined className="text-yellow-400" />;
+    }
+  };
+
+  return (
+    <div className='bg-gray-900'>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 transition-colors duration-300">
+        <div className="min-h-screen text-gray-100">
+          <aside className="fixed inset-y-0 left-0 bg-gray-900 w-64 border-r border-gray-700 shadow-lg transition-colors duration-300">
+            <nav className="mt-8 px-4">
+              {menuItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => router.push(item.key)}
+                  className={`w-full flex items-center px-4 py-3 mb-2 rounded-xl text-left transition-all duration-300 ease-in-out
+                    ${pathname === item.key
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-gray-300 hover:bg-gray-800'}`}
+                >
+                  <span className={`text-xl mr-4 ${pathname === item.key ? 'text-white' : 'text-blue-400'}`}>
+                    {item.icon}
+                  </span>
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          <main className="ml-64 p-8">
+            <div className="flex justify-between items-center mb-8 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800 transition-all duration-300">
+              <h1 className="text-2xl font-bold text-gray-100 flex items-center">
+                <WalletOutlined className="mr-3 text-blue-400" />
+                Withdrawals Management
+              </h1>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-all duration-300 shadow-md"
+                >
+                  <DashboardOutlined />
+                  Dashboard
+                </button>
+                <button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  className={`flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300 shadow-md
+                    ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg transform hover:-translate-y-0.5'}`}
+                >
+                  <RedoOutlined className={`${loading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                <div className="flex items-center">
+                  <div className="p-4 rounded-xl bg-blue-900/20 group-hover:bg-blue-900/40 transition-all duration-300">
+                    <WalletOutlined className="text-blue-400 text-2xl group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Total Withdrawals</h2>
+                    <p className="text-3xl font-bold text-white mt-1">${stats.total.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                <div className="flex items-center">
+                  <div className="p-4 rounded-xl bg-green-900/20 group-hover:bg-green-900/40 transition-all duration-300">
+                    <CheckCircleOutlined className="text-green-400 text-2xl group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Approved</h2>
+                    <p className="text-3xl font-bold text-white mt-1">{stats.approved}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                <div className="flex items-center">
+                  <div className="p-4 rounded-xl bg-yellow-900/20 group-hover:bg-yellow-900/40 transition-all duration-300">
+                    <ClockCircleOutlined className="text-yellow-400 text-2xl group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Pending</h2>
+                    <p className="text-3xl font-bold text-white mt-1">{stats.pending}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 className="text-xl font-semibold text-gray-100">Recent Withdrawals</h2>
+                <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                  <div className="relative flex-grow md:flex-grow-0 md:min-w-[200px]">
+                    <input
+                      type="text"
+                      placeholder="Search withdrawals..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    />
+                  </div>
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left border-b border-gray-800">
+                      <th className="pb-4 text-gray-400 font-medium">User</th>
+                      <th className="pb-4 text-gray-400 font-medium">Amount</th>
+                      <th className="pb-4 text-gray-400 font-medium">Payment Method</th>
+                      <th className="pb-4 text-gray-400 font-medium">Status</th>
+                      <th className="pb-4 text-gray-400 font-medium">Date</th>
+                      <th className="pb-4 text-gray-400 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800">
+                    {filteredWithdrawals.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-gray-500">
+                          {searchTerm || selectedStatus !== 'all' ? 'No matching withdrawals found' : 'No withdrawals found'}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredWithdrawals.map((withdrawal) => (
+                        <tr key={withdrawal.id} className="hover:bg-gray-800/50 transition-colors duration-200">
+                          <td className="py-4 px-2">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{withdrawal.userId.username}</span>
+                              <span className="text-sm text-gray-400">{withdrawal.userId.email}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-2">
+                            <span className="font-medium text-green-400">${withdrawal.amount.toFixed(2)}</span>
+                          </td>
+                          <td className="py-4 px-2">
+                            <span className="px-3 py-1 bg-gray-800 rounded-lg text-sm">{withdrawal.method}</span>
+                          </td>
+                          <td className="py-4 px-2">
+                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm ${
+                              withdrawal.status === 'approved' ? 'bg-green-900/20 text-green-400' :
+                              withdrawal.status === 'rejected' ? 'bg-red-900/20 text-red-400' :
+                              'bg-yellow-900/20 text-yellow-400'
+                            }`}>
+                              {getStatusIcon(withdrawal.status)}
+                              {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                            </span>
+                          </td>
+                          <td className="py-4 px-2">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{new Date(withdrawal.createdAt).toLocaleDateString()}</span>
+                              <span className="text-sm text-gray-400">{new Date(withdrawal.createdAt).toLocaleTimeString()}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-2">
+                            <div className="flex gap-2">
+                              {withdrawal.status === 'pending' && (
+                                <>
+                                  <button
+                                    className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                                    onClick={() => {/* TODO: Handle approve */}}
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                                    onClick={() => {/* TODO: Handle reject */}}
+                                  >
+                                    Reject
+                                  </button>
+                                </>
+                              )}
+                              {withdrawal.status !== 'pending' && (
+                                <span className="text-sm text-gray-400">
+                                  {withdrawal.status === 'approved' ? 'Approved' : 'Rejected'}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
                     )}
-                    <Button type="link" size="small" onClick={() => handleViewDetails(record.id)}>
-                        View Details
-                    </Button>
-                </Space>
-            )
-        }
-    ];
-
-    const fetchWithdrawals = async () => {
-        try {
-            setLoading(true);
-            // const response = await api.getWithdrawals(filters);
-            // setWithdrawals(response.data);
-            // Mock data for development
-            setWithdrawals([
-                {
-                    id: 1,
-                    user: {
-                        fullName: 'John Doe',
-                        telegramId: 'johndoe123'
-                    },
-                    amount: 50.00,
-                    walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
-                    status: 'pending',
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 2,
-                    user: {
-                        fullName: 'Jane Smith',
-                        telegramId: 'janesmith456'
-                    },
-                    amount: 100.00,
-                    walletAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-                    status: 'completed',
-                    createdAt: new Date().toISOString()
-                }
-            ]);
-        } catch (error) {
-            console.error('Error fetching withdrawals:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchStats = async () => {
-        try {
-            // const response = await api.getWithdrawalStats();
-            // setStats(response.data);
-            // Mock data for development
-            setStats({
-                totalWithdrawals: 150,
-                pendingAmount: 500.00,
-                completedAmount: 2500.00,
-                todayWithdrawals: 5
-            });
-        } catch (error) {
-            console.error('Error fetching withdrawal stats:', error);
-        }
-    };
-
-    const handleApprove = async (id: number) => {
-        try {
-            // await api.approveWithdrawal(id);
-            fetchWithdrawals();
-            fetchStats();
-        } catch (error) {
-            console.error('Error approving withdrawal:', error);
-        }
-    };
-
-    const handleReject = async (id: number) => {
-        try {
-            // await api.rejectWithdrawal(id);
-            fetchWithdrawals();
-            fetchStats();
-        } catch (error) {
-            console.error('Error rejecting withdrawal:', error);
-        }
-    };
-
-    const handleViewDetails = (id: number) => {
-        window.location.href = `/admin/withdrawals/${id}`;
-    };
-
-    useEffect(() => {
-        fetchWithdrawals();
-        fetchStats();
-    }, [filters]);
-
-    const [collapsed, setCollapsed] = useState(false);
-
-    return (
-        <Layout style={{ minHeight: '100vh' }}>
-            <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="light">
-                <div style={{ height: 32, margin: 16, background: 'rgba(0, 0, 0, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1890ff', fontSize: '18px', fontWeight: 'bold' }}>
-                    {!collapsed ? 'ClickMaster' : 'CM'}
-                </div>
-                <Menu
-                    mode="inline"
-                    defaultSelectedKeys={['withdrawals']}
-                    defaultOpenKeys={['sub1', 'sub2']}
-                    style={{ borderRight: 0 }}
-                    items={[
-                        {
-                            key: 'dashboard',
-                            icon: <DashboardOutlined />,
-                            label: 'Dashboard',
-                        },
-                        {
-                            key: 'sub1',
-                            icon: <TeamOutlined />,
-                            label: 'User Management',
-                            children: [
-                                {
-                                    key: 'users',
-                                    label: 'All Users',
-                                },
-                                {
-                                    key: 'roles',
-                                    label: 'Roles & Permissions',
-                                },
-                                {
-                                    key: 'invites',
-                                    label: 'User Invitations',
-                                },
-                            ],
-                        },
-                        {
-                            key: 'sub2',
-                            icon: <WalletOutlined />,
-                            label: 'Financial',
-                            children: [
-                                {
-                                    key: 'transactions',
-                                    label: 'Transactions',
-                                },
-                                {
-                                    key: 'withdrawals',
-                                    label: 'Withdrawals',
-                                },
-                                {
-                                    key: 'reports',
-                                    label: 'Financial Reports',
-                                },
-                            ],
-                        },
-                        {
-                            key: 'history',
-                            icon: <HistoryOutlined />,
-                            label: 'Activity History',
-                        },
-                        {
-                            key: 'settings',
-                            icon: <SettingOutlined />,
-                            label: 'Settings',
-                        },
-                    ]}
-                />
-            </Sider>
-            <Layout>
-                <div className="p-6">
-                    <div className="mb-6">
-                        <Row gutter={[24, 24]}>
-                            <Col span={6}>
-                                <Card>
-                                    <Statistic
-                                        title="Total Withdrawals"
-                                        value={stats.totalWithdrawals}
-                                        prefix={<DollarOutlined />}
-                                    />
-                                </Card>
-                            </Col>
-                            <Col span={6}>
-                                <Card>
-                                    <Statistic
-                                        title="Pending Amount"
-                                        value={stats.pendingAmount}
-                                        precision={2}
-                                        prefix="$"
-                                    />
-                                </Card>
-                            </Col>
-                            <Col span={6}>
-                                <Card>
-                                    <Statistic
-                                        title="Completed Amount"
-                                        value={stats.completedAmount}
-                                        precision={2}
-                                        prefix="$"
-                                    />
-                                </Card>
-                            </Col>
-                            <Col span={6}>
-                                <Card>
-                                    <Statistic
-                                        title="Today's Withdrawals"
-                                        value={stats.todayWithdrawals}
-                                    />
-                                </Card>
-                            </Col>
-                        </Row>
-                    </div>
-
-                    <Card bordered={false}>
-                        <Row gutter={[16, 16]} className="mb-4">
-                            <Col span={8}>
-                                <Select
-                                    style={{ width: '100%' }}
-                                    placeholder="Filter by status"
-                                    value={filters.status}
-                                    onChange={(value) => setFilters({ ...filters, status: value })}
-                                >
-                                    <Option value="all">All Status</Option>
-                                    <Option value="pending">Pending</Option>
-                                    <Option value="approved">Approved</Option>
-                                    <Option value="rejected">Rejected</Option>
-                                    <Option value="completed">Completed</Option>
-                                </Select>
-                            </Col>
-                            <Col span={8}>
-                                <RangePicker
-                                    style={{ width: '100%' }}
-                                    onChange={(dates) => setFilters({ ...filters, dateRange: dates as any })}
-                                />
-                            </Col>
-                            <Col span={8}>
-                                <Input
-                                    placeholder="Search by user or wallet address"
-                                    value={filters.search}
-                                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                    prefix={<DollarOutlined />}
-                                />
-                            </Col>
-                        </Row>
-
-                        <Table
-                            columns={columns}
-                            dataSource={withdrawals}
-                            loading={loading}
-                            rowKey="id"
-                            pagination={{
-                                total: withdrawals.length,
-                                pageSize: 10,
-                                showSizeChanger: true,
-                                showQuickJumper: true
-                            }}
-                        />
-                    </Card>
-                </div>
-            </Layout>
-        </Layout>
-    );
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
 }

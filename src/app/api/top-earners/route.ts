@@ -94,6 +94,7 @@ export async function GET(req: Request) {
 
         const stats = calculateStats(topEarners);
 
+        console.log('Top Earners:', topEarners);
         return NextResponse.json({
             success: true,
             data: {

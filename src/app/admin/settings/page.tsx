@@ -1,465 +1,184 @@
 'use client';
 
 import { useState } from 'react';
-import { Layout, Form, Input, Select, Card, Row, Col, Space, Button, Switch, InputNumber, Menu, message, Tabs } from 'antd';
-import { DashboardOutlined, TeamOutlined, HistoryOutlined, WalletOutlined, SettingOutlined, RobotOutlined, NotificationOutlined, SecurityScanOutlined, DollarOutlined, PictureOutlined } from '@ant-design/icons';
-import { api } from '@/app/services/api';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  RedoOutlined,
+  DashboardOutlined,
+  UserOutlined,
+  WalletOutlined,
+  CreditCardOutlined,
+  SettingOutlined,
+  BellOutlined,
+  TeamOutlined,
+  HistoryOutlined,
+  SaveOutlined,
+} from '@ant-design/icons';
 
-const { Content, Sider } = Layout;
-const { Option } = Select;
-const { TabPane } = Tabs;
+export default function SettingsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [loading, setLoading] = useState(false);
 
-export default function Settings() {
-    const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
-    const [collapsed, setCollapsed] = useState(false);
+  const menuItems = [
+    {
+      key: '/admin',
+      icon: <DashboardOutlined />,
+      label: 'Dashboard'
+    },
+    {
+      key: '/admin/users',
+      icon: <UserOutlined />,
+      label: 'Users'
+    },
+    {
+      key: '/admin/withdrawals',
+      icon: <WalletOutlined />,
+      label: 'Withdrawals'
+    },
+    {
+      key: '/admin/payment-methods',
+      icon: <CreditCardOutlined />,
+      label: 'Payment Methods'
+    },
+    {
+      key: '/admin/notifications',
+      icon: <BellOutlined />,
+      label: 'Notifications'
+    },
+    {
+      key: '/admin/roles',
+      icon: <TeamOutlined />,
+      label: 'Roles'
+    },
+    {
+      key: '/admin/history',
+      icon: <HistoryOutlined />,
+      label: 'History'
+    },
+    {
+      key: '/admin/settings',
+      icon: <SettingOutlined />,
+      label: 'Settings'
+    }
+  ];
 
-    const handleSubmit = async (values: any) => {
-        try {
-            setLoading(true);
-            //await api.updateSettings(values);
-            message.success('Settings updated successfully');
-        } catch (error) {
-            message.error('Failed to update settings');
-            console.error('Error updating settings:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleSaveSettings = () => {
+    setLoading(true);
+    // TODO: Implement settings save logic
+    setTimeout(() => setLoading(false), 1000);
+  };
 
-    return (
-        <Layout style={{ minHeight: '100vh' }}>
-            <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="light">
-                <div style={{ height: 32, margin: 16, background: 'rgba(0, 0, 0, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1890ff', fontSize: '18px', fontWeight: 'bold' }}>
-                    {!collapsed ? 'ClickMaster' : 'CM'}
+  return (
+    <div className='bg-gray-900'>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 transition-colors duration-300">
+        <div className="min-h-screen text-gray-100">
+          <aside className="fixed inset-y-0 left-0 bg-gray-900 w-64 border-r border-gray-700 shadow-lg transition-colors duration-300">
+            <nav className="mt-8 px-4">
+              {menuItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => router.push(item.key)}
+                  className={`w-full flex items-center px-4 py-3 mb-2 rounded-xl text-left transition-all duration-300 ease-in-out
+                    ${pathname === item.key
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-gray-300 hover:bg-gray-800'}`}
+                >
+                  <span className={`text-xl mr-4 ${pathname === item.key ? 'text-white' : 'text-blue-400'}`}>
+                    {item.icon}
+                  </span>
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          <main className="ml-64 p-8">
+            <div className="flex justify-between items-center mb-8 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800 transition-all duration-300">
+              <h1 className="text-2xl font-bold text-gray-100 flex items-center">
+                <SettingOutlined className="mr-3 text-blue-400" />
+                Settings
+              </h1>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-all duration-300 shadow-md"
+                >
+                  <DashboardOutlined />
+                  Dashboard
+                </button>
+                <button
+                  onClick={handleSaveSettings}
+                  disabled={loading}
+                  className={`flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300 shadow-md
+                    ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg transform hover:-translate-y-0.5'}`}
+                >
+                  <SaveOutlined className={`${loading ? 'animate-spin' : ''}`} />
+                  Save Changes
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6">
+                <h2 className="text-xl font-semibold mb-6 text-gray-100">General Settings</h2>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Site Name</label>
+                    <input
+                      type="text"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter site name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Contact Email</label>
+                    <input
+                      type="email"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter contact email"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Minimum Withdrawal Amount</label>
+                    <input
+                      type="number"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter minimum amount"
+                    />
+                  </div>
                 </div>
-                <Menu
-                    mode="inline"
-                    defaultSelectedKeys={['settings']}
-                    defaultOpenKeys={['sub1', 'sub2']}
-                    style={{ borderRight: 0 }}
-                    items={[
-                        {
-                            key: 'dashboard',
-                            icon: <DashboardOutlined />,
-                            label: 'Dashboard',
-                        },
-                        {
-                            key: 'sub1',
-                            icon: <TeamOutlined />,
-                            label: 'User Management',
-                            children: [
-                                {
-                                    key: 'users',
-                                    label: 'All Users',
-                                },
-                                {
-                                    key: 'roles',
-                                    label: 'Roles & Permissions',
-                                },
-                                {
-                                    key: 'invites',
-                                    label: 'User Invitations',
-                                },
-                            ],
-                        },
-                        {
-                            key: 'sub2',
-                            icon: <WalletOutlined />,
-                            label: 'Financial',
-                            children: [
-                                {
-                                    key: 'transactions',
-                                    label: 'Transactions',
-                                },
-                                {
-                                    key: 'withdrawals',
-                                    label: 'Withdrawals',
-                                },
-                                {
-                                    key: 'reports',
-                                    label: 'Financial Reports',
-                                },
-                            ],
-                        },
-                        {
-                            key: 'history',
-                            icon: <HistoryOutlined />,
-                            label: 'Activity History',
-                        },
-                        {
-                            key: 'settings',
-                            icon: <SettingOutlined />,
-                            label: 'Settings',
-                        },
-                    ]}
-                />
-            </Sider>
-            <Layout>
-                <div className="p-6">
-                    <Card bordered={false}>
-                        <Tabs defaultActiveKey="1">
-                            <TabPane
-                                tab={
-                                    <span>
-                                        <RobotOutlined />
-                                        Bot Configuration
-                                    </span>
-                                }
-                                key="1"
-                            >
-                                <Form
-                                    form={form}
-                                    layout="vertical"
-                                    onFinish={handleSubmit}
-                                    initialValues={{
-                                        botToken: '',
-                                        botUsername: '',
-                                        commandPrefix: '/',
-                                        maxDailyClicks: 100,
-                                        clickReward: 0.001,
-                                    }}
-                                >
-                                    <Row gutter={24}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="botToken"
-                                                label="Bot Token"
-                                                rules={[{ required: true, message: 'Please enter bot token' }]}
-                                            >
-                                                <Input.Password placeholder="Enter bot token" />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="botUsername"
-                                                label="Bot Username"
-                                                rules={[{ required: true, message: 'Please enter bot username' }]}
-                                            >
-                                                <Input prefix="@" placeholder="Enter bot username" />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Row gutter={24}>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="commandPrefix"
-                                                label="Command Prefix"
-                                            >
-                                                <Input placeholder="Enter command prefix" />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="maxDailyClicks"
-                                                label="Max Daily Clicks"
-                                                rules={[{ required: true, message: 'Please enter max daily clicks' }]}
-                                            >
-                                                <InputNumber min={1} max={1000} style={{ width: '100%' }} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="clickReward"
-                                                label="Click Reward (USD)"
-                                                rules={[{ required: true, message: 'Please enter click reward' }]}
-                                            >
-                                                <InputNumber
-                                                    min={0.001}
-                                                    max={1}
-                                                    step={0.001}
-                                                    style={{ width: '100%' }}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                </Form>
-                            </TabPane>
+              </div>
 
-                            <TabPane
-                                tab={
-                                    <span>
-                                        <PictureOutlined />
-                                        Advertisement Settings
-                                    </span>
-                                }
-                                key="2"
-                            >
-                                <Form
-                                    form={form}
-                                    layout="vertical"
-                                    onFinish={handleSubmit}
-                                    initialValues={{
-                                        adApprovalRequired: true,
-                                        minAdDuration: 24,
-                                        maxAdDuration: 168,
-                                        minAdBudget: 10,
-                                    }}
-                                >
-                                    <Row gutter={24}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="adApprovalRequired"
-                                                label="Ad Approval Required"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Row gutter={24}>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="minAdDuration"
-                                                label="Minimum Ad Duration (hours)"
-                                                rules={[{ required: true, message: 'Please enter minimum ad duration' }]}
-                                            >
-                                                <InputNumber min={1} max={168} style={{ width: '100%' }} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="maxAdDuration"
-                                                label="Maximum Ad Duration (hours)"
-                                                rules={[{ required: true, message: 'Please enter maximum ad duration' }]}
-                                            >
-                                                <InputNumber min={24} max={720} style={{ width: '100%' }} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="minAdBudget"
-                                                label="Minimum Ad Budget (USD)"
-                                                rules={[{ required: true, message: 'Please enter minimum ad budget' }]}
-                                            >
-                                                <InputNumber
-                                                    min={1}
-                                                    max={1000}
-                                                    style={{ width: '100%' }}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                </Form>
-                            </TabPane>
-
-                            <TabPane
-                                tab={
-                                    <span>
-                                        <DollarOutlined />
-                                        Payment Settings
-                                    </span>
-                                }
-                                key="3"
-                            >
-                                <Form
-                                    form={form}
-                                    layout="vertical"
-                                    onFinish={handleSubmit}
-                                    initialValues={{
-                                        minWithdrawal: 10,
-                                        maxWithdrawal: 1000,
-                                        withdrawalFee: 1,
-                                        paymentMethods: ['USDT'],
-                                    }}
-                                >
-                                    <Row gutter={24}>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="minWithdrawal"
-                                                label="Minimum Withdrawal (USD)"
-                                                rules={[{ required: true, message: 'Please enter minimum withdrawal amount' }]}
-                                            >
-                                                <InputNumber min={1} max={100} style={{ width: '100%' }} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="maxWithdrawal"
-                                                label="Maximum Withdrawal (USD)"
-                                                rules={[{ required: true, message: 'Please enter maximum withdrawal amount' }]}
-                                            >
-                                                <InputNumber min={10} max={10000} style={{ width: '100%' }} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={8}>
-                                            <Form.Item
-                                                name="withdrawalFee"
-                                                label="Withdrawal Fee (%)"
-                                                rules={[{ required: true, message: 'Please enter withdrawal fee' }]}
-                                            >
-                                                <InputNumber
-                                                    min={0}
-                                                    max={10}
-                                                    step={0.1}
-                                                    style={{ width: '100%' }}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Row gutter={24}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="paymentMethods"
-                                                label="Payment Methods"
-                                                rules={[{ required: true, message: 'Please select at least one payment method' }]}
-                                            >
-                                                <Select mode="multiple" placeholder="Select payment methods">
-                                                    <Option value="USDT">USDT</Option>
-                                                    <Option value="BTC">Bitcoin</Option>
-                                                    <Option value="ETH">Ethereum</Option>
-                                                    <Option value="BNB">Binance Coin</Option>
-                                                </Select>
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                </Form>
-                            </TabPane>
-
-                            <TabPane
-                                tab={
-                                    <span>
-                                        <SecurityScanOutlined />
-                                        Security Settings
-                                    </span>
-                                }
-                                key="4"
-                            >
-                                <Form
-                                    form={form}
-                                    layout="vertical"
-                                    onFinish={handleSubmit}
-                                    initialValues={{
-                                        twoFactorRequired: false,
-                                        maxLoginAttempts: 5,
-                                        passwordExpiration: 90,
-                                        ipWhitelist: [],
-                                    }}
-                                >
-                                    <Row gutter={24}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="twoFactorRequired"
-                                                label="Require 2FA for Admin Access"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="maxLoginAttempts"
-                                                label="Maximum Login Attempts"
-                                                rules={[{ required: true, message: 'Please enter maximum login attempts' }]}
-                                            >
-                                                <InputNumber min={1} max={10} style={{ width: '100%' }} />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Row gutter={24}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="passwordExpiration"
-                                                label="Password Expiration (days)"
-                                                rules={[{ required: true, message: 'Please enter password expiration days' }]}
-                                            >
-                                                <InputNumber min={30} max={365} style={{ width: '100%' }} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="ipWhitelist"
-                                                label="IP Whitelist"
-                                            >
-                                                <Select
-                                                    mode="tags"
-                                                    style={{ width: '100%' }}
-                                                    placeholder="Enter IP addresses"
-                                                    tokenSeparators={[',']}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Form.Item>
-                                        <Button type="primary" htmlType="submit" loading={loading}>
-                                            Save Changes
-                                        </Button>
-                                    </Form.Item>
-                                </Form>
-                            </TabPane>
-
-                            <TabPane
-                                tab={
-                                    <span>
-                                        <NotificationOutlined />
-                                        Notification Settings
-                                    </span>
-                                }
-                                key="5"
-                            >
-                                <Form
-                                    form={form}
-                                    layout="vertical"
-                                    onFinish={handleSubmit}
-                                    initialValues={{
-                                        emailNotifications: true,
-                                        telegramNotifications: true,
-                                        withdrawalNotifications: true,
-                                        loginAlerts: true,
-                                    }}
-                                >
-                                    <Row gutter={24}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="emailNotifications"
-                                                label="Email Notifications"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="telegramNotifications"
-                                                label="Telegram Notifications"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Row gutter={24}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="withdrawalNotifications"
-                                                label="Withdrawal Notifications"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="loginAlerts"
-                                                label="Login Alert Notifications"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Form.Item>
-                                        <Button type="primary" htmlType="submit" loading={loading}>
-                                            Save Changes
-                                        </Button>
-                                    </Form.Item>
-                                </Form>
-                            </TabPane>
-                        </Tabs>
-                    </Card>
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6">
+                <h2 className="text-xl font-semibold mb-6 text-gray-100">Notification Settings</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-800 rounded-xl">
+                    <div>
+                      <h3 className="font-medium text-gray-100">Email Notifications</h3>
+                      <p className="text-sm text-gray-400">Receive email notifications for important updates</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-gray-800 rounded-xl">
+                    <div>
+                      <h3 className="font-medium text-gray-100">Withdrawal Notifications</h3>
+                      <p className="text-sm text-gray-400">Get notified for new withdrawal requests</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
                 </div>
-            </Layout>
-        </Layout>
-    );
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
 }
-                                     

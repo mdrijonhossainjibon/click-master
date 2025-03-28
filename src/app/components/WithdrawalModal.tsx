@@ -101,9 +101,9 @@ const networkOptions: Record<PaymentMethod, Array<{
 };
 
 // Styles
-const inputStyles = "w-full bg-gray-700/90 text-white rounded-xl p-3 border border-gray-600 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-200 placeholder:text-gray-400";
+const inputStyles = "w-full bg-[#2C2D30] text-white rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20 transition-all duration-200 placeholder:text-gray-500";
 const selectStyles = `${inputStyles} appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="%239CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')] bg-no-repeat bg-right-1 bg-[length:20px] pr-10`;
-const buttonStyles = "w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none group";
+const buttonStyles = "w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
 // Validation helpers
 const validateUSDTAddress = (address: string, network?: NetworkType): boolean => {
@@ -220,176 +220,230 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center z-50 p-0 sm:p-4 animate-fadeIn overflow-y-auto">
-      <div className="bg-gray-800/80 backdrop-blur-xl rounded-2xl p-4 sm:p-6 w-full h-full sm:h-auto sm:max-w-lg border border-gray-700/50 shadow-2xl transform transition-all duration-300 scale-100 animate-modalSlideIn relative sm:my-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">Withdraw Funds</h2>
-          {onHistoryClick && (
-            <button
-              onClick={onHistoryClick}
-              className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg active:scale-95 flex items-center justify-center sm:justify-start"
-            >
-              <span className="mr-2">📜</span>
-              History
-            </button>
-          )}
+      <div className="bg-[#1A1B1E] rounded-2xl w-full h-full sm:h-auto sm:max-w-2xl border border-gray-800 shadow-2xl transform transition-all duration-300 scale-100 animate-modalSlideIn relative sm:my-4">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-semibold text-white">Withdraw Crypto</h2>
+            {onHistoryClick && (
+              <button
+                onClick={onHistoryClick}
+                className="flex items-center px-3 py-1 bg-[#2C2D30] text-blue-400 text-sm rounded-lg hover:bg-[#3A3B3E] transition-colors"
+              >
+                <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 8V12L14 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M3.05493 11H5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M19 11H20.9451" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 3V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                History
+              </button>
+            )}
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6 h-[calc(100vh-120px)] sm:h-auto overflow-y-auto pb-4 sm:pb-0">
-          <div className="bg-gray-700/60 backdrop-blur-sm rounded-xl p-3 sm:p-4">
-            <p className="text-yellow-400 font-bold mb-1 sm:mb-2 text-sm sm:text-base">Available Balance</p>
-            <p className="text-xl sm:text-2xl font-bold text-white">${balance.toFixed(3)}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-6">
+          {/* Balance Display */}
+          <div className="bg-[#2C2D30] rounded-lg p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-400">Available Balance</span>
+              <span className="text-lg font-medium text-white">${balance.toFixed(3)} USDT</span>
+            </div>
             {balance < MIN_CRYPTO_AMOUNT && (
-              <p className="text-red-400 text-xs sm:text-sm mt-2 font-medium">
-                ⚠️ Your balance is below the minimum withdrawal amount (${MIN_CRYPTO_AMOUNT})
-              </p>
+              <div className="flex items-center mt-2 text-xs text-yellow-500">
+                <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Minimum withdrawal amount is ${MIN_CRYPTO_AMOUNT} USDT
+              </div>
             )}
           </div>
 
-          <Controller
-            name="method"
-            control={control}
-            render={({ field }) => (
-              <Select
-                {...field}
-                disabled={isDisabled}
-                className="w-full"
-                style={{ width: '100%' }}
-                optionLabelProp="label"
-                options={paymentMethodOptions.map(option => ({
-                  ...option,
-                  label: (
-                    <div className="flex items-center gap-3 py-2">
-                      <div className="w-8 h-8 relative flex-shrink-0">
-                        <Image
-                          src={option.icon}
-                          alt={option.label}
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      <div>
-                        <div className="font-medium text-white">{option.label}</div>
-                        <div className="text-gray-400 text-sm">{option.description}</div>
-                      </div>
-                    </div>
-                  )
-                }))}
-                dropdownStyle={{
-                  background: '#1F2937',
-                  borderColor: '#374151'
-                }}
-                popupClassName="custom-dark-select"
-              />
-            )}
-          />
-
-          {isCryptoPayment && (
+          {/* Coin Selection */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-gray-300">Coin</label>
+              <span className="text-xs text-gray-400">Select withdrawal method</span>
+            </div>
             <Controller
-              name="network"
+              name="method"
               control={control}
-              rules={{ required: 'Please select a network' }}
               render={({ field }) => (
-                <div>
-                  <label className="block text-gray-300 mb-2">
-                    <span className="flex items-center gap-2">🌐 Network</span>
-                  </label>
+                <Select
+                  {...field}
+                  disabled={isDisabled}
+                  className="w-full"
+                  style={{ width: '100%' , height : '60px' }}
+                  optionLabelProp="label"
+                  options={paymentMethodOptions.map(option => ({
+                    ...option,
+                    label: (
+                      <div className="flex items-center gap-3 py-1.5">
+                        <div className="w-6 h-6 relative flex-shrink-0">
+                          <Image
+                            src={option.icon}
+                            alt={option.label}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium text-white">{option.label}</div>
+                          <div className="text-xs text-gray-400">{option.description}</div>
+                        </div>
+                      </div>
+                    )
+                  }))}
+                  dropdownStyle={{
+                    background: '#1A1B1E',
+                    borderColor: '#374151'
+                  }}
+                  popupClassName="custom-dark-select"
+                />
+              )}
+            />
+          </div>
+
+          {/* Network Selection */}
+          {isCryptoPayment && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-gray-300">Network</label>
+                <span className="text-xs text-gray-400">Select the network type</span>
+              </div>
+              <Controller
+                name="network"
+                control={control}
+                rules={{ required: 'Please select a network' }}
+                render={({ field }) => (
                   <Select
                     {...field}
                     disabled={isDisabled}
                     className="w-full"
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height : '40px' }}
                     options={networkOptions[selectedMethod].map(network => ({
                       value: network.value,
                       label: (
-                        <div className="flex flex-col gap-1">
-                          <div className="font-medium">{network.label}</div>
-                          <div className="text-sm text-gray-400">
-                            Fee: {network.fee} • {network.processingTime}
+                        <div className="flex flex-col py-1.5">
+                          <div className="font-medium text-white">{network.label}</div>
+                          <div className="flex items-center text-xs text-gray-400 mt-1">
+                            <span className="flex items-center">
+                              <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 8V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+                              </svg>
+                              {network.processingTime}
+                            </span>
+                            <span className="mx-2">•</span>
+                            <span className="flex items-center">
+                              <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2v6m0 8v6M4.93 10H2m20 0h-2.93M19.07 14H22m-20 0h2.93" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              </svg>
+                              Fee: {network.fee}
+                            </span>
                           </div>
                         </div>
                       )
                     }))}
                     dropdownStyle={{
-                      background: '#1F2937',
+                      background: '#1A1B1E',
                       borderColor: '#374151'
                     }}
                     popupClassName="custom-dark-select"
                   />
+                )}
+              />
+            </div>
+          )}
+
+          {/* Address Input */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-gray-300">
+                {isCryptoPayment ? 'Wallet Address' : 'Mobile Number'}
+              </label>
+              <span className="text-xs text-gray-400">
+                {isCryptoPayment ? 'Enter your wallet address' : 'Enter your mobile number'}
+              </span>
+            </div>
+            <Controller
+              name="recipient"
+              control={control}
+              rules={{
+                required: 'This field is required',
+                validate: validateRecipient
+              }}
+              render={({ field }) => (
+                <div>
+                  <div className="relative">
+                    <input
+                      {...field}
+                      type={isCryptoPayment ? "text" : "tel"}
+                      inputMode={isCryptoPayment ? "text" : "numeric"}
+                      pattern={isCryptoPayment ? undefined : "[0-9]*"}
+                      className={`w-full bg-[#2C2D30] text-white rounded-lg p-3 pr-10 border ${errors.recipient ? 'border-red-500' : 'border-gray-700'} focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20 transition-all duration-200 placeholder:text-gray-500`}
+                      placeholder={isCryptoPayment ? `Enter your ${watch('network')?.toUpperCase()} address` : 'Enter your mobile number'}
+                      disabled={isDisabled}
+                      onChange={(e) => {
+                        if (!isCryptoPayment) {
+                          const value = e.target.value.replace(/\D/g, '');
+                          field.onChange(value);
+                        } else {
+                          field.onChange(e.target.value.trim());
+                        }
+                      }}
+                    />
+                    {field.value && (
+                      <button
+                        type="button"
+                        onClick={() => field.onChange('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  {errors.recipient && (
+                    <p className="mt-1 text-sm text-red-500">{errors.recipient.message}</p>
+                  )}
                 </div>
               )}
             />
-          )}
+          </div>
 
-          <Controller
-            name="recipient"
-            control={control}
-            rules={{
-              required: 'This field is required',
-              validate: validateRecipient
-            }}
-            render={({ field }) => (
-              <div>
-                <label className="block text-gray-300 mb-2">
-                  <span className="flex items-center gap-2">
-                    {isCryptoPayment ? '🔑 Wallet Address' : '📱 Mobile Number'}
-                  </span>
-                </label>
-                <input
-                  {...field}
-                  type={isCryptoPayment ? "text" : "tel"}
-                  inputMode={isCryptoPayment ? "text" : "numeric"}
-                  pattern={isCryptoPayment ? undefined : "[0-9]*"}
-                  className={`${inputStyles} ${errors.recipient ? 'border-red-500 focus:border-red-500' : ''}`}
-                  placeholder={isCryptoPayment ? `Enter your ${watch('network')?.toUpperCase()} address` : 'Enter your mobile number (e.g., 01712345678)'}
-                  disabled={isDisabled}
-                  onChange={(e) => {
-                    if (!isCryptoPayment) {
-                      // Only allow numbers for mobile input
-                      const value = e.target.value.replace(/\D/g, '');
-                      field.onChange(value);
-                    } else {
-                      field.onChange(e.target.value.trim());
-                    }
-                  }}
-                />
-                {errors.recipient && (
-                  <ErrorMessage message={errors.recipient.message || ''} />
-                )}
-                {!errors.recipient && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    {isCryptoPayment 
-                      ? `Make sure this is a valid ${watch('network')?.toUpperCase()} address`
-                      : 'Enter your 11-digit mobile number starting with 01'}
-                  </p>
-                )}
+          {/* Amount Input */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-gray-300">Amount</label>
+              <div className="text-xs text-gray-400">
+                Available: <span className="text-white">${balance.toFixed(3)} USDT</span>
               </div>
-            )}
-          />
-
-          <Controller
-            name="amount"
-            control={control}
-            rules={{
-              required: 'Amount is required',
-              validate: validateAmount
-            }}
-            render={({ field }) => (
-              <div>
-                <label className="block text-gray-300 mb-2">
-                  <span className="flex items-center gap-2">
-                    {isCryptoPayment ? '💵 Amount (USDT)' : '💰 Amount (BDT)'}
-                  </span>
-                </label>
+            </div>
+            <Controller
+              name="amount"
+              control={control}
+              rules={{
+                required: 'Amount is required',
+                validate: validateAmount
+              }}
+              render={({ field }) => (
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    {isCryptoPayment ? '$' : '৳'}
-                  </span>
                   <input
                     {...field}
                     type="number"
                     inputMode="decimal"
                     step={isCryptoPayment ? '0.001' : '1'}
-                    className={`${inputStyles} pl-7 pr-20 ${errors.amount ? 'border-red-500 focus:border-red-500' : ''}`}
+                    className={`w-full bg-[#2C2D30] text-white rounded-lg p-3 pr-20 border ${errors.amount ? 'border-red-500' : 'border-gray-700'} focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20 transition-all duration-200 placeholder:text-gray-500`}
+                    placeholder="0.00"
                     disabled={isDisabled}
                     min={isCryptoPayment ? MIN_CRYPTO_AMOUNT : MIN_BDT_AMOUNT}
                     max={isCryptoPayment ? balance : MAX_BDT_AMOUNT}
@@ -398,77 +452,80 @@ export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, teleg
                     type="button"
                     onClick={setMaxAmount}
                     disabled={isDisabled}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-[#2C2D30] text-blue-500 text-sm font-medium rounded hover:text-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     MAX
                   </button>
+                  {errors.amount && (
+                    <p className="mt-1 text-sm text-red-500">{errors.amount.message}</p>
+                  )}
                 </div>
-                {errors.amount && (
-                  <ErrorMessage message={errors.amount.message || ''} />
-                )}
-              </div>
-            )}
-          />
+              )}
+            />
+          </div>
 
-          <div className="bg-gray-700/60 backdrop-blur-sm rounded-xl p-3 sm:p-4">
-            <p className="text-gray-300 text-xs sm:text-sm space-y-1">
-              {isCryptoPayment ? (
-                <>
-                  • Minimum withdrawal: ${MIN_CRYPTO_AMOUNT}<br />
-                  • Available for withdrawal: ${balance.toFixed(3)}<br />
-                  • Network fee: {selectedMethod === PaymentMethod.BINANCE && watch('network') ? 
-                      networkOptions[PaymentMethod.BINANCE].find(n => n.value === watch('network'))?.fee : 
-                      NETWORK_FEE_MESSAGE
-                    }<br />
-                  • Processing time: {selectedMethod === PaymentMethod.BINANCE && watch('network') ? 
-                      networkOptions[PaymentMethod.BINANCE].find(n => n.value === watch('network'))?.processingTime : 
-                      CRYPTO_PROCESSING_TIME
-                    }<br />
-                  • Make sure to select the correct network<br />
-                  • Double check your wallet address
+          {/* Transaction Details */}
+          <div className="bg-[#2C2D30] rounded-lg p-4 space-y-3">
+            <h3 className="text-sm font-medium text-gray-300">Transaction Details</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between py-1 border-b border-gray-700/50">
+                <span className="text-gray-400">Network</span>
+                <span className="text-white font-medium">{watch('network')?.toUpperCase() || '-'}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gray-700/50">
+                <span className="text-gray-400">Estimated Arrival</span>
+                <span className="text-white font-medium">{selectedMethod === PaymentMethod.BINANCE && watch('network') ? 
+                  networkOptions[PaymentMethod.BINANCE].find(n => n.value === watch('network'))?.processingTime : 
+                  CRYPTO_PROCESSING_TIME}</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-gray-400">Network Fee</span>
+                <span className="text-white font-medium">{selectedMethod === PaymentMethod.BINANCE && watch('network') ? 
+                  networkOptions[PaymentMethod.BINANCE].find(n => n.value === watch('network'))?.fee : 
+                  NETWORK_FEE_MESSAGE}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Warning Box */}
+          <div className="bg-yellow-500/10 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <svg className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div className="text-sm text-yellow-500/90">
+                <p className="font-medium mb-1">Important</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Please ensure you've selected the correct network</li>
+                  <li>Double check the withdrawal address</li>
                   {selectedMethod === PaymentMethod.BINANCE && (
                     <>
-                      <br />• For Binance withdrawals, ensure your account has 2FA enabled
-                      <br />• Withdrawal address must be whitelisted
+                      <li>Ensure your Binance account has 2FA enabled</li>
+                      <li>Address must be whitelisted on Binance</li>
                     </>
                   )}
-                </>
-              ) : (
-                <>
-                  • Minimum withdrawal: ৳{MIN_BDT_AMOUNT}<br />
-                  • Available for withdrawal: ${balance.toFixed(3)} (৳{(balance * USD_TO_BDT_RATE).toFixed(1)})<br />
-                  • Maximum withdrawal: ৳{MAX_BDT_AMOUNT}<br />
-                  • Rate: $0.001 = ৳0.1<br />
-                  • Processing time: {BDT_PROCESSING_TIME}<br />
-                  • Make sure to enter the correct number
-                </>
-              )}
-            </p>
+                </ul>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2 sm:space-y-3">
-            <button
-              type="submit"
-              disabled={isDisabled || isSubmitting}
-              className={`${buttonStyles} text-sm sm:text-base py-2.5 sm:py-3`}
-            >
-              {isSubmitting ? (
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isDisabled || isSubmitting}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
                 <LoadingSpinner />
-              ) : isDisabled ? (
-                VALIDATION_MESSAGES.INSUFFICIENT_BALANCE
-              ) : (
-                'Request Withdrawal'
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full bg-gray-700/90 hover:bg-gray-600/90 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300"
-            >
-              Close
-            </button>
-          </div>
+                <span className="ml-2">Processing...</span>
+              </div>
+            ) : isDisabled ? (
+              VALIDATION_MESSAGES.INSUFFICIENT_BALANCE
+            ) : (
+              'Withdraw'
+            )}
+          </button>
         </form>
       </div>
     </div>

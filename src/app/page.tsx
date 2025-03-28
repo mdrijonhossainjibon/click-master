@@ -90,7 +90,7 @@ export default function Home() {
         }
 
         
-         //dispatch(fetchUserState({ telegramId : '709148502'}))
+         dispatch(fetchUserState({ telegramId : '709148502'}))
           ///router.push('/telegram');
     
     }, [dispatch ]);

@@ -45,7 +45,7 @@ export async function GET(request: Request) {
             pendingWithdrawals
         };
 
-        return NextResponse.json({ result:{ user : users, stats} });
+        return NextResponse.json({ result:{  users, stats} });
     } catch (error) {
         const errorResponse = { error: 'Failed to fetch users', status: 500 };
         handleApiError(errorResponse);

@@ -55,9 +55,10 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    API_CALL({ url: '/api/admin/users' })
+    API_CALL({ url: '/admin/users' })
       .then(res => {
-        setUsers(res.response?.result?.users);
+        setUsers(res.response?.result?.users || []);
+        console.log(res.response?.result)
         setStats(res.response?.result?.stats || null);
         setLoading(false);
       })
@@ -71,11 +72,13 @@ export default function UsersPage() {
     setSearchTerm(event.target.value);
   };
 
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users?.filter(user =>
+    user?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
+
+ 
   const menuItems = [
     {
       key: '/admin',

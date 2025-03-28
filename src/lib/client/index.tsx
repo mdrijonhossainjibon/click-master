@@ -74,7 +74,7 @@ export type Method =
 
   
 export const API_CALL = async (props: API_CALL_PROPS): Promise<TypeApiPromise> => {
-    const apiUrl = `http://localhost:3000/api`
+    const apiUrl = `${process.env.NEXTAUTH_URL}/api`
   
     const api = axios.create({
       baseURL: props?.baseURL || apiUrl

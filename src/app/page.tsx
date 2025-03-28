@@ -50,7 +50,7 @@ declare global {
  
 
 export default function Home() {
-    const { data: session } = useSession() as { data: Session | null };
+     
     const dispatch = useDispatch<AppDispatch>();
 
     const userState = useSelector((state: RootState) => state.userStats.userState);
@@ -89,16 +89,11 @@ export default function Home() {
             }
         }
 
-        // Fallback to session-based auth
-        if (session?.user?.email) {
-            dispatch(fetchUserState({ email: session.user.email }));
-            dispatch(fetchDirectLinks('adult'));
-            return;
-        }
+        
          //dispatch(fetchUserState({ telegramId : '709148502'}))
           ///router.push('/telegram');
     
-    }, [dispatch, session]);
+    }, [dispatch ]);
 
     const handleWatchAd = async () => {
        
@@ -212,6 +207,7 @@ export default function Home() {
             <WithdrawalHistoryModal
                 isOpen={isHistoryModalOpen}
                 onClose={() => setIsHistoryModalOpen(false)}
+                telegramId={ telegramUser?.id.toString() || '709148502'}
             />
             <TopEarnersModal
                 isOpen={isTopEarnersModalOpen}
@@ -228,8 +224,8 @@ export default function Home() {
             <LiveSupportModal
                 isOpen={isLiveSupportModalOpen}
                 onClose={() => setIsLiveSupportModalOpen(false)}
-                userId={session?.user?.id || ''}
-                userName={session?.user?.name || ''}
+                userId={ telegramUser?.id.toString() || '709148502'}
+                userName={ telegramUser?.username || 'jibon'}
             />
         </div>
     );

@@ -12,6 +12,7 @@ import { API_CALL } from '@/lib/client';
 interface WithdrawalHistoryModalProps {
     isOpen: boolean;
     onClose: () => void;
+    telegramId: string;
 }
 
 interface WithdrawalHistory {
@@ -27,7 +28,7 @@ interface WithdrawalHistory {
     };
 }
 
-export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHistoryModalProps) {
+export default function WithdrawalHistoryModal({ isOpen, onClose , telegramId}: WithdrawalHistoryModalProps) {
     const [isFullScreen, setIsFullScreen] = useState(true);
     const [selectedWithdrawalId, setSelectedWithdrawalId] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export default function WithdrawalHistoryModal({ isOpen, onClose }: WithdrawalHi
     const fetchWithdrawals = async () => {
         try {
             setIsLoading(true);
-            const { response } = await  API_CALL({ url : 'withdrawals' , body : { telegramId : '709148502' } }); 
+            const { response } = await  API_CALL({ url : 'withdrawals' , body : { telegramId  } }); 
             setHistory(response?.result   as any);
         } catch (error: any) {
            // toast.error(error.response?.data?.error || 'Failed to load withdrawals');

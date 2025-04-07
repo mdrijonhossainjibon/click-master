@@ -78,10 +78,16 @@ export async function GET(req: Request    ) {
 
 export async function POST(req: Request) {
     try {
+
+        const session :any= await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         await dbConnect();
 
+
         const data = await req.json();
-        const { method, amount, recipient, telegramId, network } = data;
+        const { method, amount, recipient,   network } = data;
 
         // Validate required fields
         if (!method || !amount || !recipient) {
@@ -124,7 +130,7 @@ export async function POST(req: Request) {
             }
         }
 
-        const user = await User.findOne({ telegramId });
+        const user = await User.findById(session.user._id)
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }

@@ -1,8 +1,28 @@
 {
-    "welcome": "Welcome",
-    "login": "Login erfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfg",
+    "welcome": "Watch ads and earn money",
+    "login": "Login",
     "logout": "Logout",
     "navigation": {
-        "watchAd": "Watch Ad"
+        "watchAd": "Watch Ad",
+        "stopAutoAds": "Stop Auto Ads",
+        "startAutoAds": "Start Auto Ads",
+        "nextAdIn": "Next ad in",
+        "ads": "Ads",
+        "dailyProgress": "Daily Progress",
+        "untilNextReset": "Until Next Reset",
+        "days": "Days",
+        "hours": "Hours",
+        "minutes": "Minutes",
+        "seconds": "Seconds",
+        "balance": "Your current balance. Watch more ads to increase it!",
+        "available": {
+            "balance": "Available Balance"
+        },
+        "watchAds": {
+            "age": "Are you over 18 years old?",
+            "description": "The links below contain adult content. Please confirm that you are over 18 to proceed.",
+            "noLinks": "No links available",
+            "title": "🎯 Watch the full ad to receive your reward"
+        }
     }
 }

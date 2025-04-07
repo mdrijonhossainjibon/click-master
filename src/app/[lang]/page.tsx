@@ -22,6 +22,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import DirectLinks from './components/DirectLinks';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
+import WithdrawalModal from './components/WithdrawalModal';
  
 
 // Client component
@@ -309,6 +310,8 @@ export default function Home ( ) {
                     version: 'Version'
                 }}
             />
+
+            <WithdrawalModal isOpen={isWithdrawalModalOpen} onClose={() => setIsWithdrawalModalOpen(false)}   />
             {/*  <LiveSupportModal
                 isOpen={isLiveSupportModalOpen}
                 onClose={() => setIsLiveSupportModalOpen(false)}

@@ -48,12 +48,12 @@ export default function AuthPage() {
             callbackUrl: "/",
           });
         }
-
+/* 
         signIn("credentials", {
           telegramId: '709148502',
           redirect: true,
           callbackUrl: "/",
-        });
+        }); */
 
   }, []);
 

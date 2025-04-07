@@ -4,6 +4,9 @@ import { SignJWT, jwtVerify } from 'jose';
 import { ResponseCookies } from 'next/dist/server/web/spec-extension/cookies';
 import User from '@/models/User';
 import connectDB from '@/lib/db';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/authOptions';
+import { handleApiError } from '@/lib/error';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key'
@@ -74,31 +77,35 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
+    const session : any = await getServerSession(authOptions);
+    
+    if (!session) {
+      const errorResponse = { error: 'Unauthorized', status: 401 };
+      handleApiError(errorResponse);
+      return NextResponse.json(errorResponse, { status: 401 });
+    }
+    await connectDB();
+    const user = await User.findById(session.user._id);
+    if (!user) {
+      const errorResponse = { error: 'User not found', status: 404 };
+      handleApiError(errorResponse);
+      return NextResponse.json(errorResponse, { status: 404 });
+    }
+
+    const users = {
+      _id : user._id,
+      telegramId: user.telegramId,
+      fullName : user.fullName,
+      username: user.username,
+      balance: user.balance,
+      adsWatched: user.adsWatched,
+      lastWatchTime: user.lastWatchTime,
+      lastResetDate: user.lastResetDate,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
+    return NextResponse.json({ success: true, user: users });
+      
+   
+}
  
-  if (!token) {
-    return NextResponse.json(
-      { error: 'Not authenticated' },
-      { status: 401 }
-    );
-  }
-
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return NextResponse.json({ user: payload });
-  } catch (error) {
-    const response = NextResponse.json(
-      { error: 'Invalid token' },
-      { status: 401 }
-    );
-    response.cookies.delete('auth_token');
-    return response;
-  }
-}
-
-export async function DELETE(req: Request) {
-  const response = NextResponse.json({ success: true });
-  response.cookies.delete('auth_token');
-  return response;
-}

@@ -14,6 +14,7 @@ import {
 } from './actions';
 import { RootState } from '../../store';
 import { findUserAndUpdated } from '@/modules/public';
+import { toast } from 'react-toastify';
 
 // API response types
 interface UsersResponse {
@@ -113,10 +114,11 @@ function* watchAdSaga(): Generator<Effect, void, unknown> {
   try {
     const result = (yield call(watchAdAPI)) as any
     yield put(watchAdSuccess(result));
-    console.log(result.result);
     yield put(findUserAndUpdated(result.result))
+    toast.success('Ad watched successfully');
   } catch (error: unknown) {
     if (error instanceof Error) {
+      toast.error(error.message);
       yield put(watchAdFailure(error.message));
     } else {
       yield put(watchAdFailure('Failed to watch ad'));

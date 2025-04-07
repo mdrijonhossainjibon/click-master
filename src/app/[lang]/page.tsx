@@ -36,7 +36,6 @@ export default function Home ( ) {
     if (status === 'unauthenticated') {
          router.push('/auth');
     }
-      
 
     // Modal states
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -128,7 +127,7 @@ export default function Home ( ) {
             
             await window.show_9103912();
             dispatch(watchAdRequest());
-            toast.success('Ad watched successfully');
+            
         } catch (err) {
             console.error('Error watching ad:', err);
             toast.error(err instanceof Error ? err.message : 'Failed to watch ad');

@@ -1,39 +1,27 @@
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { verifyToken } from '@/lib/auth';
-import { UserStats } from '@/modules/private/user/types';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import Transaction from '@/models/Transaction';
 import { handleApiError } from '@/lib/error';
-import { cookies } from 'next/headers';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/authOptions';
+
 export async function POST(request: Request) {
   try {
-    
 
-     const cookieStore = await cookies();
-      const token = cookieStore.get('auth_token')?.value;
-     
-      if (!token) {
-        return NextResponse.json(
-          { error: 'Not authenticated' },
-          { status: 401 }
-        );
-      }
- 
-    const userData = await verifyToken(token);
+    const session : any = await getServerSession(authOptions);
+      
 
-    if (!userData) {
-      const errorResponse = { error: 'Invalid token', status: 401 };
+    if (!session) {
+      const errorResponse = { error: 'Unauthorized', status: 401 };
       handleApiError(errorResponse);
       return NextResponse.json(errorResponse, { status: 401 });
     }
- 
     await connectDB();
- 
+
 
     // Find user and validate
-    const user = await User.findById(userData._id);
+    const user = await User.findById( session?.user._id );
     if (!user) {
       const errorResponse = { error: 'User not found', status: 404 };
       handleApiError(errorResponse);
@@ -48,7 +36,7 @@ export async function POST(request: Request) {
       return NextResponse.json(errorResponse, { status: 429 });
     }
 
-     const reward = 0.002;
+    const reward = 0.002;
     // Update user stats
     user.balance += reward;
     user.totalEarnings += reward;
@@ -64,9 +52,9 @@ export async function POST(request: Request) {
       status: 'completed'
     });
 
-     const result = {  newBalance: user.balance,  reward, adsWatched: user.adsWatched , _id : user._id }
+    const result = { newBalance: user.balance, reward, adsWatched: user.adsWatched, _id: user._id }
 
-    return NextResponse.json({ success: true, message: 'Ad watch recorded successfully' , result  });
+    return NextResponse.json({ success: true, message: 'Ad watch recorded successfully', result });
 
   } catch (error) {
     console.error('Error processing ad watch:', error);

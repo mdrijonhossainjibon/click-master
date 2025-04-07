@@ -48,7 +48,7 @@ export default function AuthPage() {
           const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
           setTimeout(async() => {
             const result = await signIn("credentials", {
-              telegramId: '6946072383',
+              telegramId: telegramUser.id.toString(),
               redirect: false,
             });
             

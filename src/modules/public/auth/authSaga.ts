@@ -30,17 +30,9 @@ const loginAPI = async (credentials: LoginCredentials): Promise<AuthResponse> =>
 };
 
 const checkAuthAPI = async () => {
-  const res = await API_CALL({  url : '/auth'});
-
-  console.log(res);
-
- /*  const response = await fetch(`/api/auth`, {
-    method: 'GET',
-  });
-  
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Auth check failed');
-  return data; */
+  const { response} = await API_CALL({  url : '/auth'});
+ 
+  return  response;
 };
 
 const logoutAPI = async (): Promise<void> => {

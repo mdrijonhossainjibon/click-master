@@ -7,10 +7,13 @@ import {
     ClockCircleOutlined 
 } from '@ant-design/icons';
 
-
+import { useSelector } from 'react-redux';
+import { RootState } from '@/modules/store';
 
 export default function UserStats() {
-    const { loading, balance, adsWatched, timeRemaining } = { loading: false, balance: 0, adsWatched: 0, timeRemaining: 0 }
+    const {  loading , user } =  useSelector((state : RootState) => state.public.auth);
+    
+     
 
     if (loading) {
         return (
@@ -38,12 +41,12 @@ export default function UserStats() {
                         <div className="flex items-center justify-center text-yellow-400 mb-1">
                             <DollarCircleOutlined className="text-xl mr-2" />
                             <span className="text-2xl font-bold animate-pulse">
-                                ${ balance.toFixed(4)}
+                                ${ user?.balance.toFixed(4)}
                             </span>
                         </div>
                         <div className="text-sm text-gray-400">Available Balance</div>
                         <div className="text-sm text-emerald-400">
-                            ৳{( balance * 100).toFixed(2)}
+                            ৳{ (user?.balance || 0) * 100 }
                         </div>
                          
                     </div>
@@ -56,14 +59,14 @@ export default function UserStats() {
                         <div className="flex items-center justify-center text-emerald-400 mb-1">
                             <PlayCircleOutlined className="text-xl mr-2" />
                             <span className="text-2xl font-bold">
-                                { adsWatched}
+                                {  user?.adsWatched || 0}
                             </span>
                         </div>
                         <div className="text-sm text-gray-400">Ads Watched Today</div>
-                        { timeRemaining > 0 ? (
+                        { 0 > 0 ? (
                             <div className="flex items-center justify-center text-red-400 mt-1 animate-pulse">
                                 <ClockCircleOutlined className="mr-1" />
-                                <span>Wait { timeRemaining}s</span>
+                                <span>Wait { 0 }s</span>
                             </div>
                         ) : (
                             <div className="text-xs text-emerald-400 mt-1">

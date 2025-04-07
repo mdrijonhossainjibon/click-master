@@ -25,15 +25,16 @@ export const authOptions : AuthOptions = {
                         existingUser = await User.findOne({ email: credentials?.email });
                     }
                     if(credentials?.telegramId){
+                        
                         existingUser = await User.findOne({ telegramId: credentials?.telegramId });
                     }
+                    console.log(existingUser)
                     if (!existingUser) {
-                        return null;
+                        throw new Error('CredentialsSignin');
                     }
                     return existingUser;
                 } catch (error) {
-                    console.error('Error during credentials sign-in:', error);
-                    return null;
+                    return false
                 }
             },
         }),
@@ -56,8 +57,9 @@ export const authOptions : AuthOptions = {
     
         
     ],
-    pages :{
-       error: '/auth/error'
+    pages: {
+        error: '/auth/error',
+        signIn: '/auth'
     },
     callbacks: {
         

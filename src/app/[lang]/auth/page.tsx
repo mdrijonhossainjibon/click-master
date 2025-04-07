@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useTranslation } from 'react-i18next';
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 type TelegramUser = {
   id: number;
@@ -36,26 +38,39 @@ export default function AuthPage() {
     telegramPassword: "",
   });
 
+  const  router = useRouter();
+
   // Auto sign in with Telegram WebApp
   useEffect(() => {
     
         // Check if we're in Telegram WebApp and have user data
-        if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+       /*  if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
           const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
           signIn("credentials", {
             telegramId: telegramUser.id.toString(),
             redirect: true,
             callbackUrl: "/",
           });
-        }
-/* 
-        signIn("credentials", {
-          telegramId: '709148502',
-          redirect: true,
-          callbackUrl: "/",
-        }); */
+        } */
 
+          setTimeout(async() => {
+  
+            const result = await signIn("credentials", {
+              telegramId: '6946072383',
+              redirect: false,
+            });
+            
+            if (result?.error) {
+               toast.error("auto sign in failed");
+            }
+            if (result?.ok) {
+              router.push("/");
+            }
+
+           }, 1000);
   }, []);
+
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

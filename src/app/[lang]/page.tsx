@@ -21,6 +21,7 @@ import { useRouter, useParams } from 'next/navigation'
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import DirectLinks from './components/DirectLinks';
 import { useTranslation } from 'react-i18next';
+import { useSession } from 'next-auth/react';
  
 
 // Client component
@@ -30,6 +31,11 @@ export default function Home ( ) {
     const params = useParams();
 
     const { t } = useTranslation();
+    const { data : session , status } = useSession();
+
+    if (status === 'unauthenticated') {
+         router.push('/auth');
+    }
       
 
     // Modal states

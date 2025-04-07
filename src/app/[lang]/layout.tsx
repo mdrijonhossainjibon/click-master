@@ -8,9 +8,7 @@ import WrapperProvider from "@/provider/wrapperprovider";
 import Script from "next/script";
 import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallback from './components/ErrorFallback';
-import { locales } from '../i18n/config';
-import LanguageSwitcher from './components/LanguageSwitcher';
-
+ 
  
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,10 +25,7 @@ export const metadata: Metadata = {
   description: "Earn rewards by watching ads with ClickMasterAds",
 };
 
-export async function generateStaticParams() {
-  return locales.map((locale) => ({ lang: locale }));
-}
-
+ 
 
  
 

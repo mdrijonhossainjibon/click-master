@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
  
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]/auth';
+import { authOptions } from '@/lib/authOptions';
+ 
  
 // GET /api/admin/roles
 export async function GET(request: NextRequest) {

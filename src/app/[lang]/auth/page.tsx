@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
- 
+import { useTranslation } from 'react-i18next';
 
 type TelegramUser = {
   id: number;
@@ -73,6 +73,8 @@ export default function AuthPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const { t } = useTranslation();
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -96,7 +98,7 @@ export default function AuthPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn("google", { callbackUrl: "/", redirect: true });
+ await signIn("google", { callbackUrl: "/", redirect: false });
     } catch (error) {
       alert("Google sign in failed");
     }
@@ -254,7 +256,7 @@ export default function AuthPage() {
                 disabled={isLoading}
                 className="w-full py-3 px-4 rounded-lg text-sm font-semibold text-white bg-[#229ED9] hover:bg-[#1E8DC1] focus:outline-none focus:ring-2 focus:ring-[#229ED9] focus:ring-offset-2 focus:ring-offset-[#1E2026] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                {isLoading ? "Signing in..." : "Sign in with Telegram"}
+              {/*   {isLoading ? "Signing in..." : "Sign in with Telegram"} */} {t('welcome')}
               </button>
             </form>
           )}

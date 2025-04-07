@@ -10,7 +10,7 @@ import {
   ReloadOutlined,
   EditOutlined,
 } from '@ant-design/icons';
-import { useAppSelector } from '@/hooks/useAppSelector';
+
 import { useDispatch } from 'react-redux';
 
 interface ZoneConfig {

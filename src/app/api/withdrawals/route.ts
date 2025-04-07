@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 
-import Withdrawal from '@/app/models/Withdrawal';
+ 
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
+import Withdrawal from '@/app/[lang]/models/Withdrawal';
 
 // Constants for conversion
 const USD_TO_BDT_RATE = 100; // 1 USD = 100 BDT

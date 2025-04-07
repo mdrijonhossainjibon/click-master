@@ -77,7 +77,17 @@ export type Method =
   
 export const API_CALL = async (props: API_CALL_PROPS): Promise<TypeApiPromise> => {
      
-    const api = axios.create({ baseURL: props.baseURL || `${window.location.origin}/api` }) 
+    let baseUrl = props.baseURL;
+    
+    if (typeof window !== 'undefined') {
+        // Only access window.location when in browser environment
+        baseUrl = baseUrl || `${window.location.origin}/api`;
+    } else {
+        // Fallback for server-side rendering
+        baseUrl = baseUrl || '/api';
+    }
+    
+    const api = axios.create({ baseURL: baseUrl }) 
   
     // Define default headers for different content types
     const defaultHeaders: Record<string, string> = {

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import Withdrawal, { IWithdrawal } from '@/app/models/Withdrawal';
  
  
 import { Types } from 'mongoose';
 import User from '@/models/User';
+import Withdrawal, { IWithdrawal } from '@/app/[lang]/models/Withdrawal';
  
 
 interface UserPopulated {
@@ -13,7 +13,7 @@ interface UserPopulated {
     email: string;
 }
 
-interface WithdrawalPopulated extends Omit<IWithdrawal, 'userId'> {
+interface WithdrawalPopulated extends Omit<IWithdrawal , 'userId'> {
     userId: UserPopulated;
 }
 

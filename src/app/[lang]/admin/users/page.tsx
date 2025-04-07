@@ -19,8 +19,9 @@ import {
   EyeOutlined,
 } from '@ant-design/icons';
 import { API_CALL } from '@/lib/client';
-import UserDetailsModal from '@/app/components/modals/UserDetailsModal';
+ 
 import { message } from 'antd';
+import UserDetailsModal from '../../components/modals/UserDetailsModal';
 
 interface User {
   _id: string;

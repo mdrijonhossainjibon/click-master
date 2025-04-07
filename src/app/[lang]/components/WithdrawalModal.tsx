@@ -182,8 +182,8 @@ const validateMobileNumber = (number: string): boolean => {
 };
 
 export default function WithdrawalModal({ isOpen, onClose, onHistoryClick, telegramId }: WithdrawalModalProps) {
-  const { balance } = useSelector((state: RootState) => state.private.user);
-  
+  const {  user } = useSelector((state: RootState) => state.public.auth);
+  const balance = user?.balance || 0;
   const {
     control,
     handleSubmit,

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import SecurityViolation from '@/app/models/SecurityViolation';
+ 
 import { getToken } from 'next-auth/jwt';
 import { cookies } from 'next/headers';
+import SecurityViolation from '@/app/[lang]/models/SecurityViolation';
 
 export async function POST(req: NextRequest) {
     try {

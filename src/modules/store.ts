@@ -86,7 +86,8 @@ const initialState: RootState = {
       loading: false,
       error: null,
       isAuthenticated: false,
-      telegramInitData: null
+      telegramInitData: null,
+      success: ''
     },
     directLinks: {
       items: [],

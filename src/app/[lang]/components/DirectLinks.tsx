@@ -123,7 +123,7 @@ export default function DirectLinks( ) {
     }, [buttonStates]);
 
     // Function to handle API call when countdown finishes
-    const handleCountdownFinish = async (linkId: string) => {
+    const handleCountdownFinish = useCallback(async (linkId: string) => {
         try {
             const buttonState = buttonStates[linkId];
             if (!isAuthenticated || !user?.id) {
@@ -162,7 +162,7 @@ export default function DirectLinks( ) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to credit reward';
             message.error(errorMessage);
         }
-    };
+    }, [isAuthenticated, user]);
 
     // Consolidated countdown timer effect
     useEffect(() => {
@@ -206,7 +206,7 @@ export default function DirectLinks( ) {
                     key={link._id}
                     variants={item}
                     onClick={() => handleDirectLinkClick(link)}
-                    disabled={isLocked ||   adsWatched  >= 1000}
+                    disabled={isLocked || adsWatched >= 1000}
                     className={`group relative flex items-center justify-center w-full h-16 rounded-xl shadow-lg overflow-hidden transition-all duration-300 
                         ${isLocked ? 'opacity-75 cursor-not-allowed' : 'rgb-border-animation hover:scale-105 hover:shadow-2xl'}`}
                     style={{
@@ -235,7 +235,7 @@ export default function DirectLinks( ) {
                 </motion.button>
             );
         });
-    }, [links, buttonStates, handleDirectLinkClick]);
+    }, [links, buttonStates, handleDirectLinkClick, adsWatched]);
 
     return (
         <div className="w-full max-w-4xl mx-auto mb-6 p-6 bg-gradient-to-r from-red-900/50 to-pink-900/50 rounded-2xl border border-red-500/20 backdrop-blur-sm shadow-xl">

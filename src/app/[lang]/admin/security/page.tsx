@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import SecurityHistoryPanel from '@/app/components/SecurityHistoryPanel';
+ 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import SecurityHistoryPanel from '../../components/SecurityHistoryPanel';
 
 const AdminSecurityPage = () => {
     const { data: session, status } : any= useSession();

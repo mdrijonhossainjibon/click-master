@@ -7,10 +7,10 @@ import {
     ClockCircleOutlined 
 } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
-import { selectUserStats } from '@/modules/selectors';
+
 
 export default function UserStats() {
-    const { loading, balance, adsWatched, timeRemaining } = useSelector(selectUserStats);
+    const { loading, balance, adsWatched, timeRemaining } = { loading: false, balance: 0, adsWatched: 0, timeRemaining: 0 }
 
     if (loading) {
         return (

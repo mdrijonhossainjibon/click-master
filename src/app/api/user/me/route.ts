@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/auth';
+ 
 import  dbConnect  from '@/lib/db';
 import User from '@/models/User';
+import { authOptions } from '@/lib/authOptions';
  
 
 export async function GET() {

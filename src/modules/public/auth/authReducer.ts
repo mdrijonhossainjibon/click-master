@@ -31,10 +31,10 @@ export const authReducer = (state = initialState, action: AuthAction): AuthState
       };
 
     case AuthActionTypes.FIND_USER_AND_UPDATED:
-      const { _id, adsWatched , newBalance } : any= action.payload;
+      const { _id, adsWatched , newBalance } : any= action.payload;                
       
        
-    return { ...state , user: { ...state.user, adsWatched, balance: newBalance , id: _id } }
+    return { ...state , user: { ...state.user, adsWatched, balance: newBalance , id: _id } } as any
 
     case AuthActionTypes.LOGIN_FAILURE:
       return {

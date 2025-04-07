@@ -20,7 +20,7 @@ const SecurityHistoryPanel: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [timeframe, setTimeframe] = useState('7'); // Default 7 days
 
-    const fetchViolations = async () => {
+    const fetchViolations = React.useCallback(async () => {
         try {
             setLoading(true);
             const response = await fetch(`/api/security?days=${timeframe}`);
@@ -32,14 +32,14 @@ const SecurityHistoryPanel: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [timeframe, setLoading, setViolations]);
 
     useEffect(() => {
         fetchViolations();
         // Refresh data every minute
         const interval = setInterval(fetchViolations, 60000);
         return () => clearInterval(interval);
-    }, [timeframe]);
+    }, [timeframe, fetchViolations]);
 
     const getSeverityColor = (severity: string) => {
         switch (severity) {

@@ -1,4 +1,5 @@
-import { RootState } from '@/redux/store';
+
+import { RootState } from '@/modules/store';
 import { AdminStats, RecentActivity } from './types';
 
 // Base selector

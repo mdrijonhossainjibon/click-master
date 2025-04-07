@@ -17,24 +17,19 @@ import { fetchUserStats, watchAdRequest } from '@/modules/private/user/actions';
 import { useModals } from './hooks/useModals';
 import { toast } from 'react-toastify';
 import { useRouter, useParams } from 'next/navigation'
-import { getDictionary } from '../i18n/get-dictionary';
-import type { Dictionary } from '../i18n/get-dictionary';
-import type { Locale } from '../i18n/config';
+ 
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import DirectLinks from './components/DirectLinks';
-
-export default async function Page() {
-    const params = useParams();
-    const dictionary = await getDictionary(params.lang as Locale);
-
-    return <HomeClient dictionary={dictionary} />;
-}
+import { useTranslation } from 'react-i18next';
+ 
 
 // Client component
-function HomeClient({ dictionary }: { dictionary: Dictionary }) {
+export default function Home ( ) {
     const dispatch = useDispatch()
     const router = useRouter();
     const params = useParams();
+
+    const { t } = useTranslation();
       
 
     // Modal states
@@ -116,6 +111,7 @@ function HomeClient({ dictionary }: { dictionary: Dictionary }) {
         };
     }, [autoShowAds, countdown, isLoading, dispatch]);
 
+     
     const handleWatchAd = async () => {
         try {
             setIsLoading(true);
@@ -147,6 +143,8 @@ function HomeClient({ dictionary }: { dictionary: Dictionary }) {
              />
          );
      } */
+ 
+     
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -187,7 +185,8 @@ function HomeClient({ dictionary }: { dictionary: Dictionary }) {
                     level: 'Level',
                     rank: 'Rank',
                     telegramId: 'Telegram ID',
-                    joinDate: 'Member Since'
+                    joinDate: 'Member Since',
+                    logout : 'Logout'
                 }}
                 stats={userStats}
             />
@@ -213,7 +212,7 @@ function HomeClient({ dictionary }: { dictionary: Dictionary }) {
                             <div className="flex items-center space-x-2">
                                 <span className="text-xl">🎥</span>
                                 <span className="text-lg">
-                                    {dictionary.navigation.watchAd}
+                                    {t('navigation.watchAd')}
                                 </span>
                             </div>
                         </button>
@@ -231,11 +230,11 @@ function HomeClient({ dictionary }: { dictionary: Dictionary }) {
                                     } transition-colors duration-300`}
                             /*  disabled={adState.loading || userState.timeRemaining > 0 || userState.adsWatched >= 1000} */
                             >
-                                {autoShowAds ? dictionary.navigation.stopAutoAds : dictionary.navigation.startAutoAds}
+                                {autoShowAds ?  t('navigation.stopAutoAds') : t('navigation.startAutoAds')}
                             </button>
                             {autoShowAds && (
                                 <span className="text-sm text-gray-300">
-                                    {dictionary.navigation.nextAdIn.replace('{{seconds}}', countdown.toString())}
+                                    {t('navigation.nextAdIn')}
                                 </span>
                             )}
                         </div>
@@ -252,7 +251,13 @@ function HomeClient({ dictionary }: { dictionary: Dictionary }) {
                 onRules={() => setIsRulesModalOpen(true)}
                 onAbout={() => setIsAboutModalOpen(true)}
                 onSupport={() => setIsLiveSupportModalOpen(true)}
-                dictionary={dictionary.buttons}
+                dictionary={{
+                    withdraw: 'Withdraw',
+                    topEarners: 'Top Earners',
+                    rules: 'Rules',
+                    about: 'About',
+                    support: 'Support'
+                }}
             />
 
             {/* Modals */}

@@ -262,4 +262,6 @@ const AccountBanModal: React.FC<AccountBanModalProps> = React.memo(({
     );
 });
 
+AccountBanModal.displayName = 'AccountBanModal';
+
 export default AccountBanModal;

@@ -3,11 +3,9 @@
 import { Modal, Form, Input, Select, Button, Space } from 'antd';
 import { UserOutlined, MailOutlined } from '@ant-design/icons';
 import { useEffect } from 'react';
-import { CreateUserData } from '@/app/services/api';
-import { useAppDispatch } from '@/app/hooks/useAppDispatch';
-import { useAppSelector } from '@/app/hooks/useAppSelector';
-import { createUserRequest } from '@/app/store/slices/userSlice';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/modules/store';
+ 
 interface AddUserModalProps {
     open: boolean;
     onCancel: () => void;
@@ -15,12 +13,12 @@ interface AddUserModalProps {
 }
 
 export default function AddUserModal({ open, onCancel, onSuccess }: AddUserModalProps) {
-    const dispatch = useAppDispatch();
-    const [form] = Form.useForm<CreateUserData>();
-    const { loading, error } = useAppSelector(state => state.user);
+    const dispatch = useDispatch();
+    const [form] = Form.useForm();
+    const { loading, error } = useSelector((state: RootState) => state.public.auth);
 
-    const handleSubmit = (values: CreateUserData) => {
-        dispatch(createUserRequest(values));
+    const handleSubmit = (values: any) => {
+        ///dispatch(createUserRequest(values));
     };
 
     // Watch for changes in loading and error states

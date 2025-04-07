@@ -4,9 +4,9 @@ import type { ColumnsType } from 'antd/es/table';
 import type { TablePaginationConfig } from 'antd/es/table';
 import type { FilterValue, SorterResult } from 'antd/es/table/interface';
 import { User, UserFilters } from '../services/api';
-import { useAppDispatch } from '../hooks/useAppDispatch';
+ 
 import { useAppSelector } from '../hooks/useAppSelector';
-import { fetchUsersRequest, deleteUserRequest } from '../store/slices/userSlice';
+ 
 import { 
   DeleteOutlined, 
   EditOutlined, 
@@ -15,6 +15,7 @@ import {
   ReloadOutlined 
 } from '@ant-design/icons';
 import Link from 'next/link';
+import { useDispatch } from 'react-redux';
 
 interface UserListProps {
   onEdit?: (user: User) => void;
@@ -30,18 +31,14 @@ const { Search } = Input;
 const { Option } = Select;
 
 const UserList: React.FC<UserListProps> = ({ onEdit }) => {
-  const dispatch = useAppDispatch();
-  const { users, loading, total, currentPage, pageSize } = useAppSelector(state => state.user);
+  const dispatch = useDispatch();
+  const { users, loading, total, currentPage, pageSize } = useAppSelector(state => state.private.user);
   const [searchText, setSearchText] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [deleteLoading, setDeleteLoading] = useState<string>('');
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = (page = 1) => {
+  const loadUsers = React.useCallback((page = 1) => {
     try {
       const filters: ExtendedUserFilters = {
         page,
@@ -54,16 +51,20 @@ const UserList: React.FC<UserListProps> = ({ onEdit }) => {
         filters.role = selectedRole;
       }
 
-      dispatch(fetchUsersRequest(filters));
+      //dispatch(fetchUsersRequest(filters));
     } catch (error) {
       message.error('Failed to load users. Please try again.');
     }
-  };
+  }, [dispatch, searchText, selectedRole, selectedStatus]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleDelete = async (userId: string) => {
     try {
       setDeleteLoading(userId);
-      dispatch(deleteUserRequest(userId));
+      //dispatch(deleteUserRequest(userId));
       message.success('User deleted successfully');
       loadUsers(currentPage);
     } catch (error) {
@@ -258,7 +259,7 @@ const UserList: React.FC<UserListProps> = ({ onEdit }) => {
         filters.role = selectedRole;
       }
 
-      dispatch(fetchUsersRequest(filters));
+      //dispatch(fetchUsersRequest(filters));
     } catch (error) {
       message.error('Failed to update table. Please try again.');
     }
@@ -312,7 +313,7 @@ const UserList: React.FC<UserListProps> = ({ onEdit }) => {
 
       <Table
         columns={columns}
-        dataSource={users}
+        dataSource={users as any}
         rowKey="id"
         loading={loading}
         pagination={{

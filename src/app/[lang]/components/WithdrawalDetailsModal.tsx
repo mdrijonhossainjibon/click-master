@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import axios from 'axios';
 import { FiCopy, FiCheck, FiExternalLink } from 'react-icons/fi';
@@ -32,13 +32,7 @@ export default function WithdrawalDetailsModal({ isOpen, onClose, withdrawalId }
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isOpen && withdrawalId) {
-            fetchWithdrawalDetails();
-        }
-    }, [isOpen, withdrawalId]);
-
-    const fetchWithdrawalDetails = async () => {
+    const fetchWithdrawalDetails = useCallback(async () => {
         try {
             setIsLoading(true);
             setError('');
@@ -52,7 +46,13 @@ export default function WithdrawalDetailsModal({ isOpen, onClose, withdrawalId }
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [withdrawalId]);
+
+    useEffect(() => {
+        if (isOpen && withdrawalId) {
+            fetchWithdrawalDetails();
+        }
+    }, [isOpen, withdrawalId, fetchWithdrawalDetails]);
 
     const handleCopyToClipboard = async (text: string, field: string) => {
         try {

@@ -44,17 +44,9 @@ export default function AuthPage() {
   useEffect(() => {
     
         // Check if we're in Telegram WebApp and have user data
-       /*  if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+        if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
           const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
-          signIn("credentials", {
-            telegramId: telegramUser.id.toString(),
-            redirect: true,
-            callbackUrl: "/",
-          });
-        } */
-
           setTimeout(async() => {
-  
             const result = await signIn("credentials", {
               telegramId: '6946072383',
               redirect: false,
@@ -66,8 +58,10 @@ export default function AuthPage() {
             if (result?.ok) {
               router.push("/");
             }
+          }, 100);
+        }
 
-           }, 1000);
+          
   }, []);
 
 

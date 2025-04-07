@@ -1,0 +1,33 @@
+{
+  "navigation": {
+    "watchAd": "বিজ্ঞাপন দেখে আয় করুন",
+    "startAutoAds": "অটো বিজ্ঞাপন শুরু করুন",
+    "stopAutoAds": "অটো বিজ্ঞাপন বন্ধ করুন",
+    "nextAdIn": "পরবর্তী বিজ্ঞাপন: {{seconds}}s"
+  },
+  "buttons": {
+    "withdraw": "উত্তোলন",
+    "topEarners": "শীর্ষ আয়কারী",
+    "rules": "নিয়মাবলী",
+    "about": "সম্পর্কে",
+    "support": "সহায়তা"
+  },
+  "modals": {
+    "topEarners": {
+      "title": "শীর্ষ আয়কারী",
+      "close": "বন্ধ করুন"
+    },
+    "rules": {
+      "title": "নিয়মাবলী",
+      "close": "বন্ধ করুন"
+    },
+    "about": {
+      "title": "সম্পর্কে",
+      "close": "বন্ধ করুন"
+    }
+  },
+  "errors": {
+    "adFailed": "বিজ্ঞাপন দেখা ব্যর্থ হয়েছে",
+    "retry": "আবার চেষ্টা করুন"
+  }
+}

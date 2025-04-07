@@ -1,0 +1,33 @@
+{
+  "navigation": {
+    "watchAd": "विज्ञापन देखकर कमाएं",
+    "startAutoAds": "ऑटो विज्ञापन शुरू करें",
+    "stopAutoAds": "ऑटो विज्ञापन बंद करें",
+    "nextAdIn": "अगला विज्ञापन: {{seconds}}s"
+  },
+  "buttons": {
+    "withdraw": "निकासी",
+    "topEarners": "टॉप अर्नर्स",
+    "rules": "नियम",
+    "about": "जानकारी",
+    "support": "सहायता"
+  },
+  "modals": {
+    "topEarners": {
+      "title": "टॉप अर्नर्स",
+      "close": "बंद करें"
+    },
+    "rules": {
+      "title": "नियम",
+      "close": "बंद करें"
+    },
+    "about": {
+      "title": "जानकारी",
+      "close": "बंद करें"
+    }
+  },
+  "errors": {
+    "adFailed": "विज्ञापन देखने में विफल",
+    "retry": "पुनः प्रयास करें"
+  }
+}

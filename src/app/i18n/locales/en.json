@@ -1,0 +1,33 @@
+{
+  "navigation": {
+    "watchAd": "Watch Ad to Earn",
+    "startAutoAds": "Start Auto Ads",
+    "stopAutoAds": "Stop Auto Ads",
+    "nextAdIn": "Next ad in: {{seconds}}s"
+  },
+  "buttons": {
+    "withdraw": "Withdraw",
+    "topEarners": "Top Earners",
+    "rules": "Rules",
+    "about": "About",
+    "support": "Support"
+  },
+  "modals": {
+    "topEarners": {
+      "title": "Top Earners",
+      "close": "Close"
+    },
+    "rules": {
+      "title": "Rules",
+      "close": "Close"
+    },
+    "about": {
+      "title": "About",
+      "close": "Close"
+    }
+  },
+  "errors": {
+    "adFailed": "Failed to watch ad",
+    "retry": "Retry"
+  }
+}

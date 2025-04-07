@@ -1,0 +1,33 @@
+{
+  "navigation": {
+    "watchAd": "Ver anuncio para ganar",
+    "startAutoAds": "Iniciar anuncios automáticos",
+    "stopAutoAds": "Detener anuncios automáticos",
+    "nextAdIn": "Próximo anuncio en: {{seconds}}s"
+  },
+  "buttons": {
+    "withdraw": "Retirar",
+    "topEarners": "Mejores ganadores",
+    "rules": "Reglas",
+    "about": "Acerca de",
+    "support": "Soporte"
+  },
+  "modals": {
+    "topEarners": {
+      "title": "Mejores ganadores",
+      "close": "Cerrar"
+    },
+    "rules": {
+      "title": "Reglas",
+      "close": "Cerrar"
+    },
+    "about": {
+      "title": "Acerca de",
+      "close": "Cerrar"
+    }
+  },
+  "errors": {
+    "adFailed": "Error al ver el anuncio",
+    "retry": "Reintentar"
+  }
+}

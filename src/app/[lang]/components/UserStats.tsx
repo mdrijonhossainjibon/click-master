@@ -9,11 +9,12 @@ import {
 
 import { useSelector } from 'react-redux';
 import { RootState } from '@/modules/store';
+import { useTranslation } from 'react-i18next';
 
 export default function UserStats() {
     const {  loading , user } =  useSelector((state : RootState) => state.public.auth);
     
-     
+     const { t } = useTranslation();
 
     if (loading) {
         return (
@@ -36,7 +37,7 @@ export default function UserStats() {
     return (
         <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-gray-800/70 hover:scale-[1.02] cursor-help">
-                <Tooltip title="Your current balance. Watch more ads to increase it!" placement="top">
+                <Tooltip title={t('navigation.balance')} placement="top">
                     <div className="text-center space-y-2">
                         <div className="flex items-center justify-center text-yellow-400 mb-1">
                             <DollarCircleOutlined className="text-xl mr-2" />
@@ -44,7 +45,7 @@ export default function UserStats() {
                                 ${ user?.balance.toFixed(4)}
                             </span>
                         </div>
-                        <div className="text-sm text-gray-400">Available Balance</div>
+                        <div className="text-sm text-gray-400">{t('navigation.available.balance')}</div>
                         <div className="text-sm text-emerald-400">
                             ৳{ (user?.balance || 0) * 100 }
                         </div>
@@ -62,17 +63,8 @@ export default function UserStats() {
                                 {  user?.adsWatched || 0}
                             </span>
                         </div>
-                        <div className="text-sm text-gray-400">Ads Watched Today</div>
-                        { 0 > 0 ? (
-                            <div className="flex items-center justify-center text-red-400 mt-1 animate-pulse">
-                                <ClockCircleOutlined className="mr-1" />
-                                <span>Wait { 0 }s</span>
-                            </div>
-                        ) : (
-                            <div className="text-xs text-emerald-400 mt-1">
-                                Ready to watch!
-                            </div>
-                        )}
+                        <div className="text-sm text-gray-400"> {t('navigation.ads')}</div>
+                       
                     </div>
                 </Tooltip>
             </div>

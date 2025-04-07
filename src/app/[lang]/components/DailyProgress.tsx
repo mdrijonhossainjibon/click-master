@@ -1,6 +1,7 @@
 'use client';
 import { RootState } from '@/modules/store';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 interface DailyProgressProps {
@@ -18,6 +19,7 @@ export default function DailyProgress() {
     const { user } = useSelector((state: RootState) => state.public.auth);
     const adsWatched = user?.adsWatched || 0
     const progress = Math.min((adsWatched / 5000) * 100, 100);
+    const { t } = useTranslation();
 
     useEffect(() => {
         const updateCountdown = () => {
@@ -46,18 +48,18 @@ export default function DailyProgress() {
     }, []);
 
     const timeUnits: TimeUnit[] = [
-        { value: countdown.days, label: 'Days' },
-        { value: countdown.hours, label: 'Hours' },
-        { value: countdown.minutes, label: 'Min' },
-        { value: countdown.seconds, label: 'Sec' }
+        { value: countdown.days, label: 'days' },
+        { value: countdown.hours, label: 'hours' },
+        { value: countdown.minutes, label: 'minutes' },
+        { value: countdown.seconds, label: 'seconds' }
     ];
 
     return (
         <div className="bg-gray-900/50 rounded-xl p-4">
             <div className="flex justify-between items-center mb-2">
-                <div className="text-sm text-gray-400">Daily Progress</div>
+                <div className="text-sm text-gray-400">  {t('navigation.dailyProgress')} </div>
                 <div className="text-sm text-emerald-400">
-                    {adsWatched}/{ 1000} Ads
+                    {adsWatched}/{ 1000}  {t('navigation.ads')}
                 </div>
             </div>
             <div className="h-2 bg-gray-700 rounded-full overflow-hidden mb-3">
@@ -81,7 +83,7 @@ export default function DailyProgress() {
                             <div className="text-lg font-bold text-amber-400">
                                 {unit.value.toString().padStart(2, '0')}
                             </div>
-                            <div className="text-xs text-gray-400">{unit.label}</div>
+                            <div className="text-xs text-gray-400"> {t('navigation.'+unit.label)}</div>
                             {index < timeUnits.length - 1 && (
                                 <div className="absolute -right-1 top-1/2 -translate-y-1/2 text-gray-500">:</div>
                             )}
@@ -89,7 +91,7 @@ export default function DailyProgress() {
                     ))}
                 </div>
                 <div className="text-xs text-gray-400 mt-2">
-                    Until Next Reset
+                    {t('navigation.untilNextReset')}
                 </div>
             </div>
         </div>

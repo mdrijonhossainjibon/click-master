@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Negotiator from 'negotiator';
 import { match as matchLocale } from '@formatjs/intl-localematcher';
 
-const locales = ['en', 'bn', 'hi', 'es'] as const;
+const locales = ['en', 'bn', 'hi', 'es','fr'] as const;
 const defaultLocale = 'en';
 
 function getLocale(request: NextRequest): string {
@@ -13,7 +13,7 @@ function getLocale(request: NextRequest): string {
 
     // @ts-ignore locales are readonly
     const languages = new Negotiator({ headers: negotiatorHeaders }).languages()
-    
+
     try {
         const locale = matchLocale(languages, locales, defaultLocale)
         return locale
@@ -29,11 +29,10 @@ async function middleware(request: NextRequest, event: any) {
     const pathnameHasLocale = locales.some(
         (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
     );
+    const locale =  getLocale(request);
 
     if (!pathnameHasLocale) {
-        // Get the preferred locale
-        const locale = getLocale(request);
-
+         
         // e.g. incoming request is /products
         // The new URL is now /en/products
         return NextResponse.redirect(
@@ -49,7 +48,7 @@ async function middleware(request: NextRequest, event: any) {
     if (isPublicPath) {
         return NextResponse.next();
     }
- 
+
     // Protect all other routes with basic auth
     return withAuth(
         (req, evt) => {
@@ -57,7 +56,7 @@ async function middleware(request: NextRequest, event: any) {
         },
         {
             pages: {
-                signIn: `/en/auth`,
+                signIn: `/${locale}/auth`,
             },
             callbacks: {
                 authorized: ({ token }) => !!token,

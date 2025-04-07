@@ -11,8 +11,9 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from '@/i18n/i18n';
 
 
-export default function WrapperProvider({ children }: { children: React.ReactNode }) {
-
+export default function WrapperProvider({ children , lang }: { children: React.ReactNode  , lang : string }) {
+  
+   i18n.changeLanguage(lang);
 
    return (
       <StyleProvider hashPriority="high">

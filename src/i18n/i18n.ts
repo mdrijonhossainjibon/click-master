@@ -21,7 +21,7 @@ if (typeof window !== 'undefined') {
 i18nInstance.init({
   defaultNS: 'translation',
   fallbackLng: 'en',
-  supportedLngs: ['en-US', 'en', 'bn', 'hi'],
+  supportedLngs: ['en-US', 'en', 'bn', 'hi','fr'],
   fallbackNS: 'translation',
   debug: false,
   interpolation: {

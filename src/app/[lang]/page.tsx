@@ -136,19 +136,7 @@ export default function Home ( ) {
         }
     };
 
-    /*  if (userState.loading || adState.loading) {
-         return <Loading />;
-     }
- 
-     if (userState.error || adState.error) {
-         return (
-             <ErrorFallback 
-                 error={userState.error || adState.error || 'An error occurred'} 
-                 onRetry={() => window.location.reload()  } 
-             />
-         );
-     } */
- 
+    
      
 
     return (
@@ -200,7 +188,7 @@ export default function Home ( ) {
             <main className="container mx-auto px-4 py-20 max-w-4xl">
                 <div className="bg-gray-800/95 backdrop-blur-md border border-gray-700 rounded-2xl shadow-xl p-4 sm:p-6 space-y-4 sm:space-y-6">
                     <h1 className="text-2xl sm:text-3xl font-bold text-white rgb-animate py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg text-center leading-tight">
-                        Watch Ads & Earn Money
+                        {t('welcome')}
                     </h1>
                     <UserStats />
 
@@ -239,7 +227,7 @@ export default function Home ( ) {
                             </button>
                             {autoShowAds && (
                                 <span className="text-sm text-gray-300">
-                                    {t('navigation.nextAdIn')}
+                                    {t('navigation.nextAdIn')} {countdown} {t('navigation.seconds')}
                                 </span>
                             )}
                         </div>

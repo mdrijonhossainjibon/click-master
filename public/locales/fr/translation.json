@@ -1,6 +1,9 @@
 {
     "welcome": "Bienvenue",
     "login": "Connexion",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "navigation": {
+        "watchAd": "Regarder une publicité"
+    }
   }
   

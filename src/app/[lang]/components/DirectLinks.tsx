@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { RootState } from "@/modules/store";
+import { useTranslation } from "react-i18next";
  
 
 interface DirectLink {
@@ -69,7 +70,7 @@ export default function DirectLinks( ) {
     const links = useSelector((state: RootState) => state.public.directLinks?.items || []);
     const user = useSelector((state: RootState) => state.public.auth.user);
     const isAuthenticated = useSelector((state: RootState) => state.public.auth.isAuthenticated);
-
+    const { t } = useTranslation();
     // Initialize button states from localStorage
     const [buttonStates, setButtonStates] = useState<ButtonState>({});
 
@@ -242,11 +243,10 @@ export default function DirectLinks( ) {
             <div className="flex flex-col items-center space-y-4">
                 <div className="text-center space-y-2 mb-4">
                     <h3 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-400">
-                        Are you over 18 years old?
+                        {t('navigation.watchAds.age')}
                     </h3>
                     <p className="text-gray-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-                        The following links contain adult content. Please confirm you are
-                        over 18 years old to continue.
+                        {t('navigation.watchAds.description')}
                     </p>
                 </div>
 
@@ -254,7 +254,7 @@ export default function DirectLinks( ) {
                     <div className="w-full py-8">
                         <Empty
                             description={
-                                <span className="text-gray-400">No links available</span>
+                                <span className="text-gray-400">{t('navigation.watchAds.noLinks')}</span>
                             }
                             className="text-gray-400"
                         />
@@ -277,7 +277,7 @@ export default function DirectLinks( ) {
                     className="w-full max-w-lg mx-auto"
                 >
                     <p className="text-white py-4 px-6 rounded-xl shadow-lg bg-gradient-to-r from-amber-600 to-orange-800 text-sm sm:text-base text-center font-medium">
-                        🎯 Watch the complete ad to receive your reward
+                        {t('navigation.watchAds.title')}
                     </p>
                 </motion.div>
             </div>

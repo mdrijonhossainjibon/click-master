@@ -38,34 +38,16 @@ export default function AuthPage() {
 
   // Auto sign in with Telegram WebApp
   useEffect(() => {
-    const autoSignInWithTelegram = async () => {
-      try {
+    
         // Check if we're in Telegram WebApp and have user data
         if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
           const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
-          setIsLoading(true);
-          
-          // Attempt to sign in with Telegram credentials
-          const result = await signIn("credentials", {
+          signIn("credentials", {
             telegramId: telegramUser.id.toString(),
-            redirect: false,
+            redirect: true
           });
-
-          if (result?.error) {
-            console.error("Telegram auto-sign in failed:", result.error);
-          } else if (result?.ok) {
-            // Redirect to home page on successful sign in
-            window.location.href = "/";
-          }
         }
-      } catch (error) {
-        console.error("Error during Telegram auto-sign in:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
-    autoSignInWithTelegram();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

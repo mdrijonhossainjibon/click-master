@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/modules/store';
+import { fetchTopEarners } from '@/modules/public/topEarners/topEarnersActions';
 
 interface TopEarnersModalProps {
     isOpen: boolean;
@@ -30,8 +33,32 @@ interface TopEarnersModalProps {
     };
 }
 
-export default function TopEarnersModal({ isOpen, onClose, dictionary, stats = { today: [], allTime: [] } }: TopEarnersModalProps) {
+export default function TopEarnersModal({ isOpen, onClose, dictionary }: TopEarnersModalProps) {
     const [activeTab, setActiveTab] = useState('today');
+    const dispatch = useDispatch();
+    const { today, allTime, loading } = useSelector((state: RootState) => state.public.topEarners);
+
+    useEffect(() => {
+        if (isOpen) {
+            // Initial fetch
+            dispatch(fetchTopEarners('today'));
+            
+            // Set up auto-refresh interval (every 60 seconds)
+            const intervalId = setInterval(() => {
+                dispatch(fetchTopEarners('today'));
+            }, 60000);
+
+            // Cleanup interval on unmount or when modal closes
+            return () => clearInterval(intervalId);
+        }
+    }, [isOpen, dispatch]);
+
+    // Add effect to fetch data when tab changes
+    useEffect(() => {
+        if (isOpen) {
+            dispatch(fetchTopEarners(activeTab === 'today' ? 'today' : 'all'));
+        }
+    }, [activeTab, isOpen, dispatch]);
 
     if (!isOpen) return null;
 
@@ -86,7 +113,11 @@ export default function TopEarnersModal({ isOpen, onClose, dictionary, stats = {
 
                     {/* Leaderboard List */}
                     <div className="space-y-2">
-                        {(activeTab === 'today' ? stats.today : stats.allTime).map((entry, index) => (
+                        {loading ? (
+                            <div className="text-center py-8 text-gray-400">
+                                Loading...
+                            </div>
+                        ) : (activeTab === 'today' ? today : allTime).map((entry: any, index: number) => (
                             <div 
                                 key={index}
                                 className={`grid grid-cols-12 gap-2 p-4 rounded-xl ${
@@ -96,8 +127,8 @@ export default function TopEarnersModal({ isOpen, onClose, dictionary, stats = {
                                 }`}
                             >
                                 <div className="col-span-2 font-medium text-gray-300">#{entry.rank}</div>
-                                <div className="col-span-6 font-medium text-white truncate">
-                                    {entry.username}
+                                <div className="col-span-6 font-medium text-white truncate  ">
+                                    {entry.name.slice(0,10)}
                                     {entry.isCurrentUser && (
                                         <span className="ml-1 text-xs text-purple-400">(You)</span>
                                     )}
@@ -110,7 +141,7 @@ export default function TopEarnersModal({ isOpen, onClose, dictionary, stats = {
                     </div>
 
                     {/* Empty State */}
-                    {((activeTab === 'today' ? stats.today : stats.allTime).length === 0) && (
+                    {!loading && ((activeTab === 'today' ? today : allTime).length === 0) && (
                         <div className="text-center py-8 text-gray-400">
                             No data available
                         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useTranslation } from 'react-i18next';
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -37,7 +37,7 @@ export default function AuthPage() {
     telegramId: "",
     telegramPassword: "",
   });
-
+const { data : session } = useSession();
   const  router = useRouter();
 
   // Auto sign in with Telegram WebApp
@@ -61,6 +61,9 @@ export default function AuthPage() {
           }, 100);
         }
 
+        if(session?.user) {
+          router.push("/");
+        }
           
   }, []);
 

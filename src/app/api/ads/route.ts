@@ -52,6 +52,7 @@ export async function POST(request: Request) {
       status: 'completed'
     });
 
+
     const result = { newBalance: user.balance, reward, adsWatched: user.adsWatched, _id: user._id }
 
     return NextResponse.json({ success: true, message: 'Ad watch recorded successfully', result });

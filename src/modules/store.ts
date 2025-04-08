@@ -12,6 +12,9 @@ import { withdrawalsReducer } from './private/withdrawals/withdrawalsReducer';
 // Public reducers
 import { authReducer } from './public/auth/authReducer';
 import { directLinksReducer } from './public/directLinks/directLinksReducer';
+import { withdrawalReducer } from './public/withdrawal/withdrawalReducer';
+import { topEarnersReducer } from './public/topEarners/topEarnersReducer';
+import { achievementReducer } from './public/achievement/achievementReducer';
 
 // Root saga
 import { rootSaga } from './rootSaga';
@@ -29,7 +32,9 @@ const privateReducers = combineReducers({
 // Combine public reducers
 const publicReducers = combineReducers({
   auth: authReducer,
-  directLinks: directLinksReducer
+  directLinks: directLinksReducer,
+  withdrawal: withdrawalReducer,
+  topEarners: topEarnersReducer
 });
 
 // Root reducer
@@ -91,6 +96,18 @@ const initialState: RootState = {
     },
     directLinks: {
       items: [],
+      loading: false,
+      error: null
+    },
+    withdrawal: {
+      withdrawalHistory: [],
+      timing: null,
+      loading: false,
+      error: null
+    },
+    topEarners: {
+      today: [],
+      allTime: [],
       loading: false,
       error: null
     }

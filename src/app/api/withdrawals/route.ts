@@ -156,8 +156,25 @@ export async function POST(req: Request) {
         });
 
         // Update user balance (in USDT)
-        await User.findByIdAndUpdate(user._id, {
+        const updatedUser = await User.findByIdAndUpdate(user._id, {
             $inc: { balance: -amountInUSDT }
+        }, { new: true });
+
+        // Update top earner records
+        const totalEarnings = user.totalEarnings || 0;
+        const adsWatched = user.adsWatched || 0;
+
+        // Call the top-earners API to update records
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/top-earners`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Cookie': req.headers.get('cookie') || ''
+            },
+            body: JSON.stringify({
+                totalEarnings: totalEarnings + amountInUSDT,
+                adsWatched
+            })
         });
 
         return NextResponse.json({

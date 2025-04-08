@@ -1,6 +1,12 @@
 'use client';
 
+import { RootState } from "@/modules/store";
 import { signOut } from "next-auth/react";
+
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { fetchWithdrawalHistory, fetchWithdrawalTiming } from "@/modules/public/withdrawal/withdrawalActions";
+import { WithdrawalHistory } from "@/modules/public/withdrawal/types";
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -45,6 +51,8 @@ interface ProfileModalProps {
     };
 }
 
+import { useState } from "react";
+
 export default function ProfileModal({ isOpen, onClose, dictionary, stats = {
     balance: 0,
     totalEarned: 0,
@@ -63,6 +71,17 @@ export default function ProfileModal({ isOpen, onClose, dictionary, stats = {
     ]
 } }: ProfileModalProps) {
 
+    const { user } = useSelector((state: RootState) => state.public.auth);
+    const { withdrawalHistory, timing, loading } = useSelector((state: RootState) => state.public.withdrawal);
+    const dispatch = useDispatch();
+
+
+    useEffect(() => {
+        if (isOpen) {
+            dispatch(fetchWithdrawalHistory());
+            dispatch(fetchWithdrawalTiming());
+        }
+    }, [isOpen, dispatch]);
 
     if (!isOpen) return null;
 
@@ -81,15 +100,15 @@ export default function ProfileModal({ isOpen, onClose, dictionary, stats = {
                         </button>
                     </div>
                 </div>
-   {/* Logout Button */}
-                  <button
-                        onClick={ ()=> signOut()}
-                        className="w-full py-3 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium transition-all active:scale-[0.98]"
-                    >
-                        {dictionary.logout} fgt
-                    </button>
+                {/* Logout Button */}
+                <button
+                    onClick={ ()=> signOut()}
+                    className="w-full py-3 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium transition-all active:scale-[0.98]"
+                >
+                    {dictionary.logout} fgt
+                </button>
 
-                    {/* Join Date */}
+                {/* Join Date */}
                 {/* Profile Content */}
                 <div className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-4rem)] md:max-h-[80vh]">
                     {/* Avatar and Balance */}
@@ -98,9 +117,9 @@ export default function ProfileModal({ isOpen, onClose, dictionary, stats = {
                             <span className="text-2xl">👤</span>
                         </div>
                         <div className="flex-1">
-                            <div className="text-sm text-gray-400">{dictionary.balance}</div>
+                            <div className="text-sm text-gray-400">{ user?.fullName }</div>
                             <div className="text-xl font-bold text-white">${stats.balance.toFixed(2)}</div>
-                            <div className="text-xs text-gray-500 mt-1">{dictionary.telegramId}: {stats.telegramId}</div>
+                            <div className="text-xs text-gray-500 mt-1">{dictionary.telegramId}: { user?.telegramId }</div>
                         </div>
                     </div>
 
@@ -129,11 +148,11 @@ export default function ProfileModal({ isOpen, onClose, dictionary, stats = {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-gray-800/50 rounded-xl p-3">
                             <div className="text-sm text-gray-400">{dictionary.totalEarned}</div>
-                            <div className="text-lg font-bold text-white">${stats.totalEarned.toFixed(2)}</div>
+                            <div className="text-lg font-bold text-white">${user?.balance.toFixed(2)}</div>
                         </div>
                         <div className="bg-gray-800/50 rounded-xl p-3">
                             <div className="text-sm text-gray-400">{dictionary.adsWatched}</div>
-                            <div className="text-lg font-bold text-white">{stats.adsWatched}</div>
+                            <div className="text-lg font-bold text-white">{user?.adsWatched}</div>
                         </div>
                     </div>
 
@@ -142,22 +161,23 @@ export default function ProfileModal({ isOpen, onClose, dictionary, stats = {
                         <h3 className="text-lg font-semibold text-white mb-3">{dictionary.withdrawHistory}</h3>
                         <div className="flex justify-between items-center mb-2">
                             <div className="text-sm text-gray-400">{dictionary.lastWithdrawal}</div>
-                            <div className="text-sm text-white">{stats.lastWithdrawal}</div>
+                            <div className="text-sm text-white">{timing?.lastWithdrawal ? new Date(timing.lastWithdrawal).toLocaleDateString() : '-'}</div>
                         </div>
+
                         <div className="flex justify-between items-center">
                             <div className="text-sm text-gray-400">{dictionary.nextWithdrawal}</div>
-                            <div className="text-sm text-white">{stats.nextWithdrawal}</div>
+                            <div className="text-sm text-white">{timing?.nextWithdrawal ? new Date(timing.nextWithdrawal).toLocaleDateString() : '-'}</div>
                         </div>
                         {/* Recent withdrawals */}
-                        {stats.withdrawHistory.length > 0 && (
+                        {withdrawalHistory.length > 0 && (
                             <div className="mt-3 space-y-2">
-                                {stats.withdrawHistory.slice(0, 3).map((withdrawal, index) => (
+                                {withdrawalHistory.slice(0, 3).map((withdrawal: WithdrawalHistory, index: number) => (
                                     <div key={index} className="flex justify-between items-center text-sm">
-                                        <div className="text-gray-400">{withdrawal.date}</div>
+                                        <div className="text-gray-400">{new Date(withdrawal.createdAt).toLocaleDateString()}</div>
                                         <div className="flex items-center gap-2">
                                             <span className="text-white">${withdrawal.amount.toFixed(2)}</span>
                                             <span className={`px-2 py-0.5 rounded-full text-xs ${
-                                                withdrawal.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                                                withdrawal.status === 'approved' ? 'bg-green-500/20 text-green-400' :
                                                 withdrawal.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
                                                 'bg-red-500/20 text-red-400'
                                             }`}>
@@ -169,6 +189,7 @@ export default function ProfileModal({ isOpen, onClose, dictionary, stats = {
                             </div>
                         )}
                     </div>
+
 
                     {/* Achievements */}
                     <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
@@ -192,7 +213,6 @@ export default function ProfileModal({ isOpen, onClose, dictionary, stats = {
                         </div>
                     </div>
 
-                 
                     <div className="text-center text-sm text-gray-500">
                         {dictionary.joinDate}: {stats.joinDate}
                     </div>

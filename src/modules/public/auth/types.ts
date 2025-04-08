@@ -13,6 +13,7 @@ export interface User {
   lastWatchTime?: string;
   createdAt: string;
   updatedAt: string;
+  fullName : string;
 }
 
 

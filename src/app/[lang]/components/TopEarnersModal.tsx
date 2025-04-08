@@ -4,39 +4,19 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/modules/store';
 import { fetchTopEarners } from '@/modules/public/topEarners/topEarnersActions';
+import { useTranslation } from 'react-i18next';
 
 interface TopEarnersModalProps {
     isOpen: boolean;
     onClose: () => void;
-    dictionary: {
-        topEarners: string;
-        close: string;
-        today: string;
-        allTime: string;
-        rank: string;
-        user: string;
-        earned: string;
-    };
-    stats?: {
-        today: Array<{
-            rank: number;
-            username: string;
-            earned: number;
-            isCurrentUser?: boolean;
-        }>;
-        allTime: Array<{
-            rank: number;
-            username: string;
-            earned: number;
-            isCurrentUser?: boolean;
-        }>;
-    };
+
 }
 
-export default function TopEarnersModal({ isOpen, onClose, dictionary }: TopEarnersModalProps) {
+export default function TopEarnersModal({ isOpen, onClose }: TopEarnersModalProps) {
     const [activeTab, setActiveTab] = useState('today');
     const dispatch = useDispatch();
     const { today, allTime, loading } = useSelector((state: RootState) => state.public.topEarners);
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (isOpen) {
@@ -68,7 +48,7 @@ export default function TopEarnersModal({ isOpen, onClose, dictionary }: TopEarn
                 {/* Header */}
                 <div className="sticky top-0 z-10 p-4 border-b border-gray-800 bg-gradient-to-r from-purple-500 to-indigo-500">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-white">{dictionary.topEarners}</h2>
+                        <h2 className="text-xl font-bold text-white">{t('topEarners')}</h2>
                         <button 
                             onClick={onClose}
                             className="w-8 h-8 flex items-center justify-center rounded-full bg-black/20 text-white/80 hover:text-white transition-all hover:bg-black/30 active:scale-95"
@@ -90,7 +70,7 @@ export default function TopEarnersModal({ isOpen, onClose, dictionary }: TopEarn
                                 : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            {dictionary.today}
+                            {t('today')}
                         </button>
                         <button
                             onClick={() => setActiveTab('allTime')}
@@ -100,22 +80,22 @@ export default function TopEarnersModal({ isOpen, onClose, dictionary }: TopEarn
                                 : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            {dictionary.allTime}
+                             {t('allTime')}
                         </button>
                     </div>
 
                     {/* Leaderboard Headers */}
                     <div className="grid grid-cols-12 gap-2 px-4 text-sm text-gray-400">
-                        <div className="col-span-2">{dictionary.rank}</div>
-                        <div className="col-span-6">{dictionary.user}</div>
-                        <div className="col-span-4 text-right">{dictionary.earned}</div>
+                        <div className="col-span-2">{t('rank')}</div>
+                        <div className="col-span-6"> {t('user')}</div>
+                        <div className="col-span-4 text-right"> {t('earned')}</div>
                     </div>
 
                     {/* Leaderboard List */}
                     <div className="space-y-2">
                         {loading ? (
                             <div className="text-center py-8 text-gray-400">
-                                Loading...
+                                 {t('loading')}
                             </div>
                         ) : (activeTab === 'today' ? today : allTime).map((entry: any, index: number) => (
                             <div 
@@ -143,7 +123,7 @@ export default function TopEarnersModal({ isOpen, onClose, dictionary }: TopEarn
                     {/* Empty State */}
                     {!loading && ((activeTab === 'today' ? today : allTime).length === 0) && (
                         <div className="text-center py-8 text-gray-400">
-                            No data available
+                            {t('noDataAvailable')}
                         </div>
                     )}
                 </div>

@@ -17,6 +17,7 @@ import {
   ClockCircleOutlined,
 } from '@ant-design/icons';
 import { API_CALL } from '@/lib/client';
+import AdminLayout from '../layout';
 
 interface Withdrawal {
   _id: string;
@@ -181,30 +182,7 @@ export default function WithdrawalsPage() {
   };
 
   return (
-    <div className='bg-gray-900'>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 transition-colors duration-300">
-        <div className="min-h-screen text-gray-100">
-          <aside className="fixed inset-y-0 left-0 bg-gray-900 w-64 border-r border-gray-700 shadow-lg transition-colors duration-300">
-            <nav className="mt-8 px-4">
-              {menuItems.map((item) => (
-                <button
-                  key={item.key}
-                  onClick={() => router.push(item.key)}
-                  className={`w-full flex items-center px-4 py-3 mb-2 rounded-xl text-left transition-all duration-300 ease-in-out
-                    ${pathname === item.key
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-300 hover:bg-gray-800'}`}
-                >
-                  <span className={`text-xl mr-4 ${pathname === item.key ? 'text-white' : 'text-blue-400'}`}>
-                    {item.icon}
-                  </span>
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              ))}
-            </nav>
-          </aside>
-
-          <main className="ml-64 p-8">
+    <AdminLayout> 
             <div className="flex justify-between items-center mb-8 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800 transition-all duration-300">
               <h1 className="text-2xl font-bold text-gray-100 flex items-center">
                 <WalletOutlined className="mr-3 text-blue-400" />
@@ -389,9 +367,6 @@ export default function WithdrawalsPage() {
                 </table>
               </div>
             </div>
-          </main>
-        </div>
-      </div>
-    </div>
+          </AdminLayout>
   );
 }

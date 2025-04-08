@@ -6,66 +6,48 @@ import TopEarnersModal from './components/TopEarnersModal';
 import RulesModal from './components/RulesModal';
 import AboutModal from './components/AboutModal';
 import ProfileModal from './components/ProfileModal';
-
 import UserStats from './components/UserStats';
 import DailyProgress from './components/DailyProgress';
 import BottomNavigation from './components/BottomNavigation';
- 
+
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserStats, watchAdRequest } from '@/modules/private/user/actions';
 
 import { useModals } from './hooks/useModals';
 import { toast } from 'react-toastify';
 import { useRouter, useParams } from 'next/navigation'
- 
+
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import DirectLinks from './components/DirectLinks';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
 import WithdrawalModal from './components/WithdrawalModal';
- 
+
 
 // Client component
-export default function Home ( ) {
+export default function Home() {
     const dispatch = useDispatch()
     const router = useRouter();
     const params = useParams();
 
     const { t } = useTranslation();
-    const { data : session , status } = useSession();
+    const { data: session, status } : any = useSession();
 
     if (status === 'unauthenticated') {
-         router.push('/auth');
+        router.push('/auth');
     }
+    
+
+    useEffect(()=>{
+       
+        if(session?.user.role === 'admin'){
+            return router.push('/admin');
+        }
+    }, [session])
 
     // Modal states
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-
-    // Mock user stats - replace with real data from your state management
-    const userStats = {
-        balance: 25.50,
-        totalEarned: 150.75,
-        adsWatched: 45,
-        lastWithdrawal: '2025-04-05',
-        nextWithdrawal: '2025-04-07',
-        level: 3,
-        rank: 'Silver',
-        telegramId: '@user123',
-        joinDate: '2025-03-01',
-        withdrawHistory: [
-            { amount: 50, date: '2025-04-05', status: 'completed' as const },
-            { amount: 25, date: '2025-04-03', status: 'completed' as const },
-            { amount: 30, date: '2025-04-01', status: 'pending' as const }
-        ],
-        achievements: [
-            { name: 'First Ad', description: 'Watch your first ad', completed: true },
-            { name: 'Daily Goal', description: 'Complete daily ad goal', completed: true },
-            { name: 'First Withdrawal', description: 'Make your first withdrawal', completed: true },
-            { name: 'Ad Master', description: 'Watch 100 ads', completed: false },
-            { name: 'Big Earner', description: 'Earn $100 in total', completed: false }
-        ]
-    };
 
     const [autoShowAds, setAutoShowAds] = useState(false);
     const [countdown, setCountdown] = useState(5);
@@ -87,7 +69,7 @@ export default function Home ( ) {
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
-        
+
         if (autoShowAds && !isLoading) {
             if (countdown > 0) {
                 timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
@@ -107,7 +89,7 @@ export default function Home ( ) {
                         toast.error(err instanceof Error ? err.message : 'Failed to watch ad');
                     }
                 };
-                
+
                 showAd();
             }
         }
@@ -117,7 +99,7 @@ export default function Home ( ) {
         };
     }, [autoShowAds, countdown, isLoading, dispatch]);
 
-     
+
     const handleWatchAd = async () => {
         try {
             setIsLoading(true);
@@ -125,10 +107,10 @@ export default function Home ( ) {
             if (typeof window.show_9103912 === 'undefined') {
                 throw new Error('Ad system not initialized');
             }
-            
+
             await window.show_9103912();
             dispatch(watchAdRequest());
-            
+
         } catch (err) {
             console.error('Error watching ad:', err);
             toast.error(err instanceof Error ? err.message : 'Failed to watch ad');
@@ -137,13 +119,13 @@ export default function Home ( ) {
         }
     };
 
-    
-     
+
+
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
             {/* Mobile Header with Profile and Language */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-sm border-b border-gray-800/50 shadow-lg md:hidden">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800/50 shadow-lg md:hidden">
                 <div className="flex items-center justify-between px-4 py-2">
                     {/* Profile Avatar */}
                     <button
@@ -165,29 +147,11 @@ export default function Home ( ) {
             <ProfileModal
                 isOpen={isProfileModalOpen}
                 onClose={() => setIsProfileModalOpen(false)}
-                dictionary={{
-                    profile: 'Profile',
-                    balance: 'Current Balance',
-                    totalEarned: 'Total Earned',
-                    adsWatched: 'Ads Watched',
-                    close: 'Close',
-                    withdrawHistory: 'Withdrawal History',
-                    achievements: 'Achievements',
-                    settings: 'Settings',
-                    lastWithdrawal: 'Last Withdrawal',
-                    nextWithdrawal: 'Next Withdrawal',
-                    level: 'Level',
-                    rank: 'Rank',
-                    telegramId: 'Telegram ID',
-                    joinDate: 'Member Since',
-                    logout : 'Logout'
-                }}
-                stats={userStats}
             />
 
             {/* Main Content */}
-            <main className="container mx-auto px-4 py-20 max-w-4xl">
-                <div className="bg-gray-800/95 backdrop-blur-md border border-gray-700 rounded-2xl shadow-xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <main className="container mx-auto px-2 pt-16 pb-20 sm:px-4 sm:py-20 max-w-4xl">
+                <div className="bg-gray-800/95 backdrop-blur-md border-0 sm:border sm:border-gray-700 sm:rounded-2xl shadow-xl p-3 sm:p-6 space-y-4 sm:space-y-6">
                     <h1 className="text-2xl sm:text-3xl font-bold text-white rgb-animate py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg text-center leading-tight">
                         {t('welcome')}
                     </h1>
@@ -219,12 +183,12 @@ export default function Home ( ) {
 
                                 }}
                                 className={`px-4 py-2 rounded-lg font-medium ${autoShowAds
-                                        ? 'bg-red-500 hover:bg-red-600'
-                                        : 'bg-green-500 hover:bg-green-600'
+                                    ? 'bg-red-500 hover:bg-red-600'
+                                    : 'bg-green-500 hover:bg-green-600'
                                     } transition-colors duration-300`}
                             /*  disabled={adState.loading || userState.timeRemaining > 0 || userState.adsWatched >= 1000} */
                             >
-                                {autoShowAds ?  t('navigation.stopAutoAds') : t('navigation.startAutoAds')}
+                                {autoShowAds ? t('navigation.stopAutoAds') : t('navigation.startAutoAds')}
                             </button>
                             {autoShowAds && (
                                 <span className="text-sm text-gray-300">
@@ -234,7 +198,7 @@ export default function Home ( ) {
                         </div>
                     </div>
 
-                    <DirectLinks   />
+                    <DirectLinks />
                 </div>
             </main>
 
@@ -245,56 +209,19 @@ export default function Home ( ) {
                 onRules={() => setIsRulesModalOpen(true)}
                 onAbout={() => setIsAboutModalOpen(true)}
                 onSupport={() => setIsLiveSupportModalOpen(true)}
-                dictionary={{
-                    withdraw: 'Withdraw',
-                    topEarners: 'Top Earners',
-                    rules: 'Rules',
-                    about: 'About',
-                    support: 'Support'
-                }}
+
             />
 
             {/* Modals */}
             <TopEarnersModal
                 isOpen={isTopEarnersModalOpen}
                 onClose={() => setIsTopEarnersModalOpen(false)}
-                dictionary={{
-                    topEarners: 'Top Earners',
-                    close: 'Close',
-                    today: 'Today',
-                    allTime: 'All Time',
-                    rank: 'Rank',
-                    user: 'User',
-                    earned: 'Earned'
-                }}
-                stats={{
-                    today: [
-                        { rank: 1, username: '@winner123', earned: 250.50, isCurrentUser: false },
-                        { rank: 2, username: '@star_user', earned: 180.75, isCurrentUser: false },
-                        { rank: 3, username: '@user123', earned: 150.25, isCurrentUser: true },
-                        { rank: 4, username: '@ads_master', earned: 120.00, isCurrentUser: false },
-                        { rank: 5, username: '@crypto_fan', earned: 95.50, isCurrentUser: false },
-                    ],
-                    allTime: [
-                        { rank: 1, username: '@crypto_king', earned: 2500.50, isCurrentUser: false },
-                        { rank: 2, username: '@ads_pro', earned: 2100.25, isCurrentUser: false },
-                        { rank: 3, username: '@master_user', earned: 1800.75, isCurrentUser: false },
-                        { rank: 4, username: '@user123', earned: 1500.50, isCurrentUser: true },
-                        { rank: 5, username: '@daily_earner', earned: 1200.00, isCurrentUser: false },
-                    ]
-                }}
+
             />
             <RulesModal
                 isOpen={isRulesModalOpen}
                 onClose={() => setIsRulesModalOpen(false)}
-                dictionary={{
-                    rules: 'Rules & Guidelines',
-                    close: 'Close',
-                    general: 'General Rules',
-                    earnings: 'Earnings',
-                    withdrawals: 'Withdrawals',
-                    safety: 'Safety & Security'
-                }}
+
             />
             <AboutModal
                 isOpen={isAboutModalOpen}
@@ -311,14 +238,28 @@ export default function Home ( ) {
                 }}
             />
 
-            <WithdrawalModal isOpen={isWithdrawalModalOpen} onClose={() => setIsWithdrawalModalOpen(false)}   />
+            <WithdrawalModal isOpen={isWithdrawalModalOpen} onClose={() => setIsWithdrawalModalOpen(false)} />
             {/*  <LiveSupportModal
                 isOpen={isLiveSupportModalOpen}
                 onClose={() => setIsLiveSupportModalOpen(false)}
                 userId={telegramUser?.id.toString() || '709148502'}
                 userName={telegramUser?.username || 'jibon'}
             />
+
   */}
+
+            {/*   <SpinModal isOpen={true} onClose={() => console.log('close')} dictionary={{
+                spinAndEarn: 'Crypto Betting',
+                balance: 'Balance',
+                totalWon: 'Total Won',
+                totalLost: 'Total Lost',
+                close: 'Close',
+                betHistory: 'Bet History',
+                multiplier: 'Multiplier',
+                cashout: 'Cash Out',
+                betAmount: 'Bet Amount',
+                autoCashout: 'Auto Cash Out'
+            }} /> */}
 
         </div>
     );

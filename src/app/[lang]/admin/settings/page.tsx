@@ -1,17 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { message } from 'antd';
 import {
-  RedoOutlined,
   DashboardOutlined,
-  UserOutlined,
-  WalletOutlined,
-  CreditCardOutlined,
+ 
   SettingOutlined,
-  BellOutlined,
-  TeamOutlined,
-  HistoryOutlined,
+  
   SaveOutlined,
 } from '@ant-design/icons';
 
@@ -20,80 +16,133 @@ export default function SettingsPage() {
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
 
-  const menuItems = [
-    {
-      key: '/admin',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard'
-    },
-    {
-      key: '/admin/users',
-      icon: <UserOutlined />,
-      label: 'Users'
-    },
-    {
-      key: '/admin/withdrawals',
-      icon: <WalletOutlined />,
-      label: 'Withdrawals'
-    },
-    {
-      key: '/admin/payment-methods',
-      icon: <CreditCardOutlined />,
-      label: 'Payment Methods'
-    },
-    {
-      key: '/admin/notifications',
-      icon: <BellOutlined />,
-      label: 'Notifications'
-    },
-    {
-      key: '/admin/roles',
-      icon: <TeamOutlined />,
-      label: 'Roles'
-    },
-    {
-      key: '/admin/history',
-      icon: <HistoryOutlined />,
-      label: 'History'
-    },
-    {
-      key: '/admin/settings',
-      icon: <SettingOutlined />,
-      label: 'Settings'
-    }
-  ];
+  // Bot Configuration State
+  const [botToken, setBotToken] = useState('');
+  const [botUsername, setBotUsername] = useState('');
+  const [adminChatId, setAdminChatId] = useState('');
 
-  const handleSaveSettings = () => {
+  // Load settings on page load
+  const loadSettings = async () => {
+    try {
+      const response = await fetch('/api/admin/settings');
+      if (!response.ok) {
+        throw new Error('Failed to load settings');
+      }
+
+      const data = await response.json();
+
+      // Update bot settings
+      if (data.bot_config) {
+        const botConfig = JSON.parse(data.bot_config.value);
+        setBotToken(botConfig.token || '');
+        setBotUsername(botConfig.username || '');
+        setAdminChatId(botConfig.adminChatId || '');
+      }
+
+      // Update SMTP settings
+      if (data.smtp_config) {
+        const smtpConfig = JSON.parse(data.smtp_config.value);
+        setSmtpHost(smtpConfig.host || '');
+        setSmtpPort(smtpConfig.port?.toString() || '');
+        setSmtpUsername(smtpConfig.username || '');
+        setSmtpPassword(smtpConfig.password || '');
+        setSmtpSecure(smtpConfig.secure || false);
+      }
+
+      // Update site settings
+      if (data.site_config) {
+        const siteConfig = JSON.parse(data.site_config.value);
+        setSiteName(siteConfig.name || '');
+        setContactEmail(siteConfig.contactEmail || '');
+        setMinWithdrawal(siteConfig.minWithdrawal?.toString() || '');
+      }
+
+      // Update notification settings
+      if (data.notification_config) {
+        const notificationConfig = JSON.parse(data.notification_config.value);
+        setEmailNotifications(notificationConfig.email || false);
+        setWithdrawalNotifications(notificationConfig.withdrawal || false);
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      message.error('Failed to load settings');
+    }
+  };
+
+  // Load settings when component mounts
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  // SMTP Configuration State
+  const [smtpHost, setSmtpHost] = useState('');
+  const [smtpPort, setSmtpPort] = useState('');
+  const [smtpUsername, setSmtpUsername] = useState('');
+  const [smtpPassword, setSmtpPassword] = useState('');
+  const [smtpSecure, setSmtpSecure] = useState(false);
+
+  // Site Settings State
+  const [siteName, setSiteName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [minWithdrawal, setMinWithdrawal] = useState('');
+
+  // Notification Settings State
+  const [emailNotifications, setEmailNotifications] = useState(false);
+  const [withdrawalNotifications, setWithdrawalNotifications] = useState(false);
+ 
+  const handleSaveSettings = async (e: FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-    // TODO: Implement settings save logic
-    setTimeout(() => setLoading(false), 1000);
+
+    try {
+      const settings = {
+        bot: {
+          token: botToken,
+          username: botUsername,
+          adminChatId: adminChatId
+        },
+        smtp: {
+          host: smtpHost,
+          port: parseInt(smtpPort),
+          username: smtpUsername,
+          password: smtpPassword,
+          secure: smtpSecure
+        },
+        site: {
+          name: siteName,
+          contactEmail,
+          minWithdrawal: parseFloat(minWithdrawal)
+        },
+        notifications: {
+          email: emailNotifications,
+          withdrawal: withdrawalNotifications
+        }
+      };
+
+      const response = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+
+      message.success('Settings saved successfully');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      message.error('Failed to save settings');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className='bg-gray-900'>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 transition-colors duration-300">
-        <div className="min-h-screen text-gray-100">
-          <aside className="fixed inset-y-0 left-0 bg-gray-900 w-64 border-r border-gray-700 shadow-lg transition-colors duration-300">
-            <nav className="mt-8 px-4">
-              {menuItems.map((item) => (
-                <button
-                  key={item.key}
-                  onClick={() => router.push(item.key)}
-                  className={`w-full flex items-center px-4 py-3 mb-2 rounded-xl text-left transition-all duration-300 ease-in-out
-                    ${pathname === item.key
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-300 hover:bg-gray-800'}`}
-                >
-                  <span className={`text-xl mr-4 ${pathname === item.key ? 'text-white' : 'text-blue-400'}`}>
-                    {item.icon}
-                  </span>
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              ))}
-            </nav>
-          </aside>
-
-          <main className="ml-64 p-8">
+    
+          <form onSubmit={handleSaveSettings} className="ml-[5%] p-8">
             <div className="flex justify-between items-center mb-8 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800 transition-all duration-300">
               <h1 className="text-2xl font-bold text-gray-100 flex items-center">
                 <SettingOutlined className="mr-3 text-blue-400" />
@@ -120,6 +169,101 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-6">
+              {/* Bot Configuration */}
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6">
+                <h2 className="text-xl font-semibold mb-6 text-gray-100">Bot Configuration</h2>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Bot Token</label>
+                    <input
+                      type="password"
+                      value={botToken}
+                      onChange={(e) => setBotToken(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter Telegram bot token"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Bot Username</label>
+                    <input
+                      type="text"
+                      value={botUsername}
+                      onChange={(e) => setBotUsername(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="@YourBotUsername"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Admin Chat ID</label>
+                    <input
+                      type="text"
+                      value={adminChatId}
+                      onChange={(e) => setAdminChatId(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter admin chat ID"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SMTP Configuration */}
+              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6">
+                <h2 className="text-xl font-semibold mb-6 text-gray-100">SMTP Configuration</h2>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">SMTP Host</label>
+                    <input
+                      type="text"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="smtp.example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">SMTP Port</label>
+                    <input
+                      type="number"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="587"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">SMTP Username</label>
+                    <input
+                      type="text"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter SMTP username"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">SMTP Password</label>
+                    <input
+                      type="password"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter SMTP password"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">From Email</label>
+                    <input
+                      type="email"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="noreply@example.com"
+                    />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={withdrawalNotifications}
+                        onChange={(e) => setWithdrawalNotifications(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                    <span className="text-sm font-medium text-gray-400">Enable SSL/TLS</span>
+                  </div>
+                </div>
+              </div>
               <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6">
                 <h2 className="text-xl font-semibold mb-6 text-gray-100">General Settings</h2>
                 <div className="space-y-6">
@@ -127,6 +271,8 @@ export default function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-400 mb-2">Site Name</label>
                     <input
                       type="text"
+                      value={siteName}
+                      onChange={(e) => setSiteName(e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       placeholder="Enter site name"
                     />
@@ -135,6 +281,8 @@ export default function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-400 mb-2">Contact Email</label>
                     <input
                       type="email"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       placeholder="Enter contact email"
                     />
@@ -143,6 +291,8 @@ export default function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-400 mb-2">Minimum Withdrawal Amount</label>
                     <input
                       type="number"
+                      value={minWithdrawal}
+                      onChange={(e) => setMinWithdrawal(e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       placeholder="Enter minimum amount"
                     />
@@ -159,7 +309,12 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-400">Receive email notifications for important updates</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" />
+                      <input
+                        type="checkbox"
+                        checked={emailNotifications}
+                        onChange={(e) => setEmailNotifications(e.target.checked)}
+                        className="sr-only peer"
+                      />
                       <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
@@ -169,16 +324,19 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-400">Get notified for new withdrawal requests</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" />
+                      <input
+                        type="checkbox"
+                        checked={withdrawalNotifications}
+                        onChange={(e) => setWithdrawalNotifications(e.target.checked)}
+                        className="sr-only peer"
+                      />
                       <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
                 </div>
               </div>
             </div>
-          </main>
-        </div>
-      </div>
-    </div>
+          </form>
+     
   );
 }

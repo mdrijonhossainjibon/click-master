@@ -1,37 +1,27 @@
 'use client';
 
+import { useTranslation } from "react-i18next";
+
 interface BottomNavigationProps {
     onWithdraw: () => void;
     onTopEarners: () => void;
     onRules: () => void;
     onAbout: () => void;
     onSupport: () => void;
-    dictionary: {
-        withdraw: string;
-        topEarners: string;
-        rules: string;
-        about: string;
-        support: string;
-    };
+   
 }
 
-export default function BottomNavigation({
-    onWithdraw,
-    onTopEarners,
-    onRules,
-    onAbout,
-    onSupport,
-    dictionary
-}: BottomNavigationProps) {
+export default function BottomNavigation({   onWithdraw,  onTopEarners,   onRules, onAbout, onSupport }: BottomNavigationProps) {
+    const { t } = useTranslation();
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-t border-gray-800/50 shadow-2xl pb-safe md:hidden">
             <div className="max-w-screen-xl mx-auto px-2 sm:px-4">
                 <div className="flex justify-around items-center py-2 sm:py-3 gap-1">
-                    <NavButton icon="💰" label={dictionary.withdraw} onClick={onWithdraw} />
-                    <NavButton icon="👑" label={dictionary.topEarners} onClick={onTopEarners} />
-                    <NavButton icon="📜" label={dictionary.rules} onClick={onRules} />
-                    <NavButton icon="ℹ️" label={dictionary.about} onClick={onAbout} />
-                    <NavButton icon="💬" label={dictionary.support} onClick={onSupport} />
+                    <NavButton icon="💰" label={t('withdraw')} onClick={onWithdraw} />
+                    <NavButton icon="👑" label={t('topEarners')} onClick={onTopEarners} />
+                    <NavButton icon="📜" label={t('rules')} onClick={onRules} />
+                    <NavButton icon="ℹ️" label={t('about')} onClick={onAbout} />
+                    <NavButton icon="💬" label={t('support')} onClick={onSupport} />
                 </div>
             </div>
         </nav>

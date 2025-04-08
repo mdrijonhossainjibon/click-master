@@ -30,9 +30,9 @@ const loginAPI = async (credentials: LoginCredentials): Promise<AuthResponse> =>
 };
 
 const checkAuthAPI = async () => {
-  const { response} = await API_CALL({  url : '/auth'});
+  const { response} = await API_CALL({  url : '/user/me/'});
  
-  return  response;
+  return  response?.result;
 };
 
 const logoutAPI = async (): Promise<void> => {
@@ -59,7 +59,7 @@ function* loginSaga(action: { type: string; payload: LoginCredentials }): Genera
 function* checkAuthSaga(): Generator<Effect, void, unknown> {
   try {
     const response = (yield call(checkAuthAPI)) as AuthResponse;
-    yield put(loginSuccess(response.user));
+    yield put(loginSuccess(response?.user));
   } catch (error) {
     // Silently fail as this is just a check
     console.error('Auth check failed:', error);

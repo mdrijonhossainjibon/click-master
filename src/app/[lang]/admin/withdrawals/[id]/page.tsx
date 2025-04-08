@@ -169,7 +169,7 @@ export default function WithdrawalDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className=" ml-[5%] mx-auto">
         <button
           onClick={() => router.back()}
           className="mb-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200"

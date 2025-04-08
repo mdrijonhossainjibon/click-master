@@ -2,17 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
 import {
   DashboardOutlined,
   UserOutlined,
   WalletOutlined,
   CreditCardOutlined,
   BellOutlined,
-  TeamOutlined,
   SettingOutlined,
   HistoryOutlined,
   AppstoreOutlined,
+  LinkOutlined,
 } from '@ant-design/icons';
 import { useSession } from "next-auth/react"
 export default function AdminLayout({
@@ -61,9 +60,9 @@ export default function AdminLayout({
       label: 'Ads Config'
     },
     {
-      key: '/admin/roles',
-      icon: <TeamOutlined />,
-      label: 'Roles'
+      key: '/admin/direct-link',
+      icon: <LinkOutlined />,
+      label: 'Direct Links'
     },
     {
       key: '/admin/history',
@@ -85,27 +84,27 @@ export default function AdminLayout({
     <div className='bg-[#0B1120]  ' >
       <div className="min-h-screen">
         <div className="min-h-screen text-gray-100 flex ">
-          <aside className="fixed inset-y-0 left-0 bg-[#0B1120] w-[200px] border-r border-[#1B2B4B] shadow-lg ">
-            <nav className="py-4">
-              {status === "authenticated" && menuItems.map((item) => (
+        <aside className="fixed inset-y-0 left-0 bg-gray-900 w-64 border-r border-gray-700 shadow-lg transition-colors duration-300">
+            <nav className="mt-8 px-4">
+              {menuItems.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => router.push(item.key)}
-                  className={`w-full flex items-center px-4 py-2.5 text-left transition-all duration-200
+                  className={`w-full flex items-center px-4 py-3 mb-2 rounded-xl text-left transition-all duration-300 ease-in-out
                     ${pathname === item.key
-                      ? 'bg-[#0051FF] text-white'
-                      : 'text-gray-400 hover:bg-[#162036] hover:text-gray-200'}`}
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-gray-300 hover:bg-gray-800'}`}
                 >
-                  <span className={`text-lg mr-3 ${pathname === item.key ? 'text-white' : ''}`}>
+                  <span className={`text-xl mr-4 ${pathname === item.key ? 'text-white' : 'text-blue-400'}`}>
                     {item.icon}
                   </span>
-                  <span className="text-sm">{item.label}</span>
+                  <span className="font-medium">{item.label}</span>
                 </button>
               ))}
             </nav>
           </aside>
 
-          <main className="ml-[200px] w-full bg-[#0B1120]">
+          <main className="ml-[8%] w-full bg-[#0B1120]">
             {children}
           </main>
         </div>

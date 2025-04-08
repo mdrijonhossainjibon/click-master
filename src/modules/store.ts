@@ -34,7 +34,8 @@ const publicReducers = combineReducers({
   auth: authReducer,
   directLinks: directLinksReducer,
   withdrawal: withdrawalReducer,
-  topEarners: topEarnersReducer
+  topEarners: topEarnersReducer,
+  achievement: achievementReducer
 });
 
 // Root reducer
@@ -108,6 +109,11 @@ const initialState: RootState = {
     topEarners: {
       today: [],
       allTime: [],
+      loading: false,
+      error: null
+    },
+    achievement: {
+      achievements: [],
       loading: false,
       error: null
     }

@@ -107,7 +107,7 @@ export default function DirectLinkPage() {
 
   const handleDeleteLink = async (id: string) => {
     if (!confirm('Are you sure you want to delete this link?')) return;
-    
+
     try {
       await API_CALL({
         url: '/direct-links',
@@ -193,293 +193,269 @@ export default function DirectLinkPage() {
   ];
 
   return (
-    <div className='bg-gray-900'>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 transition-colors duration-300">
-        <div className="min-h-screen text-gray-100">
-          <aside className="fixed inset-y-0 left-0 bg-gray-900 w-64 border-r border-gray-700 shadow-lg transition-colors duration-300">
-            <nav className="mt-8 px-4">
-              {menuItems.map((item) => (
-                <button
-                  key={item.key}
-                  onClick={() => router.push(item.key)}
-                  className={`w-full flex items-center px-4 py-3 mb-2 rounded-xl text-left transition-all duration-300 ease-in-out
-                    ${pathname === item.key
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-300 hover:bg-gray-800'}`}
-                >
-                  <span className={`text-xl mr-4 ${pathname === item.key ? 'text-white' : 'text-blue-400'}`}>
-                    {item.icon}
-                  </span>
-                  <span className="font-medium">{item.label}</span>
-                </button>
+
+
+    <main className="ml-[6%] p-8">
+      <div className="flex justify-between items-center mb-8 bg-gray-800/80 p-6 rounded-2xl shadow-lg border border-gray-700 hover:border-gray-600 transition-all duration-300">
+        <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-3">
+          <div className="p-3 rounded-xl bg-blue-600/20 text-blue-400">
+            <LinkOutlined className="text-2xl" />
+          </div>
+          Direct Links Management
+        </h1>
+        <div className="flex gap-4">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-600/20 font-medium"
+          >
+            <PlusOutlined />
+            Create Link
+          </button>
+          <button
+            onClick={fetchLinks}
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-600/20 font-medium"
+          >
+            <RedoOutlined className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-gray-800/80 rounded-2xl shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:border-gray-600 group">
+          <div className="flex items-center">
+            <div className="p-4 rounded-xl bg-blue-900/30 group-hover:bg-blue-900/40 transition-all duration-300">
+              <LinkOutlined className="text-blue-400 text-2xl group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="ml-4">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-300 transition-colors">Total Links</h2>
+              <p className="text-3xl font-bold text-white mt-1 group-hover:text-blue-400 transition-colors">{stats.totalLinks}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gray-800/80 rounded-2xl shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:border-gray-600 group">
+          <div className="flex items-center">
+            <div className="p-4 rounded-xl bg-green-900/30 group-hover:bg-green-900/40 transition-all duration-300">
+              <WalletOutlined className="text-green-400 text-2xl group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="ml-4">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-300 transition-colors">Total Earnings</h2>
+              <p className="text-3xl font-bold text-white mt-1 group-hover:text-green-400 transition-colors">
+                ${stats.totalEarnings}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gray-800/80 rounded-2xl shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:border-gray-600 group">
+          <div className="flex items-center">
+            <div className="p-4 rounded-xl bg-yellow-900/30 group-hover:bg-yellow-900/40 transition-all duration-300">
+              <LinkOutlined className="text-yellow-400 text-2xl group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="ml-4">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-300 transition-colors">Total Clicks</h2>
+              <p className="text-3xl font-bold text-white mt-1 group-hover:text-yellow-400 transition-colors">{stats.totalClicks}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-800/80 rounded-2xl shadow-lg border border-gray-700 p-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <h2 className="text-xl font-semibold text-gray-100 flex items-center gap-3">
+            <LinkOutlined className="text-blue-400" />
+            Direct Links
+          </h2>
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-80">
+              <input
+                type="text"
+                placeholder="Search links..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-gray-900/80 border border-gray-700 rounded-xl pl-10 pr-4 py-2 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              />
+              <SearchOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left border-b border-gray-700">
+                <th className="pb-4 text-gray-400 font-medium">Title/URL</th>
+                <th className="pb-4 text-gray-400 font-medium">Clicks</th>
+                <th className="pb-4 text-gray-400 font-medium">Reward/Click</th>
+                <th className="pb-4 text-gray-400 font-medium">Total Earned</th>
+                <th className="pb-4 text-gray-400 font-medium">Status</th>
+                <th className="pb-4 text-gray-400 font-medium">Created</th>
+                <th className="pb-4 text-gray-400 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {filteredLinks.map((link) => (
+                <tr key={link._id} className="group hover:bg-gray-700/50 transition-colors">
+                  <td className="py-4 px-2">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-gray-100 group-hover:text-white transition-colors">{link.title}</span>
+                      <span className="text-sm text-blue-400 group-hover:text-blue-300 transition-colors">{link.url}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-2">
+                    <span className="font-medium text-gray-100 group-hover:text-white transition-colors">{link.clicks}</span>
+                  </td>
+                  <td className="py-4 px-2">
+                    <span className="font-medium text-green-400">${link.rewardPerClick}</span>
+                  </td>
+                  <td className="py-4 px-2">
+                    <span className="font-medium text-green-400">${link.totalEarnings}</span>
+                  </td>
+                  <td className="py-4 px-2">
+                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium ${link.status === 'active'
+                        ? 'bg-green-900/40 text-green-400 group-hover:bg-green-900/60'
+                        : 'bg-red-900/40 text-red-400 group-hover:bg-red-900/60'
+                      } transition-colors`}>
+                      {link.status === 'active' ? '● Active' : '● Inactive'}
+                    </span>
+                  </td>
+                  <td className="py-4 px-2">
+                    <span className="text-gray-400 group-hover:text-gray-300 transition-colors">
+                      {new Date(link.createdAt).toLocaleDateString()}
+                    </span>
+                  </td>
+                  <td className="py-4 px-2">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => copyToClipboard(link.url)}
+                        className="p-2 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 rounded-lg transition-all duration-200"
+                        title="Copy URL"
+                      >
+                        <CopyOutlined />
+                      </button>
+                      <button
+                        onClick={() => setEditingLink(link)}
+                        className="p-2 hover:bg-green-600/30 text-green-400 hover:text-green-300 rounded-lg transition-all duration-200"
+                        title="Edit Link"
+                      >
+                        <EditOutlined />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLink(link._id)}
+                        className="p-2 hover:bg-red-600/30 text-red-400 hover:text-red-300 rounded-lg transition-all duration-200"
+                        title="Delete Link"
+                      >
+                        <DeleteOutlined />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               ))}
-            </nav>
-          </aside>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-          <main className="ml-64 p-8">
-            <div className="flex justify-between items-center mb-8 bg-gray-800/80 p-6 rounded-2xl shadow-lg border border-gray-700 hover:border-gray-600 transition-all duration-300">
-              <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-blue-600/20 text-blue-400">
-                  <LinkOutlined className="text-2xl" />
-                </div>
-                Direct Links Management
-              </h1>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-600/20 font-medium"
-                >
-                  <PlusOutlined />
-                  Create Link
-                </button>
-                <button
-                  onClick={fetchLinks}
-                  disabled={loading}
-                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-600/20 font-medium"
-                >
-                  <RedoOutlined className={loading ? 'animate-spin' : ''} />
-                  Refresh
-                </button>
+      {/* Create/Edit Modal */}
+      {(showCreateModal || editingLink) && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md shadow-2xl border border-gray-700 transform transition-all duration-300 scale-100 animate-slideIn">
+            <h2 className="text-2xl font-bold text-gray-100 mb-6 flex items-center gap-3">
+              {editingLink ? <EditOutlined className="text-blue-400" /> : <PlusOutlined className="text-green-400" />}
+              {editingLink ? 'Edit Link' : 'Create New Link'}
+            </h2>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">URL</label>
+                <input
+                  type="url"
+                  value={editingLink ? editingLink.url : formData.url}
+                  onChange={(e) => editingLink
+                    ? setEditingLink({ ...editingLink, url: e.target.value })
+                    : setFormData({ ...formData, url: e.target.value })
+                  }
+                  className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                  placeholder="https://example.com"
+                />
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gray-800/80 rounded-2xl shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:border-gray-600 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-blue-900/30 group-hover:bg-blue-900/40 transition-all duration-300">
-                    <LinkOutlined className="text-blue-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-300 transition-colors">Total Links</h2>
-                    <p className="text-3xl font-bold text-white mt-1 group-hover:text-blue-400 transition-colors">{stats.totalLinks}</p>
-                  </div>
-                </div>
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Title</label>
+                <input
+                  type="text"
+                  value={editingLink ? editingLink.title : formData.title}
+                  onChange={(e) => editingLink
+                    ? setEditingLink({ ...editingLink, title: e.target.value })
+                    : setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                  placeholder="Link Title"
+                />
               </div>
-              <div className="bg-gray-800/80 rounded-2xl shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:border-gray-600 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-green-900/30 group-hover:bg-green-900/40 transition-all duration-300">
-                    <WalletOutlined className="text-green-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-300 transition-colors">Total Earnings</h2>
-                    <p className="text-3xl font-bold text-white mt-1 group-hover:text-green-400 transition-colors">
-                      ${stats.totalEarnings}
-                    </p>
-                  </div>
-                </div>
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Reward Per Click ($)</label>
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  value={editingLink ? editingLink.rewardPerClick : formData.rewardPerClick}
+                  onChange={(e) => editingLink
+                    ? setEditingLink({ ...editingLink, rewardPerClick: parseFloat(e.target.value) })
+                    : setFormData({ ...formData, rewardPerClick: parseFloat(e.target.value) })
+                  }
+                  className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                  placeholder="0.01"
+                />
               </div>
-              <div className="bg-gray-800/80 rounded-2xl shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:border-gray-600 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-yellow-900/30 group-hover:bg-yellow-900/40 transition-all duration-300">
-                    <LinkOutlined className="text-yellow-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-300 transition-colors">Total Clicks</h2>
-                    <p className="text-3xl font-bold text-white mt-1 group-hover:text-yellow-400 transition-colors">{stats.totalClicks}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-800/80 rounded-2xl shadow-lg border border-gray-700 p-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 className="text-xl font-semibold text-gray-100 flex items-center gap-3">
-                  <LinkOutlined className="text-blue-400" />
-                  Direct Links
-                </h2>
-                <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                  <div className="relative w-full md:w-80">
-                    <input
-                      type="text"
-                      placeholder="Search links..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-gray-900/80 border border-gray-700 rounded-xl pl-10 pr-4 py-2 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                    />
-                    <SearchOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  </div>
+              {editingLink && (
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Status</label>
                   <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    value={editingLink.status}
+                    onChange={(e) => setEditingLink({
+                      ...editingLink,
+                      status: e.target.value as 'active' | 'inactive'
+                    })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                   >
-                    <option value="all">All Status</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left border-b border-gray-700">
-                      <th className="pb-4 text-gray-400 font-medium">Title/URL</th>
-                      <th className="pb-4 text-gray-400 font-medium">Clicks</th>
-                      <th className="pb-4 text-gray-400 font-medium">Reward/Click</th>
-                      <th className="pb-4 text-gray-400 font-medium">Total Earned</th>
-                      <th className="pb-4 text-gray-400 font-medium">Status</th>
-                      <th className="pb-4 text-gray-400 font-medium">Created</th>
-                      <th className="pb-4 text-gray-400 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-700">
-                    {filteredLinks.map((link) => (
-                      <tr key={link._id} className="group hover:bg-gray-700/50 transition-colors">
-                        <td className="py-4 px-2">
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-100 group-hover:text-white transition-colors">{link.title}</span>
-                            <span className="text-sm text-blue-400 group-hover:text-blue-300 transition-colors">{link.url}</span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-2">
-                          <span className="font-medium text-gray-100 group-hover:text-white transition-colors">{link.clicks}</span>
-                        </td>
-                        <td className="py-4 px-2">
-                          <span className="font-medium text-green-400">${link.rewardPerClick }</span>
-                        </td>
-                        <td className="py-4 px-2">
-                          <span className="font-medium text-green-400">${link.totalEarnings }</span>
-                        </td>
-                        <td className="py-4 px-2">
-                          <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium ${
-                            link.status === 'active' 
-                              ? 'bg-green-900/40 text-green-400 group-hover:bg-green-900/60' 
-                              : 'bg-red-900/40 text-red-400 group-hover:bg-red-900/60'
-                          } transition-colors`}>
-                            {link.status === 'active' ? '● Active' : '● Inactive'}
-                          </span>
-                        </td>
-                        <td className="py-4 px-2">
-                          <span className="text-gray-400 group-hover:text-gray-300 transition-colors">
-                            {new Date(link.createdAt).toLocaleDateString()}
-                          </span>
-                        </td>
-                        <td className="py-4 px-2">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => copyToClipboard(link.url)}
-                              className="p-2 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 rounded-lg transition-all duration-200"
-                              title="Copy URL"
-                            >
-                              <CopyOutlined />
-                            </button>
-                            <button
-                              onClick={() => setEditingLink(link)}
-                              className="p-2 hover:bg-green-600/30 text-green-400 hover:text-green-300 rounded-lg transition-all duration-200"
-                              title="Edit Link"
-                            >
-                              <EditOutlined />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteLink(link._id)}
-                              className="p-2 hover:bg-red-600/30 text-red-400 hover:text-red-300 rounded-lg transition-all duration-200"
-                              title="Delete Link"
-                            >
-                              <DeleteOutlined />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              )}
+              <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-gray-700">
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setEditingLink(null);
+                    setFormData({ url: '', title: '', rewardPerClick: 0.01 });
+                  }}
+                  className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => editingLink
+                    ? handleUpdateLink(editingLink._id, editingLink)
+                    : handleCreateLink()
+                  }
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-blue-500 font-medium"
+                >
+                  {editingLink ? 'Update Link' : 'Create Link'}
+                </button>
               </div>
             </div>
-
-            {/* Create/Edit Modal */}
-            {(showCreateModal || editingLink) && (
-              <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 animate-fadeIn">
-                <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md shadow-2xl border border-gray-700 transform transition-all duration-300 scale-100 animate-slideIn">
-                  <h2 className="text-2xl font-bold text-gray-100 mb-6 flex items-center gap-3">
-                    {editingLink ? <EditOutlined className="text-blue-400" /> : <PlusOutlined className="text-green-400" />}
-                    {editingLink ? 'Edit Link' : 'Create New Link'}
-                  </h2>
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-gray-300 mb-2 font-medium">URL</label>
-                      <input
-                        type="url"
-                        value={editingLink ? editingLink.url : formData.url}
-                        onChange={(e) => editingLink 
-                          ? setEditingLink({...editingLink, url: e.target.value})
-                          : setFormData({...formData, url: e.target.value})
-                        }
-                        className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                        placeholder="https://example.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-300 mb-2 font-medium">Title</label>
-                      <input
-                        type="text"
-                        value={editingLink ? editingLink.title : formData.title}
-                        onChange={(e) => editingLink
-                          ? setEditingLink({...editingLink, title: e.target.value})
-                          : setFormData({...formData, title: e.target.value})
-                        }
-                        className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                        placeholder="Link Title"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-300 mb-2 font-medium">Reward Per Click ($)</label>
-                      <input
-                        type="number"
-                        step="0.001"
-                        min="0"
-                        value={editingLink ? editingLink.rewardPerClick : formData.rewardPerClick}
-                        onChange={(e) => editingLink
-                          ? setEditingLink({...editingLink, rewardPerClick: parseFloat(e.target.value)})
-                          : setFormData({...formData, rewardPerClick: parseFloat(e.target.value)})
-                        }
-                        className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                        placeholder="0.01"
-                      />
-                    </div>
-                    {editingLink && (
-                      <div>
-                        <label className="block text-gray-300 mb-2 font-medium">Status</label>
-                        <select
-                          value={editingLink.status}
-                          onChange={(e) => setEditingLink({
-                            ...editingLink,
-                            status: e.target.value as 'active' | 'inactive'
-                          })}
-                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                        >
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                        </select>
-                      </div>
-                    )}
-                    <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-gray-700">
-                      <button
-                        onClick={() => {
-                          setShowCreateModal(false);
-                          setEditingLink(null);
-                          setFormData({ url: '', title: '', rewardPerClick: 0.01 });
-                        }}
-                        className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-gray-500"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => editingLink 
-                          ? handleUpdateLink(editingLink._id, editingLink)
-                          : handleCreateLink()
-                        }
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-blue-500 font-medium"
-                      >
-                        {editingLink ? 'Update Link' : 'Create Link'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </main>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </main>
+
   );
 } 

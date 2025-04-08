@@ -87,7 +87,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="ml-[5%] mx-auto">
         <div className="flex justify-between items-center mb-8 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800">
           <h1 className="text-2xl font-bold text-gray-100 flex items-center">
             <BellOutlined className="mr-3 text-blue-400" />

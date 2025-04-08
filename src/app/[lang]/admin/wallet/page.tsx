@@ -135,7 +135,7 @@ export default function WalletPage() {
 
   return (
     <div className="p-8 text-gray-100">
-      <div className="max-w-[1400px] mx-auto">
+      <div className="ml-[6%] mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl font-bold text-white mb-2">Hot Wallet</h1>

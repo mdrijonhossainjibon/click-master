@@ -8,6 +8,7 @@ import WrapperProvider from "@/provider/wrapperprovider";
 import Script from "next/script";
 import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallback from './components/ErrorFallback';
+import axios from "axios";
  
  
 const geistSans = Geist({
@@ -32,6 +33,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({  children ,  params  } : {  children: React.ReactNode;  params: Promise<{ lang : string; }>;  } ) {
   const { lang } = await params;
  
+  console.log(await  axios.get('https://api.ipify.org?format=json').then(res => res.data))
   return (
     <html lang= {lang} >
       <body
@@ -42,7 +44,7 @@ export default async function RootLayout({  children ,  params  } : {  children:
             strategy="beforeInteractive"
           />
           <Script src="//whephiwums.com/vignette.min.js" data-zone="9103912" data-sdk='show_9103912'/>
-
+         
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <LoadingProvider>
             <WrapperProvider lang={lang}>

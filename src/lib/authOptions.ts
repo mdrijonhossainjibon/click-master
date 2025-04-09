@@ -14,13 +14,14 @@ export const authOptions : AuthOptions = {
                 email: { type: "email" },
                 password: { type: "password" },
                 telegramId: { type: "text" },
+                username : { type : 'text'},
+                fullName : { type : 'text'}
                 
             },
             async authorize(credentials) {
                 try {
                     await connectDB();
-                    console.log(credentials)
-                    let existingUser = null;
+                    let existingUser ;
                     if(credentials?.email){
                         existingUser = await User.findOne({ email: credentials?.email });
                     }
@@ -28,9 +29,12 @@ export const authOptions : AuthOptions = {
                         
                         existingUser = await User.findOne({ telegramId: credentials?.telegramId });
                     }
-                    console.log(existingUser)
                     if (!existingUser) {
-                        throw new Error('CredentialsSignin');
+                       
+                        if(credentials?.telegramId && credentials.username && credentials.fullName){
+                           return existingUser =  await User.create({ telegramId: credentials?.telegramId , username : credentials.username , fullName  :credentials.fullName  })
+                        }
+                        return false
                     }
                     return existingUser;
                 } catch (error) {

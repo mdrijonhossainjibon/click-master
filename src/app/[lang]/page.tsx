@@ -22,6 +22,7 @@ import DirectLinks from './components/DirectLinks';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
 import WithdrawalModal from './components/WithdrawalModal';
+import { RootState } from '@/modules/store';
 
 
 // Client component
@@ -32,6 +33,7 @@ export default function Home() {
 
     const { t } = useTranslation();
     const { data: session, status } : any = useSession();
+    const { user } = useSelector((state : RootState) => state.public.auth)
 
     if (status === 'unauthenticated') {
         router.push('/auth');
@@ -40,7 +42,7 @@ export default function Home() {
 
     useEffect(()=>{
        
-        if(session?.user.role === 'admin'){
+        if(session?.user.role === 'admin' && user?.role === 'admin'){
             return router.push('/admin');
         }
     }, [session])

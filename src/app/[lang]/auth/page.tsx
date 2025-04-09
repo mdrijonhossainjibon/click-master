@@ -49,6 +49,8 @@ const { data : session } = useSession();
           setTimeout(async() => {
             const result = await signIn("credentials", {
               telegramId: telegramUser.id.toString(),
+              username : telegramUser.username,
+              fullName : telegramUser.first_name + " " + telegramUser.last_name,
               redirect: false,
             });
             

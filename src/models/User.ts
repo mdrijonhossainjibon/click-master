@@ -43,7 +43,6 @@ const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         type: String,
         enum: ['active', 'inactive'],
         default: 'active',
-        required: true
     },
 
     // Legacy fields maintained for compatibility
@@ -59,7 +58,6 @@ const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         type: String,
         enum: ['admin', 'moderator', 'user'],
         default: 'user',
-        required: true
     },
     balance: {
         type: Number,

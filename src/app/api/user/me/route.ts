@@ -18,7 +18,6 @@ export async function GET() {
 
         // Connect to database
         await dbConnect();
-
         // Find user and select specific fields
         const user = await User.findById(session.user._id)
         .select('fullName  balance adsWatched totalEarnings lastWatchTime createdAt updatedAt telegramId username lastResetDate');

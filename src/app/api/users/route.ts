@@ -3,6 +3,31 @@ import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { handleApiError, handleValidationError, handleApiSuccess } from '@/lib/errorHandler';
 import { MongoError } from 'mongodb';
+import { headers } from 'next/headers';
+
+// Helper function to get client IP and device info
+const getClientInfo = (request: Request) => {
+    // Default values in case we can't get the information
+    let ip = 'unknown';
+    let deviceId = 'unknown';
+    
+    try {
+        // Get IP address from various headers
+        const forwardedFor = request.headers.get('x-forwarded-for');
+        const realIp = request.headers.get('x-real-ip');
+        ip = forwardedFor ? forwardedFor.split(',')[0] : realIp || 'unknown';
+        
+        // Get user agent for device identification
+        deviceId = request.headers.get('user-agent') || 'unknown';
+    } catch (error) {
+        console.error('Error getting client info:', error);
+    }
+    
+    return {
+        ip,
+        deviceId
+    };
+};
 
 export async function GET(request: Request) {
     try {
@@ -78,12 +103,39 @@ export async function POST(request: Request) {
         const body = await request.json();
         await connectDB();
         
+        // Get client IP and device info
+        const clientInfo = getClientInfo(request);
+        const { ip, deviceId } = clientInfo;
+        
+        // Check if this is a credential-based account (has telegramId)
+        const isCredentialAccount = body.telegramId;
+        
+        // Only apply device/IP restrictions for credential-based accounts
+        if (isCredentialAccount) {
+            // Check if there's an account from the same device or IP
+            const existingDeviceUser = await User.findOne({
+                $or: [
+                    { deviceId: deviceId },
+                    { ipAddress: ip }
+                ]
+            });
+            
+            if (existingDeviceUser) {
+                return NextResponse.json(
+                    { error: 'Account creation not allowed from this device or IP address' },
+                    { status: 403 }
+                );
+            }
+        }
+        
         // Set default values
         const userData = {
             ...body,
             status: 'active',
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
+            deviceId: deviceId,
+            ipAddress: ip
         };
         
         const user = await User.create(userData);

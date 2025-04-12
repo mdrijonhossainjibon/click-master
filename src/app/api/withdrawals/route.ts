@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
- 
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import { getServerSession } from 'next-auth';
@@ -24,7 +23,38 @@ function convertBDTtoUSDT(bdtAmount: number): number {
     return bdtAmount / USD_TO_BDT_RATE;
 }
 
-export async function GET(req: Request    ) {
+// Helper function to validate Bangladeshi phone number
+function validateBangladeshiPhoneNumber(number: string): boolean {
+    // Remove any non-digit characters
+    const cleanNumber = number.replace(/\D/g, '');
+    
+    // Check if it's exactly 10 digits
+    if (cleanNumber.length !== 10) {
+        return false;
+    }
+
+    // Check if it starts with valid Bangladesh operator codes
+    const validPrefixes = ['13', '14', '15', '16', '17', '18', '19'];
+    const prefix = cleanNumber.substring(0, 2);
+    
+    return validPrefixes.includes(prefix);
+}
+
+// Helper function to validate crypto address
+function validateCryptoAddress(address: string, method: string): boolean {
+    const addressRegex = {
+        bitget: /^[0-9a-zA-Z]{34,42}$/,
+        binance: /^0x[0-9a-fA-F]{40}$/
+    };
+
+    if (method === 'bitget' || method === 'binance') {
+        return addressRegex[method].test(address);
+    }
+
+    return true; // For non-crypto methods
+}
+
+export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const telegramId = searchParams.get('telegramId');
@@ -61,7 +91,6 @@ export async function GET(req: Request    ) {
             .populate('userId', 'name email username')
             .lean();
 
-        // Add converted amounts to the response
         const withdrawalsWithConversion = withdrawals.map(w => ({
             ...w,
             bdtAmount: w.method.toLowerCase() === 'bkash' || w.method.toLowerCase() === 'nagad'
@@ -78,16 +107,14 @@ export async function GET(req: Request    ) {
 
 export async function POST(req: Request) {
     try {
-
-        const session :any= await getServerSession(authOptions);
+        const session: any = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         await dbConnect();
 
-
         const data = await req.json();
-        const { method, amount, recipient,   network } = data;
+        const { method, amount, recipient, network } = data;
 
         // Validate required fields
         if (!method || !amount || !recipient) {
@@ -97,7 +124,22 @@ export async function POST(req: Request) {
             );
         }
 
-        const isCryptoPayment = method.toLowerCase() === 'binance' || method.toLowerCase() === 'bitget';
+        // Validate recipient based on method
+        if (method === 'bkash' || method === 'nagad') {
+            if (!validateBangladeshiPhoneNumber(recipient)) {
+                return NextResponse.json(
+                    { error: 'Invalid phone number format' },
+                    { status: 400 }
+                );
+            }
+        } else if (!validateCryptoAddress(recipient, method)) {
+            return NextResponse.json(
+                { error: 'Invalid wallet address' },
+                { status: 400 }
+            );
+        }
+
+        const isCryptoPayment = method === 'binance' || method === 'bitget';
         const amountInUSDT = isCryptoPayment ? parseFloat(amount) : convertBDTtoUSDT(parseFloat(amount));
 
         // Validate amount based on payment method
@@ -130,7 +172,7 @@ export async function POST(req: Request) {
             }
         }
 
-        const user = await User.findById(session.user._id)
+        const user = await User.findById(session.user._id);
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
@@ -156,11 +198,9 @@ export async function POST(req: Request) {
         });
 
         // Update user balance (in USDT)
-        const updatedUser = await User.findByIdAndUpdate(user._id, {
+        await User.findByIdAndUpdate(user._id, {
             $inc: { balance: -amountInUSDT }
         }, { new: true });
-
-      
 
         return NextResponse.json({
             message: 'Withdrawal request submitted successfully',

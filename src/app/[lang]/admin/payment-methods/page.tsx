@@ -1,599 +1,678 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import {
-  RedoOutlined,
-  DashboardOutlined,
-  UserOutlined,
-  WalletOutlined,
-  CreditCardOutlined,
-  SettingOutlined,
-  BellOutlined,
-  TeamOutlined,
-  HistoryOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  CloseOutlined,
-  ExclamationCircleOutlined
-} from '@ant-design/icons';
-import { API_CALL } from '@/lib/client';
-import { Image } from 'antd';
- 
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import { FiEdit2, FiTrash2, FiPlus, FiSave, FiX, FiCreditCard, FiGlobe, FiSettings } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface Network {
+    id: string;
+    name: string;
+    symbol: string;
+    icon: string;
+    fee: number;
+    minWithdraw: number;
+    maxWithdraw: number;
+}
 
 interface PaymentMethod {
-  id: string;
-  name: string;
-  type: string;
-  icon: string;
-  status: string;
-  minimumAmount: number;
-  maximumAmount: number;
-  processingTime: string;
-  fees: string;
+    _id?: string;
+    id: string;
+    symbol: string;
+    name: string;
+    icon: string;
+    networks: Network[];
+    status: 'active' | 'inactive';
 }
 
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: Omit<PaymentMethod, 'id'>) => void;
-  initialData?: PaymentMethod;
-  mode?: 'add' | 'edit';
-}
-
-const PaymentMethodModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' }: ModalProps) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'mobile_banking',
-    icon: '',
-    status: 'active',
-    minimumAmount: 0,
-    maximumAmount: 0,
-    processingTime: '',
-    fees: ''
-  });
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
-    }
-  }, [initialData]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-    if (mode === 'add') {
-      setFormData({
+export default function AdminPaymentMethods() {
+    const { t } = useTranslation();
+    const [methods, setMethods] = useState<PaymentMethod[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [showNetworkModal, setShowNetworkModal] = useState(false);
+    const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+    const [newNetwork, setNewNetwork] = useState<Network>({
+        id: '',
         name: '',
-        type: 'mobile_banking',
+        symbol: '',
         icon: '',
-        status: 'active',
-        minimumAmount: 0,
-        maximumAmount: 0,
-        processingTime: '',
-        fees: ''
-      });
-    }
-  };
+        fee: 0,
+        minWithdraw: 0,
+        maxWithdraw: 0
+    });
+    const [newMethod, setNewMethod] = useState<PaymentMethod>({
+        id: '',
+        symbol: '',
+        name: '',
+        icon: '',
+        networks: [],
+        status: 'active'
+    });
 
-  if (!isOpen) return null;
+    // Fetch payment methods
+    useEffect(() => {
+        const fetchMethods = async () => {
+            try {
+                const response = await fetch('/api/admin/payment-methods');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                setMethods(data);
+            } catch (error) {
+                console.error('Error:', error);
+                toast.error('Failed to fetch payment methods');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-md relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-        >
-          <CloseOutlined />
-        </button>
-        <h2 className="text-xl font-semibold text-white mb-6">
-          {mode === 'add' ? 'Add New Payment Method' : 'Edit Payment Method'}
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-300 mb-2">Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-300 mb-2">Type</label>
-            <select
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="mobile_banking">Mobile Banking</option>
-              <option value="crypto">Cryptocurrency</option>
-              <option value="bank">Bank Transfer</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-gray-300 mb-2">Icon URL</label>
-            <input
-              type="text"
-              value={formData.icon}
-              onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              placeholder="/images/example.png"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-300 mb-2">Status</label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-300 mb-2">Min Amount</label>
-              <input
-                type="number"
-                value={formData.minimumAmount}
-                onChange={(e) => setFormData({ ...formData, minimumAmount: Number(e.target.value) })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+        fetchMethods();
+    }, []);
+
+    const handleAddMethod = async () => {
+        try {
+            const response = await fetch('/api/admin/payment-methods', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newMethod)
+            });
+
+            if (!response.ok) throw new Error('Failed to add');
+            const data = await response.json();
+            
+            setMethods([...methods, data]);
+            setShowAddForm(false);
+            setNewMethod({
+                id: '',
+                symbol: '',
+                name: '',
+                icon: '',
+                networks: [],
+                status: 'active'
+            });
+            toast.success('Payment method added successfully');
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Failed to add payment method');
+        }
+    };
+
+    const handleUpdateMethod = async (method: PaymentMethod) => {
+        try {
+            const response = await fetch(`/api/admin/payment-methods/${method._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(method)
+            });
+
+            if (!response.ok) throw new Error('Failed to update');
+            const data = await response.json();
+            
+            setMethods(methods.map(m => m._id === method._id ? data : m));
+            setEditingMethod(null);
+            toast.success('Payment method updated successfully');
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Failed to update payment method');
+        }
+    };
+
+    const handleDeleteMethod = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this payment method?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/payment-methods/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) throw new Error('Failed to delete');
+            
+            setMethods(methods.filter(m => m._id !== id));
+            toast.success('Payment method deleted successfully');
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Failed to delete payment method');
+        }
+    };
+
+    const handleAddNetwork = async (methodId: string) => {
+        try {
+            const response = await fetch(`/api/admin/payment-methods/${methodId}/networks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newNetwork)
+            });
+
+            if (!response.ok) throw new Error('Failed to add network');
+            const updatedMethod = await response.json();
+            
+            setMethods(methods.map(m => m._id === methodId ? updatedMethod : m));
+            setShowNetworkModal(false);
+            setNewNetwork({
+                id: '',
+                name: '',
+                symbol: '',
+                icon: '',
+                fee: 0,
+                minWithdraw: 0,
+                maxWithdraw: 0
+            });
+            toast.success('Network added successfully');
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Failed to add network');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-gray-800 rounded-lg p-6 border border-gray-700 animate-pulse">
+                            <div className="h-6 bg-gray-700 rounded w-3/4 mb-4"></div>
+                            <div className="h-4 bg-gray-700 rounded w-1/2 mb-6"></div>
+                            <div className="space-y-3">
+                                <div className="h-4 bg-gray-700 rounded w-1/4"></div>
+                                <div className="h-4 bg-gray-700 rounded w-2/3"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Max Amount</label>
-              <input
-                type="number"
-                value={formData.maximumAmount}
-                onChange={(e) => setFormData({ ...formData, maximumAmount: Number(e.target.value) })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-gray-300 mb-2">Processing Time</label>
-            <input
-              type="text"
-              value={formData.processingTime}
-              onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              placeholder="1-2 hours"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-300 mb-2">Fees</label>
-            <input
-              type="text"
-              value={formData.fees}
-              onChange={(e) => setFormData({ ...formData, fees: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              placeholder="1.5%"
-            />
-          </div>
-          <div className="flex justify-end gap-4 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
-            >
-              {mode === 'add' ? 'Add Method' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-interface DeleteConfirmationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  methodName: string;
-}
-
-const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, methodName }: DeleteConfirmationModalProps) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-md">
-        <div className="text-center">
-          <ExclamationCircleOutlined className="text-4xl text-red-500 mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">Delete Payment Method</h3>
-          <p className="text-gray-300 mb-6">
-            Are you sure you want to delete <span className="font-semibold">{methodName}</span>? This action cannot be undone.
-          </p>
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default function PaymentMethodsPage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [loading, setLoading] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
-
-  useEffect(() => {
-    setLoading(true);
-    API_CALL({ url: '/payment-methods' })
-      .then((res) => {
-        setPaymentMethods(res.response?.result as any);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleRefresh = () => {
-    setLoading(true);
-    API_CALL({ url: '/payment-methods' })
-      .then((res) => {
-        setPaymentMethods(res.response?.result as any);
-      })
-      .finally(() => setLoading(false));
-  };
-
-  const handleAddPaymentMethod = async (data: Omit<PaymentMethod, 'id'>) => {
-    setLoading(true);
-    try {
-      const response = await API_CALL({
-        url: '/payment-methods',
-        method: 'POST',
-        body: data
-      });
-      if (response.response) {
-        handleRefresh();
-        setIsModalOpen(false);
-      }
-    } catch (error) {
-      console.error('Error adding payment method:', error);
-    } finally {
-      setLoading(false);
+        );
     }
-  };
 
-  const handleEditPaymentMethod = async (data: Omit<PaymentMethod, 'id'>) => {
-    if (!selectedMethod) return;
-    
-    setLoading(true);
-    try {
-      const response = await API_CALL({
-        url: `/payment-methods/${selectedMethod.id}`,
-        method: 'PUT',
-        body: data
-      });
-      if (response.response) {
-        handleRefresh();
-        setIsModalOpen(false);
-        setSelectedMethod(null);
-      }
-    } catch (error) {
-      console.error('Error updating payment method:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeletePaymentMethod = async () => {
-    if (!selectedMethod) return;
-    
-    setLoading(true);
-    try {
-      const response = await API_CALL({
-        url: `/payment-methods/${selectedMethod.id}`,
-        method: 'DELETE'
-      });
-      if (response.response) {
-        handleRefresh();
-        setIsDeleteModalOpen(false);
-        setSelectedMethod(null);
-      }
-    } catch (error) {
-      console.error('Error deleting payment method:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const openEditModal = (method: PaymentMethod) => {
-    setSelectedMethod(method);
-    setModalMode('edit');
-    setIsModalOpen(true);
-  };
-
-  const openDeleteModal = (method: PaymentMethod) => {
-    setSelectedMethod(method);
-    setIsDeleteModalOpen(true);
-  };
-
-  const filteredPaymentMethods = paymentMethods.filter(method => {
-    const matchesSearch = method.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         method.type.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === 'all' || method.type === selectedType;
-    return matchesSearch && matchesType;
-  });
-
-  const stats = {
-    total: paymentMethods.length,
-    active: paymentMethods.filter(m => m.status === 'active').length,
-    crypto: paymentMethods.filter(m => m.type === 'crypto').length,
-  };
-
-  const menuItems = [
-    {
-      key: '/admin',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard'
-    },
-    {
-      key: '/admin/users',
-      icon: <UserOutlined />,
-      label: 'Users'
-    },
-    {
-      key: '/admin/withdrawals',
-      icon: <WalletOutlined />,
-      label: 'Withdrawals'
-    },
-    {
-      key: '/admin/payment-methods',
-      icon: <CreditCardOutlined />,
-      label: 'Payment Methods'
-    },
-    {
-      key: '/admin/notifications',
-      icon: <BellOutlined />,
-      label: 'Notifications'
-    },
-    {
-      key: '/admin/roles',
-      icon: <TeamOutlined />,
-      label: 'Roles'
-    },
-    {
-      key: '/admin/history',
-      icon: <HistoryOutlined />,
-      label: 'History'
-    },
-    {
-      key: '/admin/settings',
-      icon: <SettingOutlined />,
-      label: 'Settings'
-    }
-  ];
-
-  return (
-    
-
-          <main className="ml-[5%] p-8">
-            <div className="flex justify-between items-center mb-8 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800 transition-all duration-300">
-              <h1 className="text-2xl font-bold text-gray-100 flex items-center">
-                <CreditCardOutlined className="mr-3 text-blue-400" />
-                Payment Methods Management
-              </h1>
-              <div className="flex gap-4">
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <div className="flex justify-between items-center mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">Payment Methods</h1>
+                    <p className="text-gray-400">Manage your available payment options</p>
+                </div>
                 <button
-                  onClick={() => router.push('/admin')}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-all duration-300 shadow-md"
+                    onClick={() => setShowAddForm(true)}
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:scale-105 shadow-lg"
                 >
-                  <DashboardOutlined />
-                  Dashboard
+                    <FiPlus className="w-5 h-5" />
+                    Add Method
                 </button>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-300 shadow-md"
-                >
-                  <PlusOutlined />
-                  Add New
-                </button>
-                <button
-                  onClick={handleRefresh}
-                  disabled={loading}
-                  className={`flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300 shadow-md
-                    ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg transform hover:-translate-y-0.5'}`}
-                >
-                  <RedoOutlined className={`${loading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </button>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-blue-900/20 group-hover:bg-blue-900/40 transition-all duration-300">
-                    <CreditCardOutlined className="text-blue-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Total Methods</h2>
-                    <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-green-900/20 group-hover:bg-green-900/40 transition-all duration-300">
-                    <CheckCircleOutlined className="text-green-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Active Methods</h2>
-                    <p className="text-3xl font-bold text-white mt-1">{stats.active}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-purple-900/20 group-hover:bg-purple-900/40 transition-all duration-300">
-                    <i className="fab fa-bitcoin text-purple-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Crypto Methods</h2>
-                    <p className="text-3xl font-bold text-white mt-1">{stats.crypto}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 className="text-xl font-semibold text-gray-100">Payment Methods</h2>
-                <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                  <div className="relative flex-grow md:flex-grow-0 md:min-w-[200px]">
-                    <input
-                      type="text"
-                      placeholder="Search methods..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    />
-                  </div>
-                  <select
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
-                    className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="mobile_banking">Mobile Banking</option>
-                    <option value="crypto">Cryptocurrency</option>
-                    <option value="bank">Bank Transfer</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPaymentMethods.length === 0 ? (
-                  <div className="col-span-full py-8 text-center text-gray-500">
-                    {searchTerm || selectedType !== 'all' ? 'No matching payment methods found' : 'No payment methods found'}
-                  </div>
-                ) : (
-                  filteredPaymentMethods.map((method) => (
-                    <div
-                      key={method.id}
-                      className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-300 group"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center">
-                          <div className="w-12 h-12 relative rounded-lg overflow-hidden bg-gray-700">
-                            <Image
-                              src={method.icon}
-                              alt={method.name}
-                              width={48}
-                              height={48}
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="ml-3">
-                            <h3 className="font-semibold text-lg text-white">{method.name}</h3>
-                            <span className="text-sm text-gray-400 capitalize">{method.type.replace('_', ' ')}</span>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => openEditModal(method)}
-                            className="p-2 text-blue-400 hover:text-blue-300 transition-colors"
-                          >
-                            <EditOutlined />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(method)}
-                            className="p-2 text-red-400 hover:text-red-300 transition-colors"
-                          >
-                            <DeleteOutlined />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Status</span>
-                          <span className={`px-2 py-1 rounded-lg ${
-                            method.status === 'active' ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'
-                          }`}>
-                            {method.status}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Min Amount</span>
-                          <span className="text-white">${method.minimumAmount}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Max Amount</span>
-                          <span className="text-white">${method.maximumAmount}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Processing Time</span>
-                          <span className="text-white">{method.processingTime}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Fees</span>
-                          <span className="text-white">{method.fees}</span>
-                        </div>
-                      </div>
+            {methods.length === 0 ? (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col items-center justify-center p-12 bg-gray-800 rounded-xl border-2 border-dashed border-gray-700"
+                >
+                    <div className="w-20 h-20 bg-gray-700/50 rounded-full flex items-center justify-center mb-6">
+                        <FiCreditCard className="w-10 h-10 text-gray-500" />
                     </div>
-                  ))
-                )}
-              </div>
-            </div>
+                    <h3 className="text-xl font-semibold text-white mb-2">No Payment Methods Yet</h3>
+                    <p className="text-gray-400 text-center mb-8 max-w-md">
+                        Get started by adding your first payment method. This will allow users to make transactions on your platform.
+                    </p>
+                    <button
+                        onClick={() => setShowAddForm(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:scale-105 shadow-lg group"
+                    >
+                        <FiPlus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                        Add Your First Method
+                    </button>
+                </motion.div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence>
+                    {methods.map(method => (
+                        <motion.div
+                            key={method._id}
+                            layout
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500/50 transition-all shadow-xl"
+                        >
+                            {editingMethod?._id === method._id ? (
+                                // Edit Form
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="space-y-6"
+                                    >
+                                        <div className="border-b border-gray-700 pb-4 mb-6">
+                                            <h3 className="text-lg font-semibold text-white mb-1">Edit Payment Method</h3>
+                                            <p className="text-sm text-gray-400">Update the details of this payment method</p>
+                                        </div>
+                                        
+                                <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-400">Method Name</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        value={editingMethod?.name || ''}
+                                                        onChange={e => setEditingMethod(prev => prev ? { ...prev, name: e.target.value } : null)}
+                                                        className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                                        placeholder="Enter method name"
+                                                    />
+                                                </div>
+                                            </div>
 
-            <PaymentMethodModal
-              isOpen={isModalOpen}
-              onClose={() => {
-                setIsModalOpen(false);
-                setSelectedMethod(null);
-                setModalMode('add');
-              }}
-              onSubmit={modalMode === 'add' ? handleAddPaymentMethod : handleEditPaymentMethod}
-              initialData={selectedMethod || undefined}
-              mode={modalMode}
-            />
-            <DeleteConfirmationModal
-              isOpen={isDeleteModalOpen}
-              onClose={() => {
-                setIsDeleteModalOpen(false);
-                setSelectedMethod(null);
-              }}
-              onConfirm={handleDeletePaymentMethod}
-              methodName={selectedMethod?.name || ''}
-            />
-          </main>
-      
-  );
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-400">Symbol</label>
+                                                <div className="relative">
+                                    <input
+                                        type="text"
+                                                        value={editingMethod?.symbol || ''}
+                                                        onChange={e => setEditingMethod(prev => prev ? { ...prev, symbol: e.target.value } : null)}
+                                                        className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                                        placeholder="Enter symbol (e.g. BTC)"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-400">Icon URL</label>
+                                                <div className="relative">
+                                    <input
+                                        type="text"
+                                                        value={editingMethod?.icon || ''}
+                                                        onChange={e => setEditingMethod(prev => prev ? { ...prev, icon: e.target.value } : null)}
+                                                        className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                                        placeholder="Enter icon URL"
+                                                    />
+                                                    {editingMethod?.icon && (
+                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                            <img 
+                                                                src={editingMethod.icon} 
+                                                                alt="Icon preview" 
+                                                                className="w-6 h-6 rounded"
+                                                                onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-400">Status</label>
+                                                <div className="relative">
+                                    <select
+                                                        value={editingMethod?.status || 'active'}
+                                                        onChange={e => setEditingMethod(prev => prev ? { ...prev, status: e.target.value as 'active' | 'inactive' } : null)}
+                                                        className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500 appearance-none"
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-6 border-t border-gray-700">
+                                        <button
+                                            onClick={() => setEditingMethod(null)}
+                                                className="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            <FiX className="w-4 h-4" />
+                                            Cancel
+                                            </button>
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={() => editingMethod && handleUpdateMethod(editingMethod)}
+                                                    className="flex items-center gap-2 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                                    disabled={!editingMethod?.name || !editingMethod?.symbol}
+                                                >
+                                                    <FiSave className="w-4 h-4" />
+                                                    Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                                    </motion.div>
+                            ) : (
+                                // View Mode
+                                <>
+                                        <div className="flex justify-between items-start mb-6">
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    {method.icon && (
+                                                        <img 
+                                                            src={method.icon} 
+                                                            alt={method.name} 
+                                                            className="w-8 h-8 rounded-full"
+                                                        />
+                                                    )}
+                                        <div>
+                                                        <h3 className="text-xl font-bold text-white">{method.name}</h3>
+                                                        <p className="text-gray-400 text-sm">{method.symbol}</p>
+                                                    </div>
+                                                </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setEditingMethod(method)}
+                                                    className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                            >
+                                                <FiEdit2 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteMethod(method._id!)}
+                                                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                                            >
+                                                <FiTrash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                        <div className="space-y-4">
+                                            <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
+                                                method.status === 'active' 
+                                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                                                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                            }`}>
+                                                <span className={`w-2 h-2 rounded-full mr-2 ${
+                                                    method.status === 'active' ? 'bg-green-400' : 'bg-red-400'
+                                                }`}></span>
+                                                {method.status.charAt(0).toUpperCase() + method.status.slice(1)}
+                                            </div>
+                                            <div className="bg-gray-700/50 rounded-lg p-4">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="text-sm font-medium text-gray-400">Networks</h4>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedMethod(method);
+                                                            setShowNetworkModal(true);
+                                                        }}
+                                                        className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                                    >
+                                                        <FiPlus className="w-3 h-3" />
+                                                        Add Network
+                                                    </button>
+                                                </div>
+                                                {method.networks.length > 0 ? (
+                                    <div className="space-y-2">
+                                                        {method.networks.map((network, idx) => (
+                                                            <div key={idx} className="flex items-center justify-between p-2 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors group">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                                                                        <FiGlobe className="w-4 h-4 text-gray-400" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-white text-sm font-medium">{network.name}</span>
+                                                                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                                            <span>{network.symbol}</span>
+                                                                            <span>•</span>
+                                                                            <span>Fee: {network.fee}%</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSelectedMethod(method);
+                                                                        setNewNetwork(network);
+                                                                        setShowNetworkModal(true);
+                                                                    }}
+                                                                    className="p-1.5 text-gray-400 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all"
+                                                                >
+                                                                    <FiSettings className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <motion.div 
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        className="flex flex-col items-center justify-center py-6 px-4"
+                                                    >
+                                                        <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mb-3">
+                                                            <FiGlobe className="w-6 h-6 text-gray-500" />
+                                                        </div>
+                                                        <p className="text-sm text-gray-400 text-center mb-3">
+                                                            No networks have been configured for this payment method
+                                                        </p>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedMethod(method);
+                                                                setShowNetworkModal(true);
+                                                            }}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-blue-400 rounded-lg hover:bg-gray-800/80 transition-colors text-sm"
+                                                        >
+                                                            <FiPlus className="w-4 h-4" />
+                                                            Configure Network
+                                                        </button>
+                                                    </motion.div>
+                                                )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
+            </div>
+            )}
+
+            {/* Add Method Modal */}
+            {showAddForm && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm z-50">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-gray-800 rounded-xl p-8 w-full max-w-md shadow-2xl border border-gray-700"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-6">Add Payment Method</h2>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm text-gray-400">Name</label>
+                            <input
+                                type="text"
+                                value={newMethod.name}
+                                onChange={e => setNewMethod({ ...newMethod, name: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="e.g. Bitcoin"
+                            />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm text-gray-400">Symbol</label>
+                            <input
+                                type="text"
+                                value={newMethod.symbol}
+                                onChange={e => setNewMethod({ ...newMethod, symbol: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="e.g. BTC"
+                            />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm text-gray-400">ID</label>
+                            <input
+                                type="text"
+                                value={newMethod.id}
+                                onChange={e => setNewMethod({ ...newMethod, id: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="Unique identifier"
+                            />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm text-gray-400">Icon URL</label>
+                            <input
+                                type="text"
+                                value={newMethod.icon}
+                                onChange={e => setNewMethod({ ...newMethod, icon: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="https://example.com/icon.png"
+                            />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm text-gray-400">Status</label>
+                            <select
+                                value={newMethod.status}
+                                onChange={e => setNewMethod({ ...newMethod, status: e.target.value as 'active' | 'inactive' })}
+                                    className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-6">
+                                <button
+                                    onClick={() => setShowAddForm(false)}
+                                    className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddMethod}
+                                    className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                >
+                                    Add Method
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* Network Configuration Modal */}
+            {showNetworkModal && selectedMethod && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm z-50">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-gray-800 rounded-xl p-8 w-full max-w-md shadow-2xl border border-gray-700"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-2xl font-bold text-white">Add Network</h2>
+                                <p className="text-sm text-gray-400">Configure a new network for {selectedMethod.name}</p>
+                            </div>
+                            <button
+                                onClick={() => setShowNetworkModal(false)}
+                                className="p-2 text-gray-400 hover:text-white transition-colors"
+                            >
+                                <FiX className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400">Network Name</label>
+                                <input
+                                    type="text"
+                                    value={newNetwork.name}
+                                    onChange={e => setNewNetwork({ ...newNetwork, name: e.target.value })}
+                                    className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                    placeholder="e.g. Ethereum Mainnet"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400">Symbol</label>
+                                <input
+                                    type="text"
+                                    value={newNetwork.symbol}
+                                    onChange={e => setNewNetwork({ ...newNetwork, symbol: e.target.value })}
+                                    className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                    placeholder="e.g. ETH"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400">Network ID</label>
+                                <input
+                                    type="text"
+                                    value={newNetwork.id}
+                                    onChange={e => setNewNetwork({ ...newNetwork, id: e.target.value })}
+                                    className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                    placeholder="Unique network identifier"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-400">Fee (%)</label>
+                                    <input
+                                        type="number"
+                                        value={newNetwork.fee}
+                                        onChange={e => setNewNetwork({ ...newNetwork, fee: parseFloat(e.target.value) })}
+                                        className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                        placeholder="0.00"
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-400">Icon URL</label>
+                                    <input
+                                        type="text"
+                                        value={newNetwork.icon}
+                                        onChange={e => setNewNetwork({ ...newNetwork, icon: e.target.value })}
+                                        className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                        placeholder="Icon URL"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-400">Min Withdraw</label>
+                                    <input
+                                        type="number"
+                                        value={newNetwork.minWithdraw}
+                                        onChange={e => setNewNetwork({ ...newNetwork, minWithdraw: parseFloat(e.target.value) })}
+                                        className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                        placeholder="0.00"
+                                        min="0"
+                                        step="0.000001"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-400">Max Withdraw</label>
+                                    <input
+                                        type="number"
+                                        value={newNetwork.maxWithdraw}
+                                        onChange={e => setNewNetwork({ ...newNetwork, maxWithdraw: parseFloat(e.target.value) })}
+                                        className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all border border-gray-600 focus:border-blue-500"
+                                        placeholder="0.00"
+                                        min="0"
+                                        step="0.000001"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-8">
+                            <button
+                                onClick={() => setShowNetworkModal(false)}
+                                className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => selectedMethod._id && handleAddNetwork(selectedMethod._id)}
+                                className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                disabled={!newNetwork.name || !newNetwork.symbol || !newNetwork.id}
+                            >
+                                <FiPlus className="w-4 h-4" />
+                                Add Network
+                            </button>
+                    </div>
+                    </motion.div>
+                </div>
+            )}
+        </div>
+    );
 } 

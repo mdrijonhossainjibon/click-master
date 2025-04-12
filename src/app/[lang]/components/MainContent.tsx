@@ -43,7 +43,6 @@ export default function MainContent() {
     const showRewardedAd = async () => {
         try {
             setError(null);
-            showLoading('Loading Ad...');
             setIsCountdownVisible(true);
             
             const response = await fetch('/api/ads', {

@@ -66,6 +66,8 @@ const rgbAnimation = `
 }
 `;
 
+ 
+
 export default function DirectLinks( ) {
     const links = useSelector((state: RootState) => state.public.directLinks?.items || []);
     const user = useSelector((state: RootState) => state.public.auth.user);
@@ -238,6 +240,15 @@ export default function DirectLinks( ) {
         });
     }, [links, buttonStates, handleDirectLinkClick, adsWatched]);
 
+    // Get user's referral tier based on referral count
+    const getReferralTier = (count: number) => {
+        if (count >= 50) return { tier: 5, name: t('referral.tier5'), color: 'from-blue-500 to-cyan-500' };
+        if (count >= 25) return { tier: 4, name: t('referral.tier4'), color: 'from-purple-500 to-pink-500' };
+        if (count >= 10) return { tier: 3, name: t('referral.tier3'), color: 'from-yellow-500 to-amber-500' };
+        if (count >= 5) return { tier: 2, name: t('referral.tier2'), color: 'from-gray-300 to-gray-400' };
+        return { tier: 1, name: t('referral.tier1'), color: 'from-amber-700 to-yellow-900' };
+    };
+ 
     return (
         <div className="w-full max-w-4xl mx-auto mb-6 p-6 bg-gradient-to-r from-red-900/50 to-pink-900/50 rounded-2xl border border-red-500/20 backdrop-blur-sm shadow-xl">
             <div className="flex flex-col items-center space-y-4">
@@ -249,6 +260,7 @@ export default function DirectLinks( ) {
                         {t('navigation.watchAds.description')}
                     </p>
                 </div>
+ 
 
                 {links.length === 0 ? (
                     <div className="w-full py-8">
@@ -280,6 +292,8 @@ export default function DirectLinks( ) {
                         {t('navigation.watchAds.title')}
                     </p>
                 </motion.div>
+
+             
             </div>
         </div>
     );

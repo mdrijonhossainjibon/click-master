@@ -1,56 +1,37 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import LoadingScreen from '../app/[lang]/components/LoadingScreen';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface LoadingContextType {
-  isLoading: boolean;
-  setLoading: (loading: boolean) => void;
-  showLoading: (label?: string) => void;
+  showLoading: () => void;
   hideLoading: () => void;
-  label: string;
+  isLoading: boolean;
 }
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
-export function useLoading() {
-  const context = useContext(LoadingContext);
-  if (!context) {
-    throw new Error('useLoading must be used within a LoadingProvider');
-  }
-  return context;
-}
-
-export function LoadingProvider({ children }: { children: React.ReactNode }) {
+export function LoadingProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [label, setLabel] = useState('Loading...');
 
-  const setLoading = useCallback((loading: boolean) => {
-    setIsLoading(loading);
-  }, []);
-
-  const showLoading = useCallback((customLabel?: string) => {
-    if (customLabel) setLabel(customLabel);
-    setIsLoading(true);
-  }, []);
-
-  const hideLoading = useCallback(() => {
-    setIsLoading(false);
-    setLabel('Loading...');
-  }, []);
+  const showLoading = () => setIsLoading(true);
+  const hideLoading = () => setIsLoading(false);
 
   return (
-    <LoadingContext.Provider
-      value={{
-        isLoading,
-        setLoading,
-        showLoading,
-        hideLoading,
-        label
-      }}
-    >
+    <LoadingContext.Provider value={{ showLoading, hideLoading, isLoading }}>
       {children}
-      {isLoading && <LoadingScreen label={label} spinning={isLoading} />}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+        </div>
+      )}
     </LoadingContext.Provider>
   );
 }
+
+export function useLoading() {
+  const context = useContext(LoadingContext);
+  if (context === undefined) {
+    throw new Error('useLoading must be used within a LoadingProvider');
+  }
+  return context;
+} 

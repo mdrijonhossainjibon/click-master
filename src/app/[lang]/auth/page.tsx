@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
+
 type TelegramUser = {
   id: number;
   username?: string;
@@ -37,37 +38,38 @@ export default function AuthPage() {
     telegramId: "",
     telegramPassword: "",
   });
-const { data : session } = useSession();
-  const  router = useRouter();
+  const { data: session } = useSession();
+  const router = useRouter();
 
   // Auto sign in with Telegram WebApp
-  useEffect(() => {
-    
-        // Check if we're in Telegram WebApp and have user data
-        if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-          const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
-          setTimeout(async() => {
-            const result = await signIn("credentials", {
-              telegramId: telegramUser.id.toString(),
-              username : telegramUser.username,
-              fullName : telegramUser.first_name + " " + telegramUser.last_name,
-              redirect: false,
-            });
-            
-            if (result?.error) {
-               toast.error("auto sign in failed");
-            }
-            if (result?.ok) {
-              router.push("/");
-            }
-          }, 100);
-        }
+/*   useEffect(() => {
 
-        if(session?.user) {
+    // Check if we're in Telegram WebApp and have user data
+    if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+      const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
+      setTimeout(async () => {
+        const result = await signIn("credentials", {
+          telegramId: telegramUser.id.toString(),
+          username: telegramUser.username,
+          fullName: telegramUser.first_name + " " + telegramUser.last_name,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          toast.error("auto sign in failed");
+        }
+        if (result?.ok) {
           router.push("/");
         }
-          
-  }, []);
+      }, 100);
+    }
+
+    if (session?.user) {
+      router.push("/");
+    }
+
+  }, []); */
+
 
 
 
@@ -85,13 +87,14 @@ const { data : session } = useSession();
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
-        redirect: true,
-        callbackUrl: "/",
+        redirect: false,
       });
-      
       if (result?.error) {
-        alert("Invalid credentials");
+        return toast.error(result.error)
       }
+      toast.success('Sign in successful');
+      return  router.push('/');
+
     } catch (error) {
       alert("Something went wrong");
     } finally {
@@ -101,7 +104,8 @@ const { data : session } = useSession();
 
   const handleGoogleSignIn = async () => {
     try {
- await signIn("google", { callbackUrl: "/", redirect: false });
+  await signIn("google", { callbackUrl: "/", redirect :true });
+   
     } catch (error) {
       alert("Google sign in failed");
     }
@@ -111,27 +115,44 @@ const { data : session } = useSession();
     e.preventDefault();
     try {
       setIsLoading(true);
-      
+
       // Use Telegram WebApp data if available, otherwise use form data
       const telegramId = window.Telegram.WebApp.initDataUnsafe?.user?.id?.toString() || formData.telegramId;
-      
+      const username = window.Telegram.WebApp.initDataUnsafe?.user?.username || formData.telegramId;
+      const firstName = window.Telegram.WebApp.initDataUnsafe?.user?.first_name || '';
+      const lastName = window.Telegram.WebApp.initDataUnsafe?.user?.last_name || '';
+      const fullName = `${firstName} ${lastName}`.trim() || username;
+
       if (!telegramId) {
         throw new Error("No Telegram ID provided");
       }
 
       const result = await signIn("credentials", {
         telegramId,
+        username: username || telegramId, // Use telegramId as fallback for username
+        fullName: fullName || telegramId, // Use telegramId as fallback for fullName
         password: formData.telegramPassword,
         redirect: false,
       });
 
       if (result?.error) {
-        alert("Invalid Telegram credentials");
+        // Handle specific error types
+        if (result.error === 'MissingTelegramId') {
+          toast.error(t('auth.errors.missingTelegramId', 'Telegram ID is required'));
+        } else if (result.error === 'MissingUsername') {
+          toast.error(t('auth.errors.missingUsername', 'Username is required'));
+        } else if (result.error === 'MissingFullName') {
+          toast.error(t('auth.errors.missingFullName', 'Full name is required'));
+        } else if (result.error === 'DeviceIpRestriction') {
+          toast.error(t('auth.errors.deviceIpRestriction', 'Account creation not allowed from this device or IP address'));
+        } else {
+          toast.error(t('auth.errors.invalidCredentials', 'Invalid Telegram credentials'));
+        }
       } else if (result?.ok) {
         window.location.href = "/";
       }
     } catch (error) {
-      alert("Telegram sign in failed");
+      toast.error(t('auth.errors.telegramSignInFailed', 'Telegram sign in failed'));
     } finally {
       setIsLoading(false);
     }
@@ -153,10 +174,10 @@ const { data : session } = useSession();
             className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border border-gray-700 bg-[#1E2026] hover:bg-[#2B3139] transition-all duration-200"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
             <span className="text-gray-300">Google</span>
           </button>
@@ -165,7 +186,7 @@ const { data : session } = useSession();
             className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border border-gray-700 bg-[#1E2026] hover:bg-[#2B3139] transition-all duration-200"
           >
             <svg className="h-5 w-5 text-[#229ED9]" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
             </svg>
             <span className="text-gray-300">Telegram</span>
           </button>
@@ -259,12 +280,14 @@ const { data : session } = useSession();
                 disabled={isLoading}
                 className="w-full py-3 px-4 rounded-lg text-sm font-semibold text-white bg-[#229ED9] hover:bg-[#1E8DC1] focus:outline-none focus:ring-2 focus:ring-[#229ED9] focus:ring-offset-2 focus:ring-offset-[#1E2026] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-              {/*   {isLoading ? "Signing in..." : "Sign in with Telegram"} */} {t('welcome')}
+                {/*   {isLoading ? "Signing in..." : "Sign in with Telegram"} */} {t('welcome')}
               </button>
             </form>
           )}
         </div>
       </div>
+
+     
     </div>
   );
 }

@@ -21,7 +21,7 @@ export default function BottomNavigation({   onWithdraw,  onTopEarners,   onRule
                     <NavButton icon="👑" label={t('topEarners')} onClick={onTopEarners} />
                     <NavButton icon="📜" label={t('rules')} onClick={onRules} />
                     <NavButton icon="ℹ️" label={t('about')} onClick={onAbout} />
-                    <NavButton icon="💬" label={t('support')} onClick={onSupport} />
+                    <NavButton icon="👥" label={t('referral.inviteFriends')} onClick={onSupport} />
                 </div>
             </div>
         </nav>

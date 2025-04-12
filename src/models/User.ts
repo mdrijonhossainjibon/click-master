@@ -14,6 +14,11 @@ export interface IUser {
     lastResetDate: Date | null;
     createdAt: Date;
     updatedAt: Date;
+    // Device and IP tracking
+    deviceId?: string;
+    ipAddress?: string;
+    lastLoginIp?: string;
+    lastLoginDevice?: string;
 }
 
 interface IUserMethods {
@@ -86,6 +91,23 @@ const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     updatedAt: {
         type: Date,
         default: Date.now
+    },
+    // Device and IP tracking fields
+    deviceId: {
+        type: String,
+        default: null
+    },
+    ipAddress: {
+        type: String,
+        default: null
+    },
+    lastLoginIp: {
+        type: String,
+        default: null
+    },
+    lastLoginDevice: {
+        type: String,
+        default: null
     }
 });
 

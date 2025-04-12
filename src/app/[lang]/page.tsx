@@ -9,6 +9,8 @@ import ProfileModal from './components/ProfileModal';
 import UserStats from './components/UserStats';
 import DailyProgress from './components/DailyProgress';
 import BottomNavigation from './components/BottomNavigation';
+import WithdrawalModal from './components/WithdrawalModal';
+import ReferralModal from './components/ReferralModal';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserStats, watchAdRequest } from '@/modules/private/user/actions';
@@ -21,7 +23,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import DirectLinks from './components/DirectLinks';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
-import WithdrawalModal from './components/WithdrawalModal';
+
 import { RootState } from '@/modules/store';
 
 
@@ -40,15 +42,15 @@ export default function Home() {
     }
     
 
-    useEffect(()=>{
-       
+    useEffect(() => {
         if(session?.user.role === 'admin' && user?.role === 'admin'){
-            return router.push('/admin');
+            router.push('/admin');
         }
-    }, [session])
+    }, [session, router, user?.role]);
 
     // Modal states
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const [autoShowAds, setAutoShowAds] = useState(false);
@@ -60,7 +62,6 @@ export default function Home() {
         isTopEarnersModalOpen,
         isRulesModalOpen,
         isAboutModalOpen,
-        isLiveSupportModalOpen,
         setIsWithdrawalModalOpen,
         setIsHistoryModalOpen,
         setIsTopEarnersModalOpen,
@@ -151,6 +152,12 @@ export default function Home() {
                 onClose={() => setIsProfileModalOpen(false)}
             />
 
+            {/* Referral Modal */}
+            <ReferralModal
+                isOpen={isReferralModalOpen}
+                onClose={() => setIsReferralModalOpen(false)}
+            />
+
             {/* Main Content */}
             <main className="container mx-auto px-2 pt-16 pb-20 sm:px-4 sm:py-20 max-w-4xl">
                 <div className="bg-gray-800/95 backdrop-blur-md border-0 sm:border sm:border-gray-700 sm:rounded-2xl shadow-xl p-3 sm:p-6 space-y-4 sm:space-y-6">
@@ -200,7 +207,7 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <DirectLinks />
+                    <DirectLinks   />
                 </div>
             </main>
 
@@ -210,7 +217,7 @@ export default function Home() {
                 onTopEarners={() => setIsTopEarnersModalOpen(true)}
                 onRules={() => setIsRulesModalOpen(true)}
                 onAbout={() => setIsAboutModalOpen(true)}
-                onSupport={() => setIsLiveSupportModalOpen(true)}
+                onSupport={() =>  setIsReferralModalOpen(true)}
 
             />
 
@@ -240,28 +247,14 @@ export default function Home() {
                 }}
             />
 
-            <WithdrawalModal isOpen={isWithdrawalModalOpen} onClose={() => setIsWithdrawalModalOpen(false)} />
-            {/*  <LiveSupportModal
-                isOpen={isLiveSupportModalOpen}
-                onClose={() => setIsLiveSupportModalOpen(false)}
-                userId={telegramUser?.id.toString() || '709148502'}
-                userName={telegramUser?.username || 'jibon'}
+            {/* Withdrawal Modal */}
+            <WithdrawalModal
+                isOpen={isWithdrawalModalOpen}
+                onClose={() => setIsWithdrawalModalOpen(false)}
+
             />
 
-  */}
-
-            {/*   <SpinModal isOpen={true} onClose={() => console.log('close')} dictionary={{
-                spinAndEarn: 'Crypto Betting',
-                balance: 'Balance',
-                totalWon: 'Total Won',
-                totalLost: 'Total Lost',
-                close: 'Close',
-                betHistory: 'Bet History',
-                multiplier: 'Multiplier',
-                cashout: 'Cash Out',
-                betAmount: 'Bet Amount',
-                autoCashout: 'Auto Cash Out'
-            }} /> */}
+  
 
         </div>
     );

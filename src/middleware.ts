@@ -52,6 +52,13 @@ async function middleware(request: NextRequest, event: any) {
     // Protect all other routes with basic auth
     return withAuth(
         (req, evt) => {
+            const token = req.nextauth.token;
+            const isAdminRoute = req.nextUrl.pathname.startsWith('/admin');
+            
+            if (isAdminRoute && token?.role !== 'admin') {
+                return NextResponse.redirect(new URL('/', req.url));
+            }
+            
             return NextResponse.next();
         },
         {
@@ -70,4 +77,8 @@ export default middleware;
 export const config = {
     // Match all routes except api, _next/static, _next/image, favicon.ico, and files with extensions
     matcher: ['/((?!api|_next/static|_next/image|favicon.ico|\\.).*)'],
+    include: [
+        "/admin/:path*",
+        "/api/admin/:path*"
+    ]
 }

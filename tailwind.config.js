@@ -8,13 +8,27 @@ module.exports = {
   theme: {
     extend: {
       animation: {
-        'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'ping-slow': 'ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite',
         'marquee': 'marquee 25s linear infinite',
         'spin-reverse': 'spin 1s linear infinite reverse',
         'float': 'float 3s ease-in-out infinite',
         'shake': 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both',
       },
       keyframes: {
+        'ping-slow': {
+          '0%': {
+            transform: 'scale(1)',
+            opacity: '0.3',
+          },
+          '50%': {
+            transform: 'scale(1.2)',
+            opacity: '0.1',
+          },
+          '100%': {
+            transform: 'scale(1)',
+            opacity: '0.3',
+          },
+        },
         ping: {
           '75%, 100%': {
             transform: 'scale(2)',

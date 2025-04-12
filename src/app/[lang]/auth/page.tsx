@@ -42,7 +42,7 @@ export default function AuthPage() {
   const router = useRouter();
 
   // Auto sign in with Telegram WebApp
-/*   useEffect(() => {
+  useEffect(() => {
 
     // Check if we're in Telegram WebApp and have user data
     if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
@@ -68,7 +68,7 @@ export default function AuthPage() {
       router.push("/");
     }
 
-  }, []); */
+  }, []);
 
 
 

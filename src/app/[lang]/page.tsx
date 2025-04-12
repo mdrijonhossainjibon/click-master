@@ -9,7 +9,7 @@ import ProfileModal from './components/ProfileModal';
 import UserStats from './components/UserStats';
 import DailyProgress from './components/DailyProgress';
 import BottomNavigation from './components/BottomNavigation';
-import WithdrawalModal from './components/WithdrawalModal';
+
 import ReferralModal from './components/ReferralModal';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
 
 import { RootState } from '@/modules/store';
+import WithdrawalModal from '@/components/WithdrawalModal';
 
 
 // Client component

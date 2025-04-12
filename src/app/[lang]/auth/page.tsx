@@ -5,8 +5,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useTranslation } from 'react-i18next';
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-
-
+ 
 type TelegramUser = {
   id: number;
   username?: string;
@@ -40,6 +39,7 @@ export default function AuthPage() {
   });
   const { data: session } = useSession();
   const router = useRouter();
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
 
   // Auto sign in with Telegram WebApp
   useEffect(() => {

@@ -76,6 +76,9 @@ export const authOptions : AuthOptions = {
                         if(!credentials.username ) {
                             throw new Error('@username not set  please set it in your telegram profile  ')
                         }
+                        if(!credentials.fullName){
+                            throw new Error('full name not set  please set it in your telegram profile ')
+                        }
                         
                         // Create new user if telegramId not found
                         if (!existingUser && credentials.username && credentials.fullName) {

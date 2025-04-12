@@ -47,31 +47,63 @@ export const authOptions : AuthOptions = {
                 password: { type: "password" },
                 telegramId: { type: "text" },
                 username : { type : 'text'},
-                fullName : { type : 'text'}
-                
+                fullName : { type : 'text'},
+                referCode: { type: 'text' }
             },
             async authorize(credentials, req) {
                 try {
                     await connectDB();
-                    
                     
                     // Get client IP and device info
                     const clientInfo = getClientInfo(req);
                     const { ip, deviceId } = clientInfo;
                     
                     let existingUser;
+                    let referralUser;
+
+                    // Check for referral code if provided
+                    if (credentials?.referCode) {
+                        referralUser = await User.findOne({ referralCode: credentials.referCode });
+                    }
                     
                     // Check for existing user by email or telegramId
                     if(credentials?.email){
                         existingUser = await User.findOne({ email: credentials?.email });
                     }
-                  
-                    if(!existingUser){
-                        throw new Error('User Not Found')
-                    }
-
+                 
                     if(credentials?.telegramId){
                         existingUser = await User.findOne({ telegramId: credentials?.telegramId });
+                        if(!credentials.username ) {
+                            throw new Error('@username not set  please set it in your telegram profile  ')
+                        }
+                        
+                        // Create new user if telegramId not found
+                        if (!existingUser && credentials.username && credentials.fullName) {
+                            // Generate unique referral code (you can customize the format)
+                            const uniqueReferralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                            
+                            existingUser = await User.create({
+                                telegramId: credentials.telegramId,
+                                username: credentials.username,
+                                fullName: credentials.fullName,
+                                ipAddress: ip,
+                                deviceId: deviceId,
+                                role: 'user',
+                                lastLoginIp: ip,
+                                lastLoginDevice: deviceId,
+                                createdAt: new Date(),
+                                referralCode: uniqueReferralCode,
+                                referredBy: referralUser ? referralUser._id : null
+                            });
+
+                            // Update referrer's statistics if there was a valid referral
+                            if (referralUser) {
+                                await User.findByIdAndUpdate(referralUser._id, {
+                                    $inc: { referralCount: 1 },
+                                    $push: { referrals: existingUser._id }
+                                });
+                            }
+                        }
                     }
                     
                     // If user exists, update their last login info

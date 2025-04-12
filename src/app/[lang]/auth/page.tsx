@@ -56,7 +56,7 @@ export default function AuthPage() {
         });
 
         if (result?.error) {
-          toast.error("auto sign in failed");
+          toast.error(result.error);
         }
         if (result?.ok) {
           router.push("/");

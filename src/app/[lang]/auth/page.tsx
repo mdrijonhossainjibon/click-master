@@ -120,6 +120,7 @@ export default function AuthPage() {
       const result = await signIn("credentials", {
         telegramId : formData.telegramId,
         password: formData.telegramPassword,
+        method : 'tg-pass',
         redirect: false,
       });
 

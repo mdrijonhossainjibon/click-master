@@ -48,7 +48,8 @@ export const authOptions : AuthOptions = {
                 telegramId: { type: "text" },
                 username : { type : 'text'},
                 fullName : { type : 'text'},
-                referCode: { type: 'text' }
+                referCode: { type: 'text' },
+                method :{ type :'text'}
             },
             async authorize(credentials, req) {
                 try {
@@ -77,11 +78,11 @@ export const authOptions : AuthOptions = {
                     if(!existingUser && credentials?.email){
                         throw new Error('Email not Found or password in incorrect')
                     }
-                    if(credentials?.telegramId && !credentials.password){
+                    if(credentials?.telegramId && !credentials.password && credentials.method === 'tg-pass'){
                         throw new Error('Password is required')
                     }
 
-                    
+
 
                     if(credentials?.telegramId){
                         existingUser = await User.findOne({ telegramId: credentials?.telegramId });

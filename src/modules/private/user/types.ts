@@ -31,6 +31,7 @@ export interface UserState {
     };
   };
   stats: UserStats;
+  
 }
 
 export enum UserActionTypes {

@@ -8,16 +8,34 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import crypto from 'crypto';
 
+// Add date formatting helper
+const formatDate = (dateString: string | Date | undefined) => {
+    if (!dateString) return '-';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '-';
+        return date.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (error) {
+        return '-';
+    }
+};
+
 interface ReferralModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
 interface ReferralHistory {
-    id: string;
-    username: string;
+    _id: string;
+    fullName: string;
+    telegramId: string;
     joinedAt: string;
-    earnings: number;
+    totalEarnings: number;
+    commission: number;
 }
 
 interface UserWithReferral {
@@ -25,6 +43,9 @@ interface UserWithReferral {
     username?: string;
     referralCount?: number;
     referralEarnings?: number;
+    referralCode?: string;
+    referralTier?: string;
+    referredUsers?: ReferralHistory[];
 }
 
 export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
@@ -32,62 +53,30 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
     const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
-    const [referralHistory, setReferralHistory] = useState<ReferralHistory[]>([]);
+    const referralHistory = user?.referredUsers || [];
     const [isLoading, setIsLoading] = useState(false);
-    const [referralCode, setReferralCode] = useState<string>('');
 
-    // Generate a random referral code
-    useEffect(() => {
-        const generateRandomCode = (): string => {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 6; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return code;
-        };
-        
-        setReferralCode(generateRandomCode());
-    }, []);
+    // Calculate total earnings from referrals
+    const totalCommissionEarnings = referralHistory.reduce((total, referral) => total + (referral.commission || 0), 0);
 
-    // Create referral link using the Telegram Mini App URL scheme
-    const referralLink = referralCode 
-        ? `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME}?start=ref_${referralCode}`
+    // Create referral link using the user's referral code
+    const referralLink = (user as UserWithReferral)?.referralCode
+        ? `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME}?startapp=${(user as UserWithReferral).referralCode}`
         : `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME}`;
 
-    // Function to handle incoming referral code from start_param
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        
-        const tg = (window as any).Telegram?.WebApp;
-        if (!tg?.initDataUnsafe?.start_param) return;
-
-        const startParam = tg.initDataUnsafe.start_param;
-        if (startParam.startsWith('ref_')) {
-            const incomingReferralCode = startParam.replace('ref_', '');
-            // Handle the referral code here
-            console.log('Incoming referral code:', incomingReferralCode);
+    // Get tier color based on referral tier
+    const getTierColor = (tier: string) => {
+        switch (tier) {
+            case 'Diamond': return 'from-blue-500 to-cyan-500';
+            case 'Platinum': return 'from-purple-500 to-pink-500';
+            case 'Gold': return 'from-yellow-500 to-amber-500';
+            case 'Silver': return 'from-gray-300 to-gray-400';
+            default: return 'from-amber-700 to-yellow-900'; // Bronze
         }
-    }, []);
-
-    // Simulated referral history data
-    useEffect(() => {
-        // In a real app, this would be fetched from an API
-        const mockHistory: ReferralHistory[] = [
-            { id: '1', username: 'user123', joinedAt: '2023-05-15', earnings: 5.20 },
-            { id: '2', username: 'john_doe', joinedAt: '2023-06-02', earnings: 3.75 },
-            { id: '3', username: 'alice_smith', joinedAt: '2023-06-18', earnings: 8.40 },
-        ];
-        setReferralHistory(mockHistory);
-    }, []);
-
-    // Generate a hash from the user's telegramId
-    const generateHash = (telegramId: number | undefined): string => {
-        if (!telegramId) return '';
-        const hash = crypto.createHash('md5').update(telegramId.toString()).digest('hex');
-        return hash.substring(0, 8); // Use first 8 characters for a shorter hash
     };
 
+  
+    
      const referralBonus = 10; // 10% bonus
 
     const copyToClipboard = async (text: string, type: 'link' | 'code') => {
@@ -186,15 +175,38 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                                 </div>
                             </div>
 
+                            {/* Referral Tier - Telegram Mini App style */}
+                            <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+                                <h3 className="text-lg font-semibold text-white mb-3">{t('referral.referralTier')}</h3>
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${getTierColor((user as UserWithReferral)?.referralTier || 'Bronze')} flex items-center justify-center`}>
+                                        <span className="text-2xl">
+                                            {(user as UserWithReferral)?.referralTier === 'Diamond' ? '💎' :
+                                             (user as UserWithReferral)?.referralTier === 'Platinum' ? '🌟' :
+                                             (user as UserWithReferral)?.referralTier === 'Gold' ? '🏆' :
+                                             (user as UserWithReferral)?.referralTier === 'Silver' ? '🥈' : '🥉'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div className="text-xl font-bold text-white">
+                                            {(user as UserWithReferral)?.referralTier || 'Bronze'}
+                                        </div>
+                                        <div className="text-sm text-gray-400">
+                                            {t('referral.referralTierDesc', { bonus: referralBonus })}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Referral Code - Telegram Mini App style */}
                             <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
                                 <h3 className="text-lg font-semibold text-white mb-3">{t('referral.yourCode')}</h3>
                                 <div className="flex items-center gap-2">
                                     <div className="flex-1 bg-gray-700/50 text-white px-3 py-2 rounded-lg text-sm font-mono text-center">
-                                        {referralCode}
+                                        {(user as UserWithReferral)?.referralCode}
                                     </div>
                                     <button
-                                        onClick={() => copyToClipboard(referralCode, 'code')}
+                                        onClick={() => copyToClipboard((user as UserWithReferral)?.referralCode || '', 'code')}
                                         className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all active:scale-95"
                                     >
                                         {copied ? t('referral.copied') : t('referral.copy')}
@@ -293,60 +305,71 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                             </div>
                         </>
                     ) : (
-                        <>
-                            {/* Referral History - Telegram Mini App style */}
+                        <div className="space-y-4">
+                            {/* Total Commission Earnings Card */}
                             <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
-                                <h3 className="text-lg font-semibold text-white mb-3">{t('referral.recentReferrals')}</h3>
-                                
-                                {isLoading ? (
-                                    <div className="flex justify-center py-8">
-                                        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                <div className="flex justify-between items-center">
+                                    <div className="text-white">
+                                        <div className="text-sm text-gray-400">{t('referral.totalCommission')}</div>
+                                        <div className="text-xl font-bold">${totalCommissionEarnings.toFixed(2)}</div>
                                     </div>
-                                ) : referralHistory.length > 0 ? (
-                                    <div className="space-y-3">
-                                        {referralHistory.map((referral) => (
-                                            <div key={referral.id} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white">
-                                                        {referral.username.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-white font-medium">@{referral.username}</div>
-                                                        <div className="text-xs text-gray-400">{new Date(referral.joinedAt).toLocaleDateString()}</div>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="text-white font-medium">${referral.earnings.toFixed(2)}</div>
-                                                    <div className="text-xs text-green-400">{t('referral.earned')}</div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 1h6v2H7V5zm8 5.5a.5.5 0 01-.5.5h-7a.5.5 0 010-1h7a.5.5 0 01.5.5zM7 12h6v2H7v-2z" clipRule="evenodd" />
+                                        </svg>
                                     </div>
-                                ) : (
-                                    <div className="text-center py-8 text-gray-400">
-                                        {t('referral.noReferrals')}
-                                    </div>
-                                )}
-                            </div>
-                            
-                            {/* Referral Chart - Telegram Mini App style */}
-                            <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
-                                <h3 className="text-lg font-semibold text-white mb-3">{t('referral.earningsChart')}</h3>
-                                <div className="h-40 flex items-end justify-between gap-1">
-                                    {[5, 8, 3, 12, 7, 4, 9].map((value, index) => (
-                                        <div key={index} className="flex-1 flex flex-col items-center">
-                                            <div 
-                                                className="w-full bg-gradient-to-t from-blue-500 to-blue-600 rounded-t-md"
-                                                style={{ height: `${(value / 12) * 100}%` }}
-                                            ></div>
-                                            <div className="text-xs text-gray-400 mt-1">
-                                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index]}
-                                            </div>
-                                        </div>
-                                    ))}
                                 </div>
                             </div>
-                        </>
+
+                            {isLoading ? (
+                                <div className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                </div>
+                            ) : referralHistory.length > 0 ? (
+                                referralHistory.map((referral) => (
+                                    <motion.div
+                                        key={referral._id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white">
+                                                    {referral.fullName.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div className="text-white font-medium">{referral.fullName}</div>
+                                                    <div className="text-sm text-gray-400">@{referral.telegramId}</div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-white font-medium">
+                                                    ${(referral.commission || 0).toFixed(2)}
+                                                </div>
+                                                <div className="text-sm text-gray-400">
+                                                    {formatDate(referral.joinedAt)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-2 pt-2 border-t border-gray-700/30">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-400">{t('referral.totalEarned')}:</span>
+                                                <span className="text-white">${(referral.totalEarnings || 0).toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-400">{t('referral.yourCommission')}:</span>
+                                                <span className="text-green-400">${(referral.commission || 0).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-400">
+                                    {t('referral.noHistory')}
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>

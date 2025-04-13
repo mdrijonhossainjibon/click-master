@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
+import History from '@/models/History';
 import { authOptions } from '@/lib/authOptions';
 
 export async function GET() {
@@ -19,8 +20,44 @@ export async function GET() {
         // Connect to database
         await dbConnect();
         // Find user and select specific fields
-        const user = await User.findById(session.user._id)
-        .select('fullName  balance adsWatched totalEarnings lastWatchTime createdAt updatedAt telegramId username lastResetDate');
+        const user = await User.findById(session.user._id);
+        
+        // Find all users who were referred by the current user
+        const referredUsers = await User.find({ referredBy: user._id })
+            .select('_id fullName telegramId createdAt totalEarnings')
+            .lean();
+
+        // Get recent activity history
+        const recentHistory = await History.find({ userId: user._id })
+            .sort({ createdAt: -1 })
+            .limit(5);
+
+        // Get today's earnings
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayEarnings = await History.aggregate([
+            { 
+                $match: { 
+                    userId: user._id,
+                    amount: { $exists: true, $ne: null },
+                    createdAt: { $gte: today }
+                }
+            },
+            { 
+                $group: {
+                    _id: null,
+                    total: { $sum: '$amount' }
+                }
+            }
+        ]);
+
+        // Calculate commission for each referred user (10% of their earnings)
+        const referredUsersWithCommission = referredUsers.map(referredUser => ({
+            ...referredUser,
+            joinedAt: referredUser.createdAt,
+            totalEarnings: referredUser.totalEarnings || 0,
+            commission: (referredUser.totalEarnings || 0) * 0.1 // 10% commission
+        }));
 
         if (!user) {
             return NextResponse.json(
@@ -50,24 +87,29 @@ export async function GET() {
         // Calculate how many ads left to reach the next level
         const adsToNextLevel = (level * 100) - user.adsWatched;
 
-        const userData = {
-            _id: user._id,
-            username: user.username,
-            fullName: user.fullName,
-            email: user.email,
-            balance: user.balance,
-            adsWatched: user.adsWatched,
-            totalEarnings: user.totalEarnings,
-            lastWatchTime: user.lastWatchTime,
-            timeRemaining,
-            level,
+        // Determine referral tier based on actual referral count
+        let referralTier = 'Bronze';
+        const referralCount = referredUsers.length;
+        if (referralCount >= 50) referralTier = 'Diamond';
+        else if (referralCount >= 25) referralTier = 'Platinum';
+        else if (referralCount >= 10) referralTier = 'Gold';
+        else if (referralCount >= 5) referralTier = 'Silver';
+
+        // Calculate total earnings from referrals
+        const totalReferralEarnings = referredUsersWithCommission.reduce((total, user) => total + user.commission, 0);
+
+       const userData =  {
+            ...user.toObject(),
             rank,
-            adsRequiredForLevel,
+            level,
             adsToNextLevel,
-            telegramId: user.telegramId,
-            lastResetDate: user.lastResetDate,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt
+            adsRequiredForLevel,
+            referralTier,
+            referralCount,
+            referralEarnings: totalReferralEarnings,
+            referredUsers: referredUsersWithCommission,
+            recentActivity: recentHistory,
+            todayEarnings: todayEarnings[0]?.total || 0
         };
 
         return NextResponse.json({

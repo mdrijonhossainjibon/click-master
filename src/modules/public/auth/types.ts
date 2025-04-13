@@ -16,7 +16,8 @@ export interface User {
   fullName: string;
   level?: number;
   rank?: string;
-  role ? : string
+  role ? : string;
+  referredUsers : any[]
 }
 
 

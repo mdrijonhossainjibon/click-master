@@ -193,29 +193,30 @@ userSchema.pre('save', function(this: UserDocument, next) {
     next();
 });
 
-// Password hashing middleware
+// Middleware to hash password before saving
 userSchema.pre('save', async function(this: UserDocument, next) {
-    // Only hash the password if it has been modified (or is new)
+    // Only hash the password if it has been modified or is new
     if (!this.isModified('password')) return next();
 
     try {
-        // Validate password length before hashing
-        if (this.password.length < 6) {
-            throw new Error('Password must be at least 6 characters long');
-        }
-
-        // Generate a salt with cost factor 12 for better security
-        const salt = await bcrypt.genSalt(12);
-        // Hash the password using the generated salt
+        // Generate a salt and hash the password
+        const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
         next();
     } catch (error) {
-        const err = error instanceof Error ? error : new Error('Password hashing failed');
-        next(err);
+        next(error as Error);
     }
 });
 
- 
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+    try {
+        return await bcrypt.compare(candidatePassword, this.password);
+    } catch (error) {
+        throw error;
+    }
+};
+
 // Update timestamps on save
 userSchema.pre('save', function(this: UserDocument, next) {
     this.updatedAt = new Date();
@@ -224,8 +225,6 @@ userSchema.pre('save', function(this: UserDocument, next) {
     }
     next();
 });
-
- 
 
 const User = mongoose.models.User || mongoose.model<IUser, UserModel>('User', userSchema);
 

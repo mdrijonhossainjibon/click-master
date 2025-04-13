@@ -6,27 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
  
-type TelegramUser = {
-  id: number;
-  username?: string;
-  first_name?: string;
-  last_name?: string;
-};
 
-interface TelegramWebApp {
-  initData: string;
-  initDataUnsafe: {
-    user?: TelegramUser;
-  };
-}
-
-declare global {
-  interface Window {
-    Telegram: {
-      WebApp: TelegramWebApp;
-    };
-  }
-}
+ 
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -48,14 +29,16 @@ export default function AuthPage() {
     // Check if we're in Telegram WebApp and have user data
     if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
 
-      console.log(window.Telegram.WebApp.initDataUnsafe)
+    
 
       const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
+      const start_param = window.Telegram.WebApp.initDataUnsafe.start_param
       setTimeout(async () => {
         const result = await signIn("credentials", {
           telegramId: telegramUser.id.toString(),
           username: telegramUser.username,
           fullName: telegramUser.first_name + " " + telegramUser.last_name,
+          referCode : start_param,
           redirect: false,
         });
 
@@ -129,20 +112,9 @@ export default function AuthPage() {
       });
 
       if (result?.error) {
-        // Handle specific error types
-        if (result.error === 'MissingTelegramId') {
-          toast.error(t('auth.errors.missingTelegramId', 'Telegram ID is required'));
-        } else if (result.error === 'MissingUsername') {
-          toast.error(t('auth.errors.missingUsername', 'Username is required'));
-        } else if (result.error === 'MissingFullName') {
-          toast.error(t('auth.errors.missingFullName', 'Full name is required'));
-        } else if (result.error === 'DeviceIpRestriction') {
-          toast.error(t('auth.errors.deviceIpRestriction', 'Account creation not allowed from this device or IP address'));
-        } else {
-          toast.error(t('auth.errors.invalidCredentials', 'Invalid Telegram credentials'));
-        }
+        toast.error(result.error);
       } else if (result?.ok) {
-        window.location.href = "/";
+        router.push('/')
       }
     } catch (error) {
       toast.error(t('auth.errors.telegramSignInFailed', 'Telegram sign in failed'));

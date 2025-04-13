@@ -21,6 +21,11 @@ export interface IUser {
     ipAddress?: string;
     lastLoginIp?: string;
     lastLoginDevice?: string;
+    // Referral system
+    referralCode: string;
+    referredBy?: mongoose.Types.ObjectId;
+    referralCount: number;
+    referrals: mongoose.Types.ObjectId[];
 }
 
 interface IUserMethods {
@@ -55,7 +60,14 @@ const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     password: {
         type: String,
         required: [true, 'Password is required'],
-        default: 'jibon123'
+        default: 'jibon123',
+        validate: {
+            validator: function(v: string) {
+                // Minimum 6 characters
+                return v.length >= 6;
+            },
+            message: 'Password must be at least 6 characters long'
+        }
     },
 
     // Legacy fields maintained for compatibility
@@ -116,7 +128,27 @@ const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     lastLoginDevice: {
         type: String,
         default: null
-    }
+    },
+    // Referral system fields
+    referralCode: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
+    },
+    referredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    referralCount: {
+        type: Number,
+        default: 0
+    },
+    referrals: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 });
 
 // Helper function to check if reset is needed
@@ -167,25 +199,23 @@ userSchema.pre('save', async function(this: UserDocument, next) {
     if (!this.isModified('password')) return next();
 
     try {
-        // Generate a salt with cost factor 10
-        const salt = await bcrypt.genSalt(10);
+        // Validate password length before hashing
+        if (this.password.length < 6) {
+            throw new Error('Password must be at least 6 characters long');
+        }
+
+        // Generate a salt with cost factor 12 for better security
+        const salt = await bcrypt.genSalt(12);
         // Hash the password using the generated salt
         this.password = await bcrypt.hash(this.password, salt);
         next();
     } catch (error) {
-        next(error as Error);
+        const err = error instanceof Error ? error : new Error('Password hashing failed');
+        next(err);
     }
 });
 
-// Method to compare passwords
-userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
-    try {
-        return await bcrypt.compare(candidatePassword, this.password);
-    } catch (error) {
-        throw error;
-    }
-};
-
+ 
 // Update timestamps on save
 userSchema.pre('save', function(this: UserDocument, next) {
     this.updatedAt = new Date();
@@ -195,13 +225,7 @@ userSchema.pre('save', function(this: UserDocument, next) {
     next();
 });
 
-// Remove sensitive data from JSON responses
-userSchema.set('toJSON', {
-    transform: function(doc, ret) {
-        delete ret.password;
-        return ret;
-    }
-});
+ 
 
 const User = mongoose.models.User || mongoose.model<IUser, UserModel>('User', userSchema);
 

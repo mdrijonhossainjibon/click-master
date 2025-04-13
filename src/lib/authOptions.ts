@@ -6,6 +6,7 @@ import CoinbaseProvider from "next-auth/providers/coinbase";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 import CredentialsProvider from "next-auth/providers/credentials"
+import bcrypt from 'bcrypt';
 
 
 // Helper function to get client IP and device info
@@ -78,50 +79,35 @@ export const authOptions : AuthOptions = {
                     if(!existingUser && credentials?.email){
                         throw new Error('Email not Found or password in incorrect')
                     }
-                    if(credentials?.telegramId && !credentials.password && credentials.method === 'tg-pass'){
-                        throw new Error('Password is required')
-                    }
 
-
-
-                    if(credentials?.telegramId){
-                        existingUser = await User.findOne({ telegramId: credentials?.telegramId });
-                        if(!credentials.username ) {
-                            throw new Error('@username not set  please set it in your telegram profile  ')
-                        }
-                        if(!credentials.fullName){
-                            throw new Error('full name not set  please set it in your telegram profile ')
-                        }
+                    // Handle different authentication methods
+                    if (credentials?.method === 'tg-only' && credentials?.telegramId) {
+                        // For Telegram-only authentication, we only need telegramId
+                        existingUser = await User.findOne({ telegramId: credentials.telegramId });
                         
-                        // Create new user if telegramId not found
-                        if (!existingUser && credentials.username && credentials.fullName) {
-                            // Generate unique referral code (you can customize the format)
-                            const uniqueReferralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                            
-                            existingUser = await User.create({
-                                telegramId: credentials.telegramId,
-                                username: credentials.username,
-                                fullName: credentials.fullName,
-                                ipAddress: ip,
-                                deviceId: deviceId,
-                                role: 'user',
-                                lastLoginIp: ip,
-                                lastLoginDevice: deviceId,
-                                createdAt: new Date(),
-                                referralCode: uniqueReferralCode,
-                                referredBy: referralUser ? referralUser._id : null
-                            });
-
-                            // Update referrer's statistics if there was a valid referral
-                            if (referralUser) {
-                                await User.findByIdAndUpdate(referralUser._id, {
-                                    $inc: { referralCount: 1 },
-                                    $push: { referrals: existingUser._id }
-                                });
+                        // Create new user if not found for tg-only method
+                        if (!existingUser) {
+                            throw new Error('Telegram account not found. Please register first.');
+                        }
+                    } else if (credentials?.method === 'tg-pass') {
+                        // For Telegram + password authentication
+                        if (!credentials.password) {
+                            throw new Error('Password is required for this authentication method')
+                        }
+                        existingUser = await User.findOne({ telegramId: credentials.telegramId });
+                        
+                        // Verify password if user exists
+                        if (existingUser && existingUser.password) {
+                            const isValidPassword = await bcrypt.compare(credentials.password, existingUser.password);
+                            if (!isValidPassword) {
+                                throw new Error('Invalid password');
                             }
+                        } else {
+                            throw new Error('Telegram account not found or not registered with password.');
                         }
                     }
-                    
+
+                   
                     // If user exists, update their last login info
                     if (existingUser) {
                         existingUser.lastLoginIp = ip;

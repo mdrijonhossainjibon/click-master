@@ -8,6 +8,27 @@ import User from "@/models/User";
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from 'bcrypt';
 
+// Function to generate unique referral code
+const generateUniqueReferralCode = async () => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const codeLength = 8;
+    let isUnique = false;
+    let referralCode = '';
+
+    while (!isUnique) {
+        referralCode = '';
+        for (let i = 0; i < codeLength; i++) {
+            referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        
+        // Check if code already exists
+        const existingCode = await User.findOne({ referralCode });
+        if (!existingCode) {
+            isUnique = true;
+        }
+    }
+    return referralCode;
+};
 
 // Helper function to get client IP and device info
 const getClientInfo = (req: any) => {
@@ -87,7 +108,20 @@ export const authOptions : AuthOptions = {
                         
                         // Create new user if not found for tg-only method
                         if (!existingUser) {
-                            throw new Error('Telegram account not found. Please register first.');
+                            const uniqueReferralCode = await generateUniqueReferralCode();
+                            const newUser = await User.create({
+                                telegramId: credentials.telegramId,
+                                username: credentials.username,
+                                fullName: credentials.fullName,
+                                ipAddress: ip,
+                                deviceId: deviceId,
+                                lastLoginIp: ip,
+                                lastLoginDevice: deviceId,
+                                role: 'user',
+                                referralCode: uniqueReferralCode,
+                                referredBy: referralUser ? referralUser._id : null
+                            });
+                            return newUser;
                         }
                     } else if (credentials?.method === 'tg-pass') {
                         // For Telegram + password authentication

@@ -1,4 +1,4 @@
-import     { AuthOptions } from "next-auth";
+import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import FacebookProvider from "next-auth/providers/facebook";
@@ -20,7 +20,7 @@ const generateUniqueReferralCode = async () => {
         for (let i = 0; i < codeLength; i++) {
             referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
         }
-        
+
         // Check if code already exists
         const existingCode = await User.findOne({ referralCode });
         if (!existingCode) {
@@ -35,7 +35,7 @@ const getClientInfo = (req: any) => {
     // Default values in case we can't get the information
     let ip = 'unknown';
     let deviceId = 'unknown';
-    
+
     try {
         // Check if req exists and has headers
         if (req && req.headers) {
@@ -43,7 +43,7 @@ const getClientInfo = (req: any) => {
             const forwardedFor = req.headers['x-forwarded-for'];
             const realIp = req.headers['x-real-ip'];
             ip = forwardedFor ? forwardedFor.split(',')[0] : realIp || req.socket?.remoteAddress || 'unknown';
-            
+
             // Get user agent for device identification
             deviceId = req.headers['user-agent'] || 'unknown';
         } else if (req && typeof req === 'object') {
@@ -54,34 +54,34 @@ const getClientInfo = (req: any) => {
     } catch (error) {
         console.error('Error getting client info:', error);
     }
-    
+
     return {
         ip,
         deviceId
     };
 };
 
-export const authOptions : AuthOptions = {
+export const authOptions: AuthOptions = {
     providers: [
         CredentialsProvider({
             credentials: {
                 email: { type: "email" },
                 password: { type: "password" },
                 telegramId: { type: "text" },
-                username : { type : 'text'},
-                fullName : { type : 'text'},
+                username: { type: 'text' },
+                fullName: { type: 'text' },
                 referCode: { type: 'text' },
-                method :{ type :'text'}
+                method: { type: 'text' }
             },
             async authorize(credentials, req) {
                 try {
                     await connectDB();
- 
-                    
+
+
                     // Get client IP and device info
                     const clientInfo = getClientInfo(req);
                     const { ip, deviceId } = clientInfo;
-                    
+
                     let existingUser;
                     let referralUser;
 
@@ -89,15 +89,15 @@ export const authOptions : AuthOptions = {
                     if (credentials?.referCode) {
                         referralUser = await User.findOne({ referralCode: credentials.referCode });
                     }
-                    
+
                     // Check for existing user by email or telegramId
-                    if(credentials?.email){
+                    if (credentials?.email) {
                         existingUser = await User.findOne({ email: credentials?.email });
                     }
 
-                 
 
-                    if(!existingUser && credentials?.email){
+
+                    if (!existingUser && credentials?.email) {
                         throw new Error('Email not Found or password in incorrect')
                     }
 
@@ -105,7 +105,7 @@ export const authOptions : AuthOptions = {
                     if (credentials?.method === 'tg-only' && credentials?.telegramId) {
                         // For Telegram-only authentication, we only need telegramId
                         existingUser = await User.findOne({ telegramId: credentials.telegramId });
-                        
+
                         // Create new user if not found for tg-only method
                         if (!existingUser) {
                             const uniqueReferralCode = await generateUniqueReferralCode();
@@ -129,7 +129,7 @@ export const authOptions : AuthOptions = {
                             throw new Error('Password is required for this authentication method')
                         }
                         existingUser = await User.findOne({ telegramId: credentials.telegramId });
-                        
+
                         // Verify password if user exists
                         if (existingUser && existingUser.password) {
                             const isValidPassword = await bcrypt.compare(credentials.password, existingUser.password);
@@ -141,7 +141,7 @@ export const authOptions : AuthOptions = {
                         }
                     }
 
-                   
+
                     // If user exists, update their last login info
                     if (existingUser) {
                         existingUser.lastLoginIp = ip;
@@ -149,7 +149,7 @@ export const authOptions : AuthOptions = {
                         await existingUser.save();
                         return existingUser;
                     }
-                    
+
                     // Check if there's an account from the same device or IP
                     const existingDeviceUser = await User.findOne({
                         $or: [
@@ -157,15 +157,19 @@ export const authOptions : AuthOptions = {
                             { ipAddress: ip }
                         ]
                     });
-                    
+
                     if (existingDeviceUser) {
                         // Return a custom error message
                         throw new Error('DeviceIpRestriction');
                     }
-  
+                    if (!credentials?.method) {
+                        throw new Error('Method not found')
+                    }
+
+
                 } catch (error) {
 
-                 
+
                     throw error;
                 }
             },
@@ -186,45 +190,45 @@ export const authOptions : AuthOptions = {
             clientId: process.env.COINBASE_CLIENT_ID || "",
             clientSecret: process.env.COINBASE_CLIENT_SECRET || "",
         }),
-    
-        
+
+
     ],
     pages: {
         error: '/auth/error',
         signIn: '/auth'
     },
     callbacks: {
-        
-        async signIn({ user, account } : any) {
+
+        async signIn({ user, account }: any) {
             await connectDB();
             const existingUser = await User.findOne({ email: user.email });
             if (!existingUser) {
                 return false;
             }
-            
+
             // Set the user's _id and role for the token
             user._id = existingUser._id;
             user.role = existingUser.role;
-            
+
             return true;
         },
-        
-        async session({ session, token } : any) {
+
+        async session({ session, token }: any) {
             try {
-                
+
                 session.user._id = token._id;
                 session.user.email = token.email;
-                session.user.role = token.role;  
+                session.user.role = token.role;
                 return session;
             } catch (error) {
                 return session;
             }
         },
-        async jwt({ token, user } : any) {
+        async jwt({ token, user }: any) {
             if (user) {
-                  token._id = user._id;
-                  token.email = user?.email;
-                  token.role = user?.role;
+                token._id = user._id;
+                token.email = user?.email;
+                token.role = user?.role;
             }
             return token;
         },

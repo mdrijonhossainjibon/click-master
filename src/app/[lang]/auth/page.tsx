@@ -39,6 +39,7 @@ export default function AuthPage() {
           username: telegramUser.username,
           fullName: telegramUser.first_name + " " + telegramUser.last_name,
           referCode : start_param,
+          method : 'tg-only',
           redirect: false,
         });
 

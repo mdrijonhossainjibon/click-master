@@ -522,23 +522,27 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                           <button
                             type="button"
                             onClick={() => setShowCoinDropdown(!showCoinDropdown)}
-                            className="w-full pl-12 pr-4 py-3.5 rounded-lg bg-[#2B3139] border border-[#2E353F] text-[#EAECEF] focus:outline-none focus:border-[#FCD535] transition-all cursor-pointer hover:bg-[#363B44] flex items-center justify-between"
+                            className="w-full pl-12 pr-4 py-3.5 rounded-lg bg-[#2B3139] border border-[#2E353F] text-white focus:outline-none focus:border-[#FCD535] transition-all cursor-pointer hover:bg-[#363B44] flex items-center justify-between"
                           >
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 relative mr-3">
-                                <Image
-                                  src={coins.find(c => c.id === formData.selectedCoin)?.icon || ''}
-                                  alt={formData.selectedCoin}
-                                  width={24}
-                                  height={24}
-                                  className="rounded-full"
-                                />
+                            {formData.selectedCoin ? (
+                              <div className="flex items-center">
+                                <div className="w-6 h-6 relative mr-3">
+                                  <Image
+                                    src={coins.find(c => c.id === formData.selectedCoin)?.icon || ''}
+                                    alt={formData.selectedCoin}
+                                    width={24}
+                                    height={24}
+                                    className="rounded-full"
+                                  />
+                                </div>
+                                <span className="text-white">
+                                  {coins.find(c => c.id === formData.selectedCoin)?.name} ({formData.selectedCoin})
+                                </span>
                               </div>
-                              <span>
-                                {coins.find(c => c.id === formData.selectedCoin)?.name} ({formData.selectedCoin})
-                              </span>
-                            </div>
-                            <ChevronUpDownIcon className={`h-5 w-5 text-[#848E9C] transition-transform duration-200 ${showCoinDropdown ? 'transform rotate-180' : ''}`} />
+                            ) : (
+                              <span className="text-white">Select coin</span>
+                            )}
+                            <ChevronUpDownIcon className={`h-5 w-5 text-white transition-transform duration-200 ${showCoinDropdown ? 'transform rotate-180' : ''}`} />
                           </button>
 
                           <Transition
@@ -582,15 +586,15 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                                     </div>
                                     <div className="flex flex-col items-start">
                                       <div className="flex items-center">
-                                        <span className="text-[#EAECEF]">{coin.name}</span>
+                                        <span className="text-white">{coin.name}</span>
                                         {!coin.active && (
-                                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-[#2B3139] text-[#848E9C]">
+                                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-[#2B3139] text-white">
                                             Disabled
                                           </span>
                                         )}
                                       </div>
                                       <div className="flex items-center text-xs">
-                                        <span className="text-[#848E9C]">{coin.symbol}</span>
+                                        <span className="text-white">{coin.symbol}</span>
                                         {!coin.active && coin.maintenanceMessage && (
                                           <span className="ml-2 text-[#CD6D6D]">{coin.maintenanceMessage}</span>
                                         )}
@@ -606,14 +610,15 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                               </div>
                             </div>
                           </Transition>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between text-sm">
-                          <span className="text-[#848E9C]">
-                            Available: {mockBalances[formData.selectedCoin as keyof typeof mockBalances]?.amount} {formData.selectedCoin}
-                          </span>
-                          <span className="text-[#848E9C]">
-                            In Order: {mockBalances[formData.selectedCoin as keyof typeof mockBalances]?.inOrder} {formData.selectedCoin}
-                          </span>
+                          
+                          <div className="mt-2 flex items-center justify-between text-sm">
+                            <span className="text-white">
+                              Available: {mockBalances[formData.selectedCoin as keyof typeof mockBalances]?.amount || '0.00'} {formData.selectedCoin}
+                            </span>
+                            <span className="text-white">
+                              In Order: {mockBalances[formData.selectedCoin as keyof typeof mockBalances]?.inOrder || '0.00'} {formData.selectedCoin}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
@@ -627,7 +632,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                             type="button"
                             onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
                             disabled={!availableNetworks.length}
-                            className={`w-full pl-12 pr-4 py-3.5 rounded-lg bg-[#2B3139] border border-[#2E353F] text-[#EAECEF] focus:outline-none focus:border-[#FCD535] transition-all flex items-center justify-between ${
+                            className={`w-full pl-12 pr-4 py-3.5 rounded-lg bg-[#2B3139] border border-[#2E353F] text-white focus:outline-none focus:border-[#FCD535] transition-all flex items-center justify-between ${
                               availableNetworks.length ? 'cursor-pointer hover:bg-[#363B44]' : 'cursor-not-allowed opacity-50'
                             }`}
                           >
@@ -643,13 +648,13 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                                       className="rounded-full"
                                     />
                                   </div>
-                                  <span>
+                                  <span className="text-white">
                                     {networks.find(n => n.id === formData.selectedNetwork)?.name}
                                   </span>
                                 </div>
                               </>
                             ) : (
-                              <span className="text-[#848E9C]">
+                              <span className="text-white">
                                 {formData.selectedCoin === 'BDT' 
                                   ? 'Select mobile banking method'
                                   : 'Select withdrawal network'
@@ -734,10 +739,10 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                         </div>
                         {formData.selectedNetwork && (
                           <div className="mt-2 flex items-center justify-between text-sm">
-                            <span className="text-[#848E9C]">
+                            <span className="text-white">
                               Network Fee: {networks.find(n => n.id === formData.selectedNetwork)?.fee}
                             </span>
-                            <span className="text-[#848E9C]">
+                            <span className="text-white">
                               Est. Time: {networks.find(n => n.id === formData.selectedNetwork)?.estimatedTime}
                             </span>
                           </div>
@@ -780,7 +785,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                                   phoneError && formData.selectedCoin === 'BDT' 
                                     ? 'border-red-500 focus:border-red-500' 
                                     : 'border-[#2E353F] focus:border-[#FCD535]'
-                                } text-[#EAECEF] placeholder-[#848E9C] focus:outline-none transition-all`}
+                                } text-[#EAECEF] placeholder-white focus:outline-none transition-all`}
                                 placeholder={formData.selectedCoin === 'BDT' 
                                   ? 'Enter number (+880 or 01)' 
                                   : `Enter your ${formData.selectedNetwork || 'wallet'} address`
@@ -790,7 +795,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                               />
                               {formData.selectedCoin === 'BDT' && (
                                 <div className="mt-1 text-xs text-[#848E9C]">
-                                  Format: +880 1XXX-XXXXXX or 01XXX-XXXXXX
+                                  Format: +880 1XXX-XXXXXX or 01XXX-XXXXXX 
                                 </div>
                               )}
                             </div>
@@ -829,7 +834,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                                 step="0.000001"
                                 value={formData.amount}
                                 onChange={handleInputChange}
-                                className="w-full pl-4 pr-16 py-3 rounded-lg bg-[#2B3139] border border-[#2E353F] text-[#EAECEF] placeholder-[#848E9C] focus:outline-none focus:border-[#FCD535] transition-all"
+                                className="w-full pl-4 pr-16 py-3 rounded-lg bg-[#2B3139] border border-[#2E353F] text-[#EAECEF] placeholder-white focus:outline-none focus:border-[#FCD535] transition-all"
                                 placeholder={`Minimum ${mockBalances[formData.selectedCoin as keyof typeof mockBalances]?.fee}`}
                               />
                               <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#848E9C]">

@@ -40,13 +40,16 @@ export default function AuthPage() {
   const { data: session } = useSession();
   const router = useRouter();
   
-  console.log(window.Telegram.WebApp.initDataUnsafe)
+ 
 
   // Auto sign in with Telegram WebApp
   useEffect(() => {
 
     // Check if we're in Telegram WebApp and have user data
     if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+
+      console.log(window.Telegram.WebApp.initDataUnsafe)
+
       const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
       setTimeout(async () => {
         const result = await signIn("credentials", {
@@ -62,7 +65,7 @@ export default function AuthPage() {
         if (result?.ok) {
           router.push("/");
         }
-      }, 100);
+      }, 1000);
     }
 
     if (session?.user) {

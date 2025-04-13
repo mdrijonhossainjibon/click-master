@@ -39,7 +39,8 @@ export default function AuthPage() {
   });
   const { data: session } = useSession();
   const router = useRouter();
-  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+  
+  console.log(window.Telegram.WebApp.initDataUnsafe)
 
   // Auto sign in with Telegram WebApp
   useEffect(() => {

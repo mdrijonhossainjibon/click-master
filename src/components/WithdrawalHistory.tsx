@@ -389,7 +389,7 @@ export default function WithdrawalHistory({ isOpen, onClose }: WithdrawalHistory
                                 <div className="flex items-center">
                                   <div className="w-8 h-8 relative mr-3">
                                     <Image
-                                      src={withdrawal.icon}
+                                      src={withdrawal?.icon}
                                       alt={withdrawal.coin}
                                       width={32}
                                       height={32}
@@ -406,7 +406,7 @@ export default function WithdrawalHistory({ isOpen, onClose }: WithdrawalHistory
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                  <StatusBadge status={withdrawal.status} />
+                                  <StatusBadge status={withdrawal?.status} />
                                   <ChevronRightIcon className="h-5 w-5 text-[#848E9C]" />
                                 </div>
                               </div>

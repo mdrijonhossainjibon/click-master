@@ -1,6 +1,7 @@
 {
     "welcome": "Watch ads and earn money",
     "login": "Login",
+    "signInWithTelegram" : "Sign in with Telegram",
     "logout": "Logout",
     "navigation": {
         "watchAd": "Watch Ad",

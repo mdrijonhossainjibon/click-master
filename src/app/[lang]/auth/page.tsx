@@ -89,6 +89,7 @@ export default function AuthPage() {
         password: formData.password,
         redirect: false,
       });
+
       if (result?.error) {
         return toast.error(result.error)
       }
@@ -115,22 +116,9 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       setIsLoading(true);
-
-      // Use Telegram WebApp data if available, otherwise use form data
-      const telegramId = window.Telegram.WebApp.initDataUnsafe?.user?.id?.toString() || formData.telegramId;
-      const username = window.Telegram.WebApp.initDataUnsafe?.user?.username || formData.telegramId;
-      const firstName = window.Telegram.WebApp.initDataUnsafe?.user?.first_name || '';
-      const lastName = window.Telegram.WebApp.initDataUnsafe?.user?.last_name || '';
-      const fullName = `${firstName} ${lastName}`.trim() || username;
-
-      if (!telegramId) {
-        throw new Error("No Telegram ID provided");
-      }
-
+ 
       const result = await signIn("credentials", {
-        telegramId,
-        username: username || telegramId, // Use telegramId as fallback for username
-        fullName: fullName || telegramId, // Use telegramId as fallback for fullName
+        telegramId : formData.telegramId,
         password: formData.telegramPassword,
         redirect: false,
       });
@@ -280,7 +268,7 @@ export default function AuthPage() {
                 disabled={isLoading}
                 className="w-full py-3 px-4 rounded-lg text-sm font-semibold text-white bg-[#229ED9] hover:bg-[#1E8DC1] focus:outline-none focus:ring-2 focus:ring-[#229ED9] focus:ring-offset-2 focus:ring-offset-[#1E2026] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                {/*   {isLoading ? "Signing in..." : "Sign in with Telegram"} */} {t('welcome')}
+               {isLoading ? "Signing in..." :  t('signInWithTelegram')} 
               </button>
             </form>
           )}

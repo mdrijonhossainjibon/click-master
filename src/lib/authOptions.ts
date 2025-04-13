@@ -53,6 +53,7 @@ export const authOptions : AuthOptions = {
             async authorize(credentials, req) {
                 try {
                     await connectDB();
+ 
                     
                     // Get client IP and device info
                     const clientInfo = getClientInfo(req);
@@ -70,7 +71,18 @@ export const authOptions : AuthOptions = {
                     if(credentials?.email){
                         existingUser = await User.findOne({ email: credentials?.email });
                     }
+
                  
+
+                    if(!existingUser && credentials?.email){
+                        throw new Error('Email not Found or password in incorrect')
+                    }
+                    if(credentials?.telegramId && !credentials.password){
+                        throw new Error('Password is required')
+                    }
+
+                    
+
                     if(credentials?.telegramId){
                         existingUser = await User.findOne({ telegramId: credentials?.telegramId });
                         if(!credentials.username ) {
@@ -131,6 +143,8 @@ export const authOptions : AuthOptions = {
                     }
   
                 } catch (error) {
+
+                 
                     throw error;
                 }
             },

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 export interface IUser {
     fullName: string;
@@ -6,6 +7,7 @@ export interface IUser {
     status: 'active' | 'inactive';
     username?: string;
     email: string;
+    password: string;
     role: 'admin' | 'moderator' | 'user';
     balance: number;
     totalEarnings: number;
@@ -24,6 +26,7 @@ export interface IUser {
 interface IUserMethods {
     shouldResetDaily(): boolean;
     resetDaily(): boolean;
+    comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 type UserModel = mongoose.Model<IUser, {}, IUserMethods>;
@@ -48,6 +51,11 @@ const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         type: String,
         enum: ['active', 'inactive'],
         default: 'active',
+    },
+    password: {
+        type: String,
+        required: [true, 'Password is required'],
+        default: 'jibon123'
     },
 
     // Legacy fields maintained for compatibility
@@ -152,6 +160,31 @@ userSchema.pre('save', function(this: UserDocument, next) {
     }
     next();
 });
+
+// Password hashing middleware
+userSchema.pre('save', async function(this: UserDocument, next) {
+    // Only hash the password if it has been modified (or is new)
+    if (!this.isModified('password')) return next();
+
+    try {
+        // Generate a salt with cost factor 10
+        const salt = await bcrypt.genSalt(10);
+        // Hash the password using the generated salt
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error as Error);
+    }
+});
+
+// Method to compare passwords
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+    try {
+        return await bcrypt.compare(candidatePassword, this.password);
+    } catch (error) {
+        throw error;
+    }
+};
 
 // Update timestamps on save
 userSchema.pre('save', function(this: UserDocument, next) {

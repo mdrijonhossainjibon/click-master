@@ -1,7 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
-import Image from 'next/image';
 import { 
   ExclamationTriangleIcon, 
   InformationCircleIcon, 
@@ -16,6 +15,7 @@ import {
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import WithdrawalHistory from './WithdrawalHistory';
+import { Image } from 'antd-mobile';
 
 interface WithdrawalModalProps {
   isOpen: boolean;
@@ -45,6 +45,13 @@ interface Coin {
   active: boolean;
   minAmount: number;
   maintenanceMessage?: string;
+}
+
+interface WithdrawalSettings {
+  defaultNetwork: string;
+  autoLogoutTimer: string;
+  emailNotifications: boolean;
+  twoFactorAuth: boolean;
 }
 
 // Add these color constants at the top of the file
@@ -126,10 +133,30 @@ const getPhoneNumberError = (phone: string): string => {
   return '';
 };
 
+/* Add this CSS at the top of the file after the colors object */
+const scrollbarStyles = {
+  scrollbarWidth: 'thin',
+  scrollbarColor: '#848E9C #1E2329',
+  '&::-webkit-scrollbar': {
+    width: '6px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: '#1E2329',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: '#848E9C',
+    borderRadius: '3px',
+  },
+};
+
 export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showCoinDropdown, setShowCoinDropdown] = useState(false);
+  const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const networkDropdownRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     amount: '',
     walletAddress: '',
@@ -137,7 +164,12 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
     selectedNetwork: '',
   });
   const [phoneError, setPhoneError] = useState('');
-  const [showHistory, setShowHistory] = useState(false);
+  const [settings, setSettings] = useState<WithdrawalSettings>({
+    defaultNetwork: '',
+    autoLogoutTimer: '5',
+    emailNotifications: false,
+    twoFactorAuth: false,
+  });
 
   // Mock data - replace with actual data
   const mockBalances = {
@@ -152,7 +184,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
       id: 'BDT', 
       name: 'Bangladeshi Taka', 
       symbol: 'BDT', 
-      icon: '/images/payment/bdt.png',
+      icon: 'https://png.pngtree.com/png-clipart/20221221/original/pngtree-bangladeshi-taka-symbol-on-gold-coin-png-image_8791216.png',
       color: '#006A4E',
       active: true,
       minAmount: 500
@@ -202,8 +234,8 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
       id: 'BKASH', 
       name: 'bKash', 
       supportedCoins: ['USDT', 'BDT'],
-      icon: '/images/payment/bkash.png',
-      active: true,
+      icon: 'https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg',
+      active: false,
       fee: '1.5%',
       estimatedTime: '5-30 min',
       category: 'Mobile Banking',
@@ -215,7 +247,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
       id: 'NAGAD', 
       name: 'Nagad', 
       supportedCoins: ['USDT', 'BDT'],
-      icon: '/images/payment/nagad.png',
+      icon: 'https://www.logo.wine/a/logo/Nagad/Nagad-Vertical-Logo.wine.svg',
       active: true,
       fee: '1.5%',
       estimatedTime: '5-30 min',
@@ -228,7 +260,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
       id: 'ROCKET', 
       name: 'Rocket', 
       supportedCoins: ['USDT', 'BDT'],
-      icon: '/images/payment/rocket.png',
+      icon: 'https://images.seeklogo.com/logo-png/31/1/dutch-bangla-rocket-logo-png_seeklogo-317692.png',
       active: true,
       fee: '1.5%',
       estimatedTime: '5-30 min',
@@ -415,10 +447,6 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
     }
   }, []);
 
-  // Add state and ref for network dropdown
-  const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
-  const networkDropdownRef = useRef<HTMLDivElement>(null);
-
   // Add click outside handler for network dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -432,6 +460,47 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('withdrawalSettings');
+    if (savedSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedSettings);
+        setSettings(parsedSettings);
+        // Apply default network if saved
+        if (parsedSettings.defaultNetwork) {
+          setFormData(prev => ({
+            ...prev,
+            selectedNetwork: parsedSettings.defaultNetwork
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    }
+  }, []);
+
+  const handleSettingChange = (key: keyof WithdrawalSettings, value: string | boolean) => {
+    setSettings(prev => {
+      const newSettings = { ...prev, [key]: value };
+      // Save to localStorage
+      localStorage.setItem('withdrawalSettings', JSON.stringify(newSettings));
+      return newSettings;
+    });
+  };
+
+  const getSecurityLevel = (): { level: string; progress: number } => {
+    let score = 0;
+    if (settings.twoFactorAuth) score += 2;
+    if (settings.emailNotifications) score += 1;
+    
+    if (score >= 3) return { level: 'High', progress: 100 };
+    if (score >= 2) return { level: 'Medium', progress: 66 };
+    return { level: 'Low', progress: 33 };
+  };
+
+  const securityInfo = getSecurityLevel();
 
   return (
     <>
@@ -490,6 +559,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                         </button>
                         <button
                           type="button"
+                          onClick={() => setShowSettings(true)}
                           className="rounded-lg p-1.5 text-[#1E2329] bg-[#F0B90B] hover:bg-[#F0B90B]/80 focus:outline-none transition-all"
                         >
                           <Cog6ToothIcon className="h-5 w-5" />
@@ -554,7 +624,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                             leaveFrom="transform opacity-100 scale-100"
                             leaveTo="transform opacity-0 scale-95"
                           >
-                            <div className="absolute z-10 mt-2 w-full rounded-lg bg-[#1E2329] border border-[#2E353F] shadow-lg">
+                            <div className="absolute z-10 mt-2 w-full rounded-lg bg-[#1E2329] border border-[#2E353F] shadow-lg max-h-[300px] overflow-auto scrollbar-thin scrollbar-thumb-[#848E9C] scrollbar-track-[#1E2329] hover:scrollbar-thumb-[#A6B0C3]">
                               <div className="py-1">
                                 {coins.map((coin) => (
                                   <button
@@ -673,7 +743,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                             leaveFrom="transform opacity-100 scale-100"
                             leaveTo="transform opacity-0 scale-95"
                           >
-                            <div className="absolute z-10 mt-2 w-full rounded-lg bg-[#1E2329] border border-[#2E353F] shadow-lg">
+                            <div className="absolute z-10 mt-2 w-full rounded-lg bg-[#1E2329] border border-[#2E353F] shadow-lg max-h-[300px] overflow-auto scrollbar-thin scrollbar-thumb-[#848E9C] scrollbar-track-[#1E2329] hover:scrollbar-thumb-[#A6B0C3]">
                               <div className="py-1">
                                 {availableNetworks.map((network) => (
                                   <button
@@ -908,6 +978,206 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
         isOpen={showHistory} 
         onClose={() => setShowHistory(false)} 
       />
+
+      <Transition appear show={showSettings} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setShowSettings(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/80" />
+          </Transition.Child>
+
+          <div className="fixed inset-0">
+            <div className="min-h-screen w-screen flex items-center justify-center sm:p-4 p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-full sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-full sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="w-screen h-screen sm:h-auto sm:w-full sm:max-w-2xl transform overflow-hidden bg-[#0B0E11] sm:border sm:border-[#2E353F] sm:rounded-lg transition-all">
+                  {/* Header */}
+                  <div className="sticky top-0 z-10 border-b border-[#2E353F] bg-[#0B0E11] p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowSettings(false)}
+                          className="rounded-lg p-1.5 text-[#1E2329] bg-[#F0B90B] hover:bg-[#F0B90B]/80 focus:outline-none sm:hidden transition-all"
+                        >
+                          <ArrowLeftIcon className="h-5 w-5" />
+                        </button>
+                        <Dialog.Title as="h3" className="text-xl font-semibold text-white flex items-center gap-2">
+                          Withdrawal Settings
+                          <Cog6ToothIcon className="h-5 w-5 text-[#F0B90B]" />
+                        </Dialog.Title>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowSettings(false)}
+                        className="rounded-lg p-1.5 text-[#1E2329] bg-[#F0B90B] hover:bg-[#F0B90B]/80 focus:outline-none hidden sm:block transition-all"
+                      >
+                        <XMarkIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="h-[calc(100vh-70px)] sm:h-auto overflow-y-auto p-4 sm:p-6 bg-[#0B0E11]">
+                    <div className="space-y-4">
+                      {/* Default Network Selection */}
+                      <div className="bg-[#1E2329] rounded-lg p-4 border border-[#2E353F]">
+                        <label className="block text-sm font-medium text-white mb-2">
+                          Default Network
+                        </label>
+                        <select 
+                          value={settings.defaultNetwork}
+                          onChange={(e) => handleSettingChange('defaultNetwork', e.target.value)}
+                          className="w-full px-4 py-3.5 rounded-lg bg-[#2B3139] border border-[#2E353F] text-white focus:outline-none focus:border-[#FCD535]"
+                        >
+                          <option value="">Select default network</option>
+                          <option value="BKASH">bKash</option>
+                          <option value="NAGAD">Nagad</option>
+                          <option value="ROCKET">Rocket</option>
+                        </select>
+                        <p className="mt-2 text-sm text-[#848E9C]">
+                          This network will be pre-selected when you open the withdrawal modal
+                        </p>
+                      </div>
+
+                      {/* Auto-logout Timer */}
+                      <div className="bg-[#1E2329] rounded-lg p-4 border border-[#2E353F]">
+                        <label className="block text-sm font-medium text-white mb-2">
+                          Auto-logout Timer
+                        </label>
+                        <select 
+                          value={settings.autoLogoutTimer}
+                          onChange={(e) => handleSettingChange('autoLogoutTimer', e.target.value)}
+                          className="w-full px-4 py-3.5 rounded-lg bg-[#2B3139] border border-[#2E353F] text-white focus:outline-none focus:border-[#FCD535]"
+                        >
+                          <option value="5">5 minutes</option>
+                          <option value="10">10 minutes</option>
+                          <option value="15">15 minutes</option>
+                          <option value="30">30 minutes</option>
+                        </select>
+                        <p className="mt-2 text-sm text-[#848E9C]">
+                          Automatically log out after period of inactivity
+                        </p>
+                      </div>
+
+                      {/* Email Notifications */}
+                      <div className="bg-[#1E2329] rounded-lg p-4 border border-[#2E353F]">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <label className="text-sm font-medium text-white block">
+                              Email Notifications
+                            </label>
+                            <p className="mt-1 text-sm text-[#848E9C]">
+                              Receive email notifications for withdrawal status updates
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSettingChange('emailNotifications', !settings.emailNotifications)}
+                            className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#2B3139] focus:outline-none"
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#F0B90B] transition-transform ${
+                              settings.emailNotifications ? 'translate-x-6' : 'translate-x-1'
+                            }`} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Two-Factor Authentication */}
+                      <div className="bg-[#1E2329] rounded-lg p-4 border border-[#2E353F]">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <label className="text-sm font-medium text-white block">
+                              Two-Factor Authentication
+                            </label>
+                            <p className="mt-1 text-sm text-[#848E9C]">
+                              Require 2FA for all withdrawals
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSettingChange('twoFactorAuth', !settings.twoFactorAuth)}
+                            className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#2B3139] focus:outline-none"
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#F0B90B] transition-transform ${
+                              settings.twoFactorAuth ? 'translate-x-6' : 'translate-x-1'
+                            }`} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Security Level */}
+                      <div className="bg-[#1E2329] rounded-lg p-4 border border-[#2E353F]">
+                        <label className="block text-sm font-medium text-white mb-2">
+                          Security Level
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 flex-1 rounded-full bg-[#2B3139] overflow-hidden">
+                            <div 
+                              className="h-full bg-[#F0B90B] rounded-full transition-all duration-300" 
+                              style={{ width: `${securityInfo.progress}%` }}
+                            />
+                          </div>
+                          <span className="text-sm text-white">{securityInfo.level}</span>
+                        </div>
+                        <p className="mt-2 text-sm text-[#848E9C]">
+                          Enable 2FA and email notifications to increase security
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="fixed bottom-0 left-0 right-0 sm:relative p-4 sm:p-0 bg-[#0B0E11] border-t border-[#2E353F] sm:border-0">
+                      <div className="flex gap-3 sm:mt-6">
+                        <button
+                          type="button"
+                          onClick={() => setShowSettings(false)}
+                          className="flex-1 py-3.5 px-4 rounded-lg text-sm font-semibold text-[#EAECEF] bg-[#2B3139] hover:bg-[#363B44] border border-[#2E353F] focus:outline-none transition-all duration-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Save settings to localStorage
+                            localStorage.setItem('withdrawalSettings', JSON.stringify(settings));
+                            // Apply default network if set
+                            if (settings.defaultNetwork) {
+                              setFormData(prev => ({
+                                ...prev,
+                                selectedNetwork: settings.defaultNetwork
+                              }));
+                            }
+                            setShowSettings(false);
+                            toast.success('Settings saved successfully');
+                          }}
+                          className="flex-1 py-3.5 px-4 rounded-lg text-sm font-semibold text-[#1E2329] bg-[#FCD535] hover:bg-[#FCD535]/90 focus:outline-none transition-all duration-200"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </>
   );
 } 

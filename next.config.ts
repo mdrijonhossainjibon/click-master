@@ -15,7 +15,8 @@ const nextConfig: NextConfig = {
       'cryptologos.cc',
       'assets.coingecko.com',
       'api.coingecko.com',
-      "images.remotePatterns"
+      "images.remotePatterns",
+      "static.thenounproject.com"
     ],
   },
   reactStrictMode: true,

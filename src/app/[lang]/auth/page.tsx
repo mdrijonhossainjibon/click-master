@@ -115,7 +115,8 @@ export default function AuthPage() {
       if (result?.error) {
         toast.error(result.error);
       } else if (result?.ok) {
-        router.push('/')
+        window.location.href = '/'
+       // router.push('/')
       }
     } catch (error) {
       toast.error(t('auth.errors.telegramSignInFailed', 'Telegram sign in failed'));

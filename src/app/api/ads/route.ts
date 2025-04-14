@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     await connectDB();
 
     // Find user and validate
-    const user = await User.findById(session?.user._id);
+    const user = await User.findOne({ telegramId : session.user.telegramId })
     if (!user) {
       const errorResponse = { error: 'User not found', status: 404 };
       handleApiError(errorResponse);
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     // Create history record for ad watch
     await History.create({
-      userId: user._id,
+      userId: user.telegramId,
       activityType: 'ad_watch',
       amount: reward,
       description: 'Watched an advertisement',
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
       newBalance: user.balance, 
       reward, 
       adsWatched: user.adsWatched, 
-      _id: user._id 
+  
     };
 
     return NextResponse.json({ 

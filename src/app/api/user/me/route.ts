@@ -20,7 +20,7 @@ export async function GET() {
         // Connect to database
         await dbConnect();
         // Find user and select specific fields
-        const user = await User.findById(session.user._id);
+        const user = await User.findOne({ telegramId : session.user.telegramId });
         
         // Find all users who were referred by the current user
         const referredUsers = await User.find({ referredBy: user._id })

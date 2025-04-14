@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
-import Transaction from '@/models/Transaction';
+
 import { handleApiError } from '@/lib/errorHandler';
 
 async function isAdmin(email: string) {
@@ -26,22 +26,16 @@ export async function GET(request: Request) {
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const newUsersCount = await User.countDocuments({ createdAt: { $gte: twentyFourHoursAgo } });
 
-        // Get withdrawal statistics
-        const totalWithdrawals = await Transaction.aggregate([
-            { $match: { type: 'withdrawal', status: 'completed' } },
-            { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]).then(result => result[0]?.total || 0);
-
-        const pendingWithdrawals = await Transaction.countDocuments({ type: 'withdrawal', status: 'pending' });
-
+     
+       
         const stats = {
             totalUsers: users.length,
             totalBalance: users.reduce((sum, user) => sum + user.balance, 0),
             totalEarnings: users.reduce((sum, user) => sum + user.totalEarnings, 0),
             totalAdsWatched: users.reduce((sum, user) => sum + user.adsWatched, 0),
             newUsersLast24h: newUsersCount,
-            totalWithdrawals,
-            pendingWithdrawals
+            totalWithdrawals : 0,
+            pendingWithdrawals : []
         };
 
         return NextResponse.json({ result:{  users, stats} });

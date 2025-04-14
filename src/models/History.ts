@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 export interface IHistory {
-    userId: mongoose.Types.ObjectId;
+    telegramId : string;
     activityType: 'ad_watch' | 'link_visit' | 'login' | 'referral_signup' | 'referral_commission';
     amount?: number;
     description: string;
@@ -17,12 +17,7 @@ export interface IHistory {
 }
 
 const historySchema = new mongoose.Schema<IHistory>({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-        index: true
-    },
+   telegramId : String,
     activityType: {
         type: String,
         required: true,

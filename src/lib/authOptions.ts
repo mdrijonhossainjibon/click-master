@@ -136,7 +136,10 @@ export const authOptions: AuthOptions = {
                             /* if (!isValidPassword) {
                                 throw new Error('Invalid password');
                              } */
-                        } else {
+                        } 
+ 
+
+                        if(!existingUser){
                             throw new Error('Telegram account not found or not registered with password.');
                         }
                     }
@@ -166,6 +169,7 @@ export const authOptions: AuthOptions = {
                         throw new Error('Method not found')
                     }
 
+                    return existingUser
 
                 } catch (error) {
 
@@ -215,10 +219,11 @@ export const authOptions: AuthOptions = {
 
         async session({ session, token }: any) {
             try {
-
+       
                 session.user._id = token._id;
                 session.user.email = token.email;
                 session.user.role = token.role;
+                session.user.telegramId = token.telegramId;
                 return session;
             } catch (error) {
                 return session;
@@ -229,6 +234,7 @@ export const authOptions: AuthOptions = {
                 token._id = user._id;
                 token.email = user?.email;
                 token.role = user?.role;
+                token.telegramId = user?.telegramId
             }
             return token;
         },

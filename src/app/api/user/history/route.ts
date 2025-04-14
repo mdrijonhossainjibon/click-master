@@ -26,9 +26,9 @@ export async function GET(request: Request) {
 
         // Connect to database
         await dbConnect();
-
+     
         // Build query
-        const query: any = { userId: session.user._id };
+        const query: any = { telegramId : session.user.telegramId };
         if (activityType) {
             query.activityType = activityType;
         }
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
 
         // Calculate earnings summary
         const earningsSummary = await History.aggregate([
-            { $match: { userId: session.user._id, amount: { $exists: true, $ne: null } } },
+            { $match: { userId:  session.user.telegramId, amount: { $exists: true, $ne: null } } },
             { $group: {
                 _id: '$activityType',
                 total: { $sum: '$amount' },
@@ -69,7 +69,7 @@ export async function GET(request: Request) {
         const todayEarnings = await History.aggregate([
             { 
                 $match: { 
-                    userId: session.user._id,
+                    userId:  session.user.telegramId,
                     amount: { $exists: true, $ne: null },
                     createdAt: { $gte: today }
                 }

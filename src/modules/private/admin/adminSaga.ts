@@ -6,6 +6,7 @@ import {
   fetchRecentActivitiesSuccess,
   fetchRecentActivitiesFailure
 } from './actions';
+import { API_CALL, TypeApiPromise } from '@/lib/client';
 
 // API response types
 interface StatsResponse {
@@ -17,10 +18,9 @@ interface StatsResponse {
 
 // Replace these with actual API calls
 const fetchStatsFromAPI = async (): Promise<StatsResponse> => {
-  const response = await fetch('/api/admin/dashboard/stats');
-  if (!response.ok) throw new Error('Failed to fetch admin stats');
-  const data = await response.json();
-  return data.response.stats;
+  const { response } : any = await API_CALL({ url : '/admin/dashboard/stats'})
+  return response.stats;
+
 };
 
 const fetchActivitiesFromAPI = async (): Promise<RecentActivity[]> => {
@@ -33,6 +33,7 @@ const fetchActivitiesFromAPI = async (): Promise<RecentActivity[]> => {
 function* fetchAdminStatsSaga(): Generator<Effect, void, unknown> {
   try {
     const response = (yield call(fetchStatsFromAPI)) as StatsResponse;
+    
     const stats: AdminStats = {
       totalUsers: response.totalUsers,
       totalWithdrawals: response.totalWithdrawals,
@@ -43,6 +44,7 @@ function* fetchAdminStatsSaga(): Generator<Effect, void, unknown> {
   } catch (error: unknown) {
     if (error instanceof Error) {
       yield put(fetchAdminStatsFailure(error.message));
+      console.error(error.message);
     } else {
       yield put(fetchAdminStatsFailure('An unknown error occurred'));
     }

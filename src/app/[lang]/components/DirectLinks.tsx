@@ -1,32 +1,19 @@
 'use client';
 
-import { Empty, message } from "antd";
+import { Empty } from "antd";
 import { motion } from "framer-motion";
- 
-import { useSelector } from "react-redux";
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { RootState } from "@/modules/store";
+import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
- 
+import { RootState } from "@/modules/store";
+import { useEffect, useMemo, useCallback, useState, useRef } from "react";
+import { fetchDirectLinks, clickLink } from "@/modules/public/directLinks/actions";
 
 interface DirectLink {
     _id: string;
     title: string;
     url: string;
     icon: string;
-    
 }
-
-interface ButtonState {
-    [key: string]: {
-        isLocked: boolean;
-        countdown: number;
-        lastUpdated: number;
-        clickTimestamp: number;
-    };
-}
-
-const STORAGE_KEY = 'directLinksButtonStates';
 
 const container = {
     hidden: { opacity: 0 },
@@ -68,186 +55,116 @@ const rgbAnimation = `
 
  
 
-export default function DirectLinks( ) {
+export default function DirectLinks() {
+    // State for lockout per link
+    const [lockedButtons, setLockedButtons] = useState<{ [id: string]: number }>({});
+    const timerRefs = useRef<{ [id: string]: NodeJS.Timeout }>({});
     const links = useSelector((state: RootState) => state.public.directLinks?.items || []);
     const user = useSelector((state: RootState) => state.public.auth.user);
-    const isAuthenticated = useSelector((state: RootState) => state.public.auth.isAuthenticated);
+    const telegramInitData = useSelector((state: RootState) => state.public.auth.telegramInitData);
     const { t } = useTranslation();
-    // Initialize button states from localStorage
-    const [buttonStates, setButtonStates] = useState<ButtonState>({});
+    const dispatch = useDispatch();
 
-    const  adsWatched     =user?.adsWatched || 0;
+    // Function to generate hash matching backend logic
+    function generateHash(id: string, timestamp: number) {
+        const secret = 'secret'; // Must match process.env.HASH_SECRET on backend!
+        const str = `${id}_${timestamp}_${secret}`;
+        return btoa(str).replace(/[^a-zA-Z0-9]/g, '');
+    }
+
+    // Memoized click handler for link clicks
+    const handleClick = useCallback((link: DirectLink) => {
+        if (!user) return;
+        if (lockedButtons[link._id]) return; // Already locked
+        const now = Date.now();
+        const hash = generateHash(link._id, now);
+        const payload = {
+            id: link._id,
+            userId: user._id,
+            hash,
+            timestamp: now
+        };
+        dispatch(clickLink(payload));
+        window.open(link.url, '_blank');
+        // Start lockout
+        setLockedButtons(prev => ({ ...prev, [link._id]: 30 }));
+    }, [dispatch, user, lockedButtons]);
+
+    // Countdown effect for locked buttons
+    useEffect(() => {
+        Object.keys(lockedButtons).forEach((id) => {
+            if (lockedButtons[id] > 0 && !timerRefs.current[id]) {
+                timerRefs.current[id] = setInterval(() => {
+                    setLockedButtons(prev => {
+                        if (prev[id] > 1) {
+                            return { ...prev, [id]: prev[id] - 1 };
+                        } else {
+                            // Unlock
+                            const { [id]: _, ...rest } = prev;
+                            clearInterval(timerRefs.current[id]);
+                            delete timerRefs.current[id];
+                            return rest;
+                        }
+                    });
+                }, 1000);
+            }
+        });
+        // Cleanup on unmount
+        return () => {
+            Object.values(timerRefs.current).forEach(clearInterval);
+            timerRefs.current = {};
+        };
+    }, [lockedButtons]);
+
+    
 
     // Add RGB animation styles
     useEffect(() => {
         const style = document.createElement('style');
         style.textContent = rgbAnimation;
         document.head.appendChild(style);
+     
         return () => {
             document.head.removeChild(style);
         };
-    }, []);
 
-    // Function to generate a hash based on linkId and timestamp
-    const generateHash = (linkId: string, timestamp: number) => {
-        const str = `${linkId}_${timestamp}_${process.env.NEXT_PUBLIC_HASH_SECRET || 'secret'}`;
-        return btoa(str).replace(/[^a-zA-Z0-9]/g, '');
-    };
+    }, [  ]);
 
-    const handleDirectLinkClick = useCallback(async (link: DirectLink) => {
-        try {
-            // Check if button is already locked
-            if (buttonStates[link._id]?.isLocked) {
-                message.warning('Please wait for the countdown to finish');
-                return;
-            }
-
-            const clickTime = Date.now();
-            setButtonStates(prev => ({
-                ...prev,
-                [link._id]: {
-                    isLocked: true,
-                    countdown: 30,
-                    lastUpdated: Date.now(),
-                    clickTimestamp: clickTime
-                }
-            }));
-
-            window.open(link.url, '_blank');
-        } catch (error) {
-            console.error('Error clicking link:', error);
-            message.error('Failed to open link. Please try again.');
-            setButtonStates(prev => {
-                const newState = { ...prev };
-                delete newState[link._id];
-                return newState;
-            });
-        }
-    }, [buttonStates]);
-
-    // Function to handle API call when countdown finishes
-    const handleCountdownFinish = useCallback(async (linkId: string) => {
-        try {
-            const buttonState = buttonStates[linkId];
-            if (!isAuthenticated || !user?.id) {
-                message.error('Please login with Telegram first');
-                return;
-            }
-            if (!buttonState?.clickTimestamp) {
-                throw new Error('Invalid click timestamp');
-            }
-
-            const timestamp = buttonState.clickTimestamp;
-
-            const response = await fetch('/api/links/click', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    linkId,
-                    userId: user.id,
-                    clickTimestamp: buttonState.clickTimestamp,
-                }),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to record link click');
-            }
-
-            const data = await response.json();
-            if (data.status === 'success') {
-                message.success('Reward credited successfully!');
-            }
-        } catch (error) {
-            console.error('Error recording link click:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to credit reward';
-            message.error(errorMessage);
-        }
-    }, [isAuthenticated, user]);
-
-    // Consolidated countdown timer effect
     useEffect(() => {
-        const intervals: { [key: string]: NodeJS.Timeout } = {};
+        dispatch(fetchDirectLinks());
+    }, [ dispatch ]);
 
-        Object.entries(buttonStates).forEach(([linkId, state]) => {
-            if (state.isLocked && state.countdown > 0) {
-                intervals[linkId] = setInterval(() => {
-                    setButtonStates(prev => {
-                        const newState = { ...prev };
-                        if (newState[linkId].countdown <= 1) {
-                            const clickTimestamp = newState[linkId].clickTimestamp;
-                            delete newState[linkId];
-                            // Make API call when countdown finishes
-                            handleCountdownFinish(linkId);
-                            return newState;
-                        }
-                        newState[linkId] = {
-                            ...newState[linkId],
-                            countdown: newState[linkId].countdown - 1
-                        };
-                        return newState;
-                    });
-                }, 1000);
-            }
-        });
 
-        return () => {
-            Object.values(intervals).forEach(interval => clearInterval(interval));
-        };
-    }, [buttonStates]);
 
     const linkButtons = useMemo(() => {
         return links.map(link => {
-            const buttonState = buttonStates[link._id];
-            const isLocked = buttonState?.isLocked;
-            const countdown = buttonState?.countdown || 0;
-
+            const isLocked = lockedButtons[link._id] !== undefined;
+            const countdown = lockedButtons[link._id];
             return (
                 <motion.button
                     key={link._id}
                     variants={item}
-                    onClick={() => handleDirectLinkClick(link)}
-                    disabled={isLocked || adsWatched >= 1000}
-                    className={`group relative flex items-center justify-center w-full h-16 rounded-xl shadow-lg overflow-hidden transition-all duration-300 
-                        ${isLocked ? 'opacity-75 cursor-not-allowed' : 'rgb-border-animation hover:scale-105 hover:shadow-2xl'}`}
+                    onClick={() => handleClick(link)}
+                    className={`group relative flex items-center justify-center w-full h-16 rounded-xl shadow-lg overflow-hidden transition-all duration-300 rgb-border-animation hover:scale-105 hover:shadow-2xl ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                     style={{
                         background: `linear-gradient(to right, var(--tw-gradient-from- , var(--tw-gradient-to- ))`
                     }}
+                    disabled={isLocked}
                 >
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
-                    <div className="flex flex-col items-center justify-center relative z-10">
-                        {isLocked ? (
-                            <div className="flex items-center justify-center">
-                                <span className="text-2xl text-amber-400 font-bold animate-pulse">
-                                    {countdown}s
-                                </span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center space-x-2">
-                                <span className={`text-2xl transition-transform group-hover:scale-110 rgb-text-animation`}>
-                                    {link.icon}
-                                </span>
-                                <span className="text-sm sm:text-base font-bold text-white group-hover:text-opacity-90">
-                                    {link.title}
-                                </span>
-                            </div>
-                        )}
+                    <div className="flex items-center space-x-2 relative z-10">
+                        <span className={`text-2xl transition-transform group-hover:scale-110 rgb-text-animation`}>
+                            {link.icon}
+                        </span>
+                        <span className="text-sm sm:text-base font-bold text-white group-hover:text-opacity-90">
+                            {isLocked ? `Locked: ${countdown}s` : link.title}
+                        </span>
                     </div>
                 </motion.button>
             );
         });
-    }, [links, buttonStates, handleDirectLinkClick, adsWatched]);
+    }, [links, handleClick, lockedButtons]);
 
-    // Get user's referral tier based on referral count
-    const getReferralTier = (count: number) => {
-        if (count >= 50) return { tier: 5, name: t('referral.tier5'), color: 'from-blue-500 to-cyan-500' };
-        if (count >= 25) return { tier: 4, name: t('referral.tier4'), color: 'from-purple-500 to-pink-500' };
-        if (count >= 10) return { tier: 3, name: t('referral.tier3'), color: 'from-yellow-500 to-amber-500' };
-        if (count >= 5) return { tier: 2, name: t('referral.tier2'), color: 'from-gray-300 to-gray-400' };
-        return { tier: 1, name: t('referral.tier1'), color: 'from-amber-700 to-yellow-900' };
-    };
  
     return (
         <div className="w-full max-w-4xl mx-auto mb-6 p-6 bg-gradient-to-r from-red-900/50 to-pink-900/50 rounded-2xl border border-red-500/20 backdrop-blur-sm shadow-xl">

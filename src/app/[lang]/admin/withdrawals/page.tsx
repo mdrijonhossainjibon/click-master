@@ -15,22 +15,39 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   ClockCircleOutlined,
+  DollarCircleOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import { API_CALL } from '@/lib/client';
+import { Table, Button, Tag, Tooltip } from 'antd';
+import 'antd/dist/reset.css';
 import AdminLayout from '../layout';
 
 interface Withdrawal {
   _id: string;
-  userId: {
-    email: string;
-   username: string;
+  userId?: {
+    email?: string;
+    username?: string;
   };
-  amount: number;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
+  telegramId?: string;
+  activityType?: string;
+  amount?: number;
+  bdtAmount?: number;
   method: string;
-   
-  
+  recipient?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  description?: string;
+  metadata?: {
+    ipAddress?: string;
+    deviceInfo?: string;
+    originalAmount?: number;
+    currency?: string;
+    fee?: number;
+    amountAfterFee?: number;
+    feeType?: string;
+  };
+  createdAt: string;
+  __v?: number;
 }
 
 export default function WithdrawalsPage() {
@@ -42,14 +59,9 @@ export default function WithdrawalsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    setLoading(true);
-    API_CALL({ url: '/withdrawals' })
-      .then((res) => {
-         setWithdrawals(res.response?.result as any);
-        console.log(res.response?.result);
-      })
-      .finally(() => setLoading(false));
+    handleRefresh();
   }, []);
+
 
   const handleRefresh = () => {
     setLoading(true);
@@ -64,12 +76,12 @@ export default function WithdrawalsPage() {
   const handleApprove = async (id: string) => {
     try {
       setLoading(true);
-      const { status } = await API_CALL({ 
-        url: `/withdrawals/${id}`, 
+      const { status } = await API_CALL({
+        url: `/withdrawals/${id}`,
         method: 'PUT',
         body: { status: 'approved' }
       });
-      
+
       if (status === 200) {
         handleRefresh();
       }
@@ -83,12 +95,12 @@ export default function WithdrawalsPage() {
   const handleReject = async (id: string) => {
     try {
       setLoading(true);
-      const { status } = await API_CALL({ 
-        url: `/withdrawals/${id}`, 
+      const { status } = await API_CALL({
+        url: `/withdrawals/${id}`,
         method: 'PUT',
         body: { status: 'rejected' }
       });
-      
+
       if (status === 200) {
         handleRefresh();
       }
@@ -104,14 +116,17 @@ export default function WithdrawalsPage() {
   };
 
   const filteredWithdrawals = withdrawals.filter(withdrawal => {
-    const matchesSearch = (withdrawal.userId.username?.toLowerCase() || withdrawal.userId.email.toLowerCase()).includes(searchTerm.toLowerCase()) ||
-                         withdrawal.method.toLowerCase().includes(searchTerm.toLowerCase());
+    const username = withdrawal.userId?.username || '';
+    const email = withdrawal.userId?.email || '';
+    const method = withdrawal.method || '';
+    const matchesSearch = [username, email, method]
+      .some(field => field.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = selectedStatus === 'all' || withdrawal.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
 
   const stats = {
-    total: withdrawals.reduce((sum, w) => sum + w.amount, 0),
+    total: withdrawals.reduce((sum, w) => sum + (w.amount ?? w.bdtAmount ?? 0), 0),
     approved: withdrawals.filter(w => w.status === 'approved').length,
     pending: withdrawals.filter(w => w.status === 'pending').length
   };
@@ -159,6 +174,11 @@ export default function WithdrawalsPage() {
     }
   ];
 
+  const isCrypto = (method: string) => {
+    const cryptoMethods = ['usdt', 'btc', 'eth', 'bnb', 'trx', 'crypto'];
+    return cryptoMethods.some(c => method.toLowerCase().includes(c));
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
@@ -168,6 +188,26 @@ export default function WithdrawalsPage() {
       default:
         return 'text-yellow-400';
     }
+  };
+
+  const getMethodBadge = (method: string) => {
+    if (isCrypto(method)) {
+      return (
+        <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-900/30 border border-yellow-400 text-yellow-300 rounded-lg text-xs font-semibold uppercase tracking-wider shadow-sm">
+          <ThunderboltOutlined className="text-yellow-400" /> {method}
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg text-xs font-semibold uppercase tracking-wider shadow-sm">
+        <CreditCardOutlined className="text-blue-400" /> {method}
+      </span>
+    );
+  };
+
+  const handleAutoPay = (id: string) => {
+    // TODO: Implement auto pay logic for crypto withdrawals
+    alert('Auto Pay for crypto withdrawal: ' + id);
   };
 
   const getStatusIcon = (status: string) => {
@@ -182,191 +222,225 @@ export default function WithdrawalsPage() {
   };
 
   return (
-    <AdminLayout> 
-            <div className="flex justify-between items-center mb-8 bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800 transition-all duration-300">
-              <h1 className="text-2xl font-bold text-gray-100 flex items-center">
-                <WalletOutlined className="mr-3 text-blue-400" />
-                Withdrawals Management
-              </h1>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => router.push('/admin')}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-all duration-300 shadow-md"
-                >
-                  <DashboardOutlined />
-                  Dashboard
-                </button>
-                <button
-                  onClick={handleRefresh}
-                  disabled={loading}
-                  className={`flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300 shadow-md
-                    ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg transform hover:-translate-y-0.5'}`}
-                >
-                  <RedoOutlined className={`${loading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </button>
-              </div>
-            </div>
+    <AdminLayout>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-10 gap-4 bg-gradient-to-br from-[#181A20] to-[#23272F] p-8 rounded-3xl shadow-2xl border border-[#262A35]">
+        <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <WalletOutlined className="text-yellow-400 text-3xl" />
+          Withdrawals <span className="text-lg font-light text-[#C0C0C0] ml-2">Admin Panel</span>
+        </h1>
+        <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={() => router.push('/admin')}
+            className="flex items-center gap-2 px-6 py-3 bg-[#23272F] hover:bg-[#2B3139] text-white rounded-2xl font-semibold shadow transition-all duration-200 border border-[#30343E]"
+          >
+            <DashboardOutlined /> Dashboard
+          </button>
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className={`flex items-center gap-2 px-6 py-3 bg-[#F0B90B] hover:bg-[#FFD666] text-[#181A20] rounded-2xl font-bold shadow transition-all duration-200 border border-yellow-400
+          ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-lg hover:-translate-y-0.5'}`}
+          >
+            <RedoOutlined className={`${loading ? 'animate-spin' : ''}`} /> Refresh
+          </button>
+        </div>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-blue-900/20 group-hover:bg-blue-900/40 transition-all duration-300">
-                    <WalletOutlined className="text-blue-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Total Withdrawals</h2>
-                    <p className="text-3xl font-bold text-white mt-1">${stats.total.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-green-900/20 group-hover:bg-green-900/40 transition-all duration-300">
-                    <CheckCircleOutlined className="text-green-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Approved</h2>
-                    <p className="text-3xl font-bold text-white mt-1">{stats.approved}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-xl bg-yellow-900/20 group-hover:bg-yellow-900/40 transition-all duration-300">
-                    <ClockCircleOutlined className="text-yellow-400 text-2xl group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Pending</h2>
-                    <p className="text-3xl font-bold text-white mt-1">{stats.pending}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="bg-[#20232B] rounded-3xl shadow-xl border border-[#262A35] p-8 flex items-center gap-6 hover:shadow-2xl transition-all group">
+          <div className="p-5 rounded-2xl bg-blue-900/20 group-hover:bg-blue-900/40 transition-all">
+            <WalletOutlined className="text-[#F0B90B] text-4xl group-hover:scale-110 transition-transform" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-[#C0C0C0] uppercase tracking-wider">Total Withdrawals</h2>
+            <p className="text-4xl font-extrabold text-white mt-1">${stats.total.toFixed(2)}</p>
+          </div>
+        </div>
+        <div className="bg-[#20232B] rounded-3xl shadow-xl border border-[#262A35] p-8 flex items-center gap-6 hover:shadow-2xl transition-all group">
+          <div className="p-5 rounded-2xl bg-green-900/20 group-hover:bg-green-900/40 transition-all">
+            <CheckCircleOutlined className="text-green-400 text-4xl group-hover:scale-110 transition-transform" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-[#C0C0C0] uppercase tracking-wider">Approved</h2>
+            <p className="text-4xl font-extrabold text-white mt-1">{stats.approved}</p>
+          </div>
+        </div>
+        <div className="bg-[#20232B] rounded-3xl shadow-xl border border-[#262A35] p-8 flex items-center gap-6 hover:shadow-2xl transition-all group">
+          <div className="p-5 rounded-2xl bg-yellow-900/20 group-hover:bg-yellow-900/40 transition-all">
+            <ClockCircleOutlined className="text-yellow-400 text-4xl group-hover:scale-110 transition-transform" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-[#C0C0C0] uppercase tracking-wider">Pending</h2>
+            <p className="text-4xl font-extrabold text-white mt-1">{stats.pending}</p>
+          </div>
+        </div>
+      </div>
 
-            <div className="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 className="text-xl font-semibold text-gray-100">Recent Withdrawals</h2>
-                <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                  <div className="relative flex-grow md:flex-grow-0 md:min-w-[200px]">
-                    <input
-                      type="text"
-                      placeholder="Search withdrawals..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    />
-                  </div>
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left border-b border-gray-800">
-                      <th className="pb-4 text-gray-400 font-medium">User</th>
-                      <th className="pb-4 text-gray-400 font-medium">Amount</th>
-                      <th className="pb-4 text-gray-400 font-medium">Payment Method</th>
-                      <th className="pb-4 text-gray-400 font-medium">Status</th>
-                      <th className="pb-4 text-gray-400 font-medium">Date</th>
-                      <th className="pb-4 text-gray-400 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-800">
-                    {filteredWithdrawals.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-gray-500">
-                          {searchTerm || selectedStatus !== 'all' ? 'No matching withdrawals found' : 'No withdrawals found'}
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredWithdrawals.map((withdrawal) => (
-                        <tr key={withdrawal._id} className="hover:bg-gray-800/50 transition-colors duration-200">
-                          <td className="py-4 px-2">
-                            <div className="flex flex-col">
-                              <span className="font-medium">{withdrawal.userId.username}</span>
-                              <span className="text-sm text-gray-400">{withdrawal.userId.email}</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-2">
-                            <span className="font-medium text-green-400">${withdrawal.amount.toFixed(2)}</span>
-                          </td>
-                          <td className="py-4 px-2">
-                            <span className="px-3 py-1 bg-gray-800 rounded-lg text-sm">{withdrawal.method}</span>
-                          </td>
-                          <td className="py-4 px-2">
-                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm ${
-                              withdrawal.status === 'approved' ? 'bg-green-900/20 text-green-400' :
-                              withdrawal.status === 'rejected' ? 'bg-red-900/20 text-red-400' :
-                              'bg-yellow-900/20 text-yellow-400'
-                            }`}>
-                              {getStatusIcon(withdrawal.status)}
-                              {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
-                            </span>
-                          </td>
-                          <td className="py-4 px-2">
-                            <div className="flex flex-col">
-                              <span className="font-medium">{new Date(withdrawal.createdAt).toLocaleDateString()}</span>
-                              <span className="text-sm text-gray-400">{new Date(withdrawal.createdAt).toLocaleTimeString()}</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-2">
-                            <div className="flex gap-2">
-                              {withdrawal.status === 'pending' && (
-                                <>
-                                  <button
-                                    className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-                                    onClick={() => handleApprove(withdrawal._id)}
-                                    disabled={loading}
-                                  >
-                                    {loading ? 'Processing...' : 'Approve'}
-                                  </button>
-                                  <button
-                                    className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-                                    onClick={() => handleReject(withdrawal._id)}
-                                    disabled={loading}
-                                  >
-                                    {loading ? 'Processing...' : 'Reject'}
-                                  </button>
-                                  <button
-                                    className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-                                    onClick={() => handleViewDetails(withdrawal._id)}
-                                  >
-                                    Details
-                                  </button>
-                                </>
-                              )}
-                              {withdrawal.status !== 'pending' && (
-                                <div className="flex gap-2">
-                                  <span className="text-sm text-gray-400">
-                                    {withdrawal.status === 'approved' ? 'Approved' : 'Rejected'}
-                                  </span>
-                                  <button
-                                    className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-                                    onClick={() => handleViewDetails(withdrawal._id)}
-                                  >
-                                    Details
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+      <div className="bg-[#181A20] rounded-3xl shadow-2xl border border-[#23272F] p-8">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-6">
+          <h2 className="text-2xl font-bold text-white tracking-tight">Recent Withdrawals</h2>
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="relative flex-grow md:flex-grow-0 md:min-w-[220px]">
+              <input
+                type="text"
+                placeholder="Search withdrawals..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-[#23272F] border border-[#30343E] rounded-2xl px-5 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 placeholder:text-[#C0C0C0]"
+              />
             </div>
-          </AdminLayout>
-  );
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="bg-[#23272F] border border-[#30343E] rounded-2xl px-5 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+        <Table
+  dataSource={filteredWithdrawals}
+  rowKey="_id"
+  size="small"
+  pagination={{ pageSize: 10 }}
+  bordered
+  style={{ background: '#181A20', borderRadius: 16 }}
+  columns={[
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>User</span>,
+      dataIndex: 'userId',
+      key: 'user',
+      render: (userId: any) => (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontWeight: 500 }}>{userId?.username ?? 'N/A'}</span>
+          <span style={{ fontSize: 11, color: '#aaa' }}>{userId?.email ?? 'N/A'}</span>
+        </div>
+      ),
+    },
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>Telegram ID</span>,
+      dataIndex: 'telegramId',
+      key: 'telegramId',
+      render: (val: string) => (
+        <span style={{ fontFamily: 'monospace', color: '#FFD666', fontSize: 11 }}>{val || 'N/A'}</span>
+      ),
+    },
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>Amount</span>,
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (_: any, row: any) => row.metadata?.originalAmount && row.metadata?.currency ? (
+        <span style={{ color: '#4ade80', fontWeight: 500, fontSize: 12 }}>
+          {row.metadata.originalAmount} {row.metadata.currency.toUpperCase()} <span style={{ color: '#888' }}>({((row.amount ?? row.bdtAmount) ?? 0).toFixed(2)})</span>
+        </span>
+      ) : (
+        <span style={{ color: '#4ade80', fontWeight: 500, fontSize: 12 }}>{((row.amount ?? row.bdtAmount) ?? 0).toFixed(2)}</span>
+      ),
+    },
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>Net Amount</span>,
+      dataIndex: 'netAmount',
+      key: 'netAmount',
+      render: (_: any, row: any) => row.metadata?.amountAfterFee && row.metadata?.currency ? (
+        <span style={{ color: '#60a5fa', fontWeight: 500, fontSize: 12 }}>{row.metadata.amountAfterFee} {row.metadata.currency.toUpperCase()}</span>
+      ) : (
+        <span style={{ color: '#888', fontSize: 11 }}>N/A</span>
+      ),
+    },
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>Payment Method</span>,
+      dataIndex: 'method',
+      key: 'method',
+      render: (method: string) => getMethodBadge(method),
+    },
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>Recipient</span>,
+      dataIndex: 'recipient',
+      key: 'recipient',
+      render: (val: string) => (
+        <span style={{ fontFamily: 'monospace', color: '#eee', fontSize: 11 }}>{val || 'N/A'}</span>
+      ),
+    },
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>Status</span>,
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string, row: any) => (
+        <Tag color={
+          status === 'approved' ? 'green' :
+          status === 'rejected' ? 'red' : 'gold'
+        } style={{ fontSize: 11, borderRadius: 8, padding: '2px 8px' }}>
+          {getStatusIcon(status)} {status.charAt(0).toUpperCase() + status.slice(1)}
+        </Tag>
+      ),
+    },
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>Date</span>,
+      dataIndex: 'createdAt',
+      key: 'date',
+      render: (createdAt: string) => (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontWeight: 500 }}>{new Date(createdAt).toLocaleDateString()}</span>
+          <span style={{ fontSize: 11, color: '#aaa' }}>{new Date(createdAt).toLocaleTimeString()}</span>
+        </div>
+      ),
+    },
+    {
+      title: <span style={{ color: '#FFD666', fontWeight: 700 }}>Actions</span>,
+      key: 'actions',
+      render: (_: any, row: any) => (
+        <div style={{ display: 'flex', gap: 6 }}>
+          {row.status === 'pending' && (
+            <>
+              <Button
+                size="small"
+                type="primary"
+                style={{ background: '#22c55e', borderColor: '#22c55e', fontSize: 11, minWidth: 56 }}
+                onClick={() => handleApprove(row._id)}
+                loading={loading}
+              >Approve</Button>
+              <Button
+                size="small"
+                danger
+                style={{ fontSize: 11, minWidth: 56 }}
+                onClick={() => handleReject(row._id)}
+                loading={loading}
+              >Reject</Button>
+              {isCrypto(row.method) && (
+                <Button
+                  size="small"
+                  style={{ background: '#FFD666', borderColor: '#FFD666', color: '#181A20', fontWeight: 700, fontSize: 11 }}
+                  onClick={() => handleAutoPay(row._id)}
+                  loading={loading}
+                  icon={<ThunderboltOutlined style={{ color: '#ad850e' }} />}
+                >Auto Pay</Button>
+              )}
+              <Button
+                size="small"
+                style={{ background: '#2563eb', borderColor: '#2563eb', color: '#fff', fontSize: 11 }}
+                onClick={() => handleViewDetails(row._id)}
+              >Details</Button>
+            </>
+          )}
+          {row.status !== 'pending' && (
+            <>
+              <span style={{ fontSize: 12, color: '#aaa', marginRight: 4 }}>{row.status === 'approved' ? 'Approved' : 'Rejected'}</span>
+              <Button
+                size="small"
+                style={{ background: '#2563eb', borderColor: '#2563eb', color: '#fff', fontSize: 11 }}
+                onClick={() => handleViewDetails(row._id)}
+              >Details</Button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ]}
+/> 
+      </div>
+    </AdminLayout>
+  ) 
 }

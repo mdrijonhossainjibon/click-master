@@ -1,6 +1,6 @@
  // User data types
 export interface User {
-  id: string;
+  _id: string;
   telegramId: number;
   firstName: string;
   lastName?: string;

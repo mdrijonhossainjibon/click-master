@@ -26,7 +26,7 @@ import { useSession } from 'next-auth/react';
 
 import { RootState } from '@/modules/store';
 import WithdrawalModal from '@/components/WithdrawalModal';
-
+ 
 
 // Client component
 export default function Home() {
@@ -43,11 +43,7 @@ export default function Home() {
     }
     
 
-    useEffect(() => {
-        if(session?.user.role === 'admin' && user?.role === 'admin'){
-            router.push('/admin');
-        }
-    }, [session, router, user?.role]);
+ 
 
     // Modal states
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -59,16 +55,13 @@ export default function Home() {
 
     const {
         isWithdrawalModalOpen,
-        isHistoryModalOpen,
         isTopEarnersModalOpen,
         isRulesModalOpen,
         isAboutModalOpen,
         setIsWithdrawalModalOpen,
-        setIsHistoryModalOpen,
         setIsTopEarnersModalOpen,
         setIsRulesModalOpen,
         setIsAboutModalOpen,
-        setIsLiveSupportModalOpen
     } = useModals();
 
     useEffect(() => {

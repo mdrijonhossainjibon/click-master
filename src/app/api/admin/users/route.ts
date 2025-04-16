@@ -4,20 +4,18 @@ import connectDB from '@/lib/db';
 import User from '@/models/User';
 
 import { handleApiError } from '@/lib/errorHandler';
+import { authOptions } from '@/lib/authOptions';
 
-async function isAdmin(email: string) {
-    await connectDB();
-    const user = await User.findOne({  email });
-    return  user?.role === 'admin';
-}
+ 
 
 export async function GET(request: Request) {
     try {
-        const session = await getServerSession();
-         
-        if (!session?.user?.email || !(await isAdmin(session.user.email))) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+     const session  : any = getServerSession(authOptions);
+     
+      if(session.user?.role === 'admin') {
+       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+     
 
         await connectDB();
         const users = await User.find().select('-__v').sort({ createdAt: -1 });
@@ -48,11 +46,12 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
     try {
-        const session = await getServerSession();
-        if (!session?.user?.email || !(await isAdmin(session.user.email))) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const session  : any = getServerSession(authOptions);
 
+        if(session.user?.role === 'admin') {
+         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+       
         const { userId, updates } = await request.json();
         await connectDB();
 

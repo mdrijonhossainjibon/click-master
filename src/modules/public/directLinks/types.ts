@@ -14,10 +14,23 @@ export interface DirectLinksState {
 export enum DirectLinksActionTypes {
   FETCH_LINKS_REQUEST = 'FETCH_LINKS_REQUEST',
   FETCH_LINKS_SUCCESS = 'FETCH_LINKS_SUCCESS',
-  FETCH_LINKS_FAILURE = 'FETCH_LINKS_FAILURE'
+  FETCH_LINKS_FAILURE = 'FETCH_LINKS_FAILURE',
+  CLICK_LINK_REQUEST = 'CLICK_LINK_REQUEST',
+  CLICK_LINK_SUCCESS = 'CLICK_LINK_SUCCESS',
+  CLICK_LINK_FAILURE = 'CLICK_LINK_FAILURE'
+}
+
+export interface ClickLinkPayload {
+  id: string;
+  userId: string;
+  hash: string;
+  timestamp: number;
 }
 
 export type DirectLinksAction =
   | { type: DirectLinksActionTypes.FETCH_LINKS_REQUEST }
   | { type: DirectLinksActionTypes.FETCH_LINKS_SUCCESS; payload: DirectLink[] }
-  | { type: DirectLinksActionTypes.FETCH_LINKS_FAILURE; payload: string };
+  | { type: DirectLinksActionTypes.FETCH_LINKS_FAILURE; payload: string }
+  | { type: DirectLinksActionTypes.CLICK_LINK_REQUEST; payload: ClickLinkPayload }
+  | { type: DirectLinksActionTypes.CLICK_LINK_SUCCESS }
+  | { type: DirectLinksActionTypes.CLICK_LINK_FAILURE; payload: string };

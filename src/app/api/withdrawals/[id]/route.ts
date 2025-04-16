@@ -4,7 +4,8 @@ import dbConnect from '@/lib/dbConnect';
  
 import { Types } from 'mongoose';
 import User from '@/models/User';
-import Withdrawal, { IWithdrawal } from '@/app/[lang]/models/Withdrawal';
+import WithdrawalHistory from '@/models/WithdrawalHistory';
+ 
  
 
 interface UserPopulated {
@@ -13,9 +14,7 @@ interface UserPopulated {
     email: string;
 }
 
-interface WithdrawalPopulated extends Omit<IWithdrawal , 'userId'> {
-    userId: UserPopulated;
-}
+ 
 
 export async function GET(request: Request, context: any) {
     try {
@@ -23,9 +22,7 @@ export async function GET(request: Request, context: any) {
         await dbConnect();
     
         
-        const withdrawal = await Withdrawal.findById(id)
-            .populate('userId', 'name email')
-            .lean();
+        const withdrawal = await WithdrawalHistory.findById(id);
 
         if (!withdrawal) {
             return NextResponse.json(
@@ -48,7 +45,7 @@ export async function PUT(request: Request, context: any) {
     try {
   
      
-        const { id } = context.params;
+        const { id } = await context.params;
 
         await dbConnect();
 
@@ -63,7 +60,7 @@ export async function PUT(request: Request, context: any) {
             );
         }
 
-        const withdrawal = await Withdrawal.findById(id);
+        const withdrawal = await WithdrawalHistory.findById(id);
         if (!withdrawal) {
             return NextResponse.json(
                 { error: 'Withdrawal not found' },
@@ -94,11 +91,11 @@ export async function PUT(request: Request, context: any) {
 export async function DELETE(request: Request, context: any) {
     try {
        
-
+        const { id } = await context.params;
         await dbConnect();
 
-        const { id } = context.params;
-        const withdrawal = await Withdrawal.findById(id);
+         
+        const withdrawal = await WithdrawalHistory.findById(id);
 
         if (!withdrawal) {
             return NextResponse.json(

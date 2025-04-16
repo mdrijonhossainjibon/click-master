@@ -10,7 +10,7 @@ import WithdrawalHistory from '@/models/WithdrawalHistory';
 const USD_TO_BDT_RATE = 100; // 1 USD = 100 BDT
 const MIN_CRYPTO_AMOUNT = 0.5;
 const MAX_CRYPTO_AMOUNT = 50; // Maximum 50 USDT withdrawal
-const MIN_BDT_AMOUNT = 500;
+const MIN_BDT_AMOUNT = 50;
 const MAX_BDT_AMOUNT = 25000;
 
 // Fee structure

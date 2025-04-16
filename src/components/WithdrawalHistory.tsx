@@ -1,5 +1,5 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { 
@@ -213,6 +213,12 @@ export default function WithdrawalHistory({ isOpen, onClose }: WithdrawalHistory
   const handleRefresh = () => {
     dispatch(fetchWithdrawalHistory());
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      handleRefresh();
+    }
+  }, [isOpen]);
 
   return (
     <>

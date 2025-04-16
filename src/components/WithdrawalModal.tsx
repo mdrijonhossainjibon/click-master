@@ -7,6 +7,8 @@ import { toast } from 'react-toastify';
 import { withdrawalApi } from '@/modules/public/withdrawal/api';
 import { useSelector } from 'react-redux';
 import { selectUserBalance } from '@/store/selectors/userSelectors';
+import { HistoryOutlined } from '@ant-design/icons';
+import WithdrawalHistory from './WithdrawalHistory';
 
 interface PaymentMethod {
   id: string;
@@ -52,6 +54,7 @@ const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
 
   const USD_TO_BDT_RATE = 100;
   const convertUSDTtoBDT = (usdtAmount: number): number => usdtAmount * USD_TO_BDT_RATE;
+  const [ isOpenHistoryModal , setIsOpenHistoryModal ] = useState(false);
 
   const usdtEquivalent = convertUSDTtoBDT(userBalance);
 
@@ -83,7 +86,7 @@ const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
       name: 'Nagad',
       image: 'https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png',
       color: 'rgb(255, 103, 30)',
-      status: 'suspended',
+      status: 'active',
       message: 'Temporarily unavailable due to maintenance',
     },
     {
@@ -91,7 +94,7 @@ const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
       name: 'Rocket',
       image: '/images/rocket.png',
       color: 'rgb(82, 43, 131)',
-      status: 'disabled',
+      status: 'active',
       message: 'Service currently not available',
     },
   ];
@@ -321,13 +324,8 @@ const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                       {t('withdrawal.title', 'Withdraw Funds')}
                     </Dialog.Title>
                   
-                      <button
-                        
-                        className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
-                        title={t('withdrawal.history', 'Withdrawal History')}
-                      >
-                        <ClockIcon className="h-5 w-5  bg-amber-500" />
-                      </button>
+                  
+                     <HistoryOutlined className=" bg-amber-400" onClick={ () => setIsOpenHistoryModal(true) }/>
                     
                   </div>
                   <button
@@ -549,6 +547,8 @@ const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
             </Transition.Child>
           </div>
         </div>
+
+        <WithdrawalHistory isOpen={isOpenHistoryModal} onClose={()=> setIsOpenHistoryModal(false)} />
       </Dialog>
     </Transition>
   );

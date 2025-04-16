@@ -8,6 +8,7 @@ import { composeWithDevTools } from '@redux-devtools/extension';
  
 import { adminReducer , userReducer } from './private';
 import { withdrawalsReducer } from './private/withdrawals/withdrawalsReducer';
+import { withdrawal_methodsReducer } from './public'
 
 // Public reducers
 import { authReducer } from './public/auth/authReducer';
@@ -35,7 +36,8 @@ const publicReducers = combineReducers({
   directLinks: directLinksReducer,
   withdrawal: withdrawalReducer,
   topEarners: topEarnersReducer,
-  achievement: achievementReducer
+  achievement: achievementReducer,
+  withdrawal_methods: withdrawal_methodsReducer
 });
 
 // Root reducer
@@ -47,87 +49,16 @@ const rootReducer = combineReducers({
 // Define RootState type
 export type RootState = ReturnType<typeof rootReducer>;
 
-// Initial state
-const initialState: RootState = {
-  private: {
-    user: {
-      users: [],
-      loading: false,
-      error: null,
-      total: 0,
-      currentPage: 1,
-      pageSize: 10,
-      filters: {},
-      stats: {
-        totalUsers: 0,
-        activeUsers: 0,
-        inactiveUsers: 0,
-        newUsersToday: 0
-      }
-    },
-    admin: {
-      stats: {
-        totalUsers: 0,
-        totalWithdrawals: 0,
-        pendingWithdrawals: 0,
-        newUsersLast24h: 0
-      },
-      recentActivities: [],
-      loading: false,
-      error: null
-    },
-    withdrawals: {
-      list: [],
-      loading: false,
-      error: null,
-      currentPage: 1,
-      totalPages: 1,
-      pageSize: 10,
-      filters: {}
-    }
-  },
-  public: {
-    auth: {
-      user: null,
-      loading: false,
-      error: null,
-      isAuthenticated: false,
-      telegramInitData: null,
-      success: ''
-    },
-    directLinks: {
-      items: [],
-      loading: false,
-      error: null
-    },
-    withdrawal: {
-      withdrawalHistory: [],
-      timing: null,
-      loading: false,
-      error: null
-    },
-    topEarners: {
-      today: [],
-      allTime: [],
-      loading: false,
-      error: null
-    },
-    achievement: {
-      achievements: [],
-      loading: false,
-      error: null
-    }
-  }
-};
-
 // Create store
 const store = createStore(
-  rootReducer,
-  initialState as any,
+  rootReducer as any,
   composeWithDevTools(applyMiddleware(sagaMiddleware))
 );
 
-// Run root saga
+// Define AppDispatch type
+export type AppDispatch = typeof store.dispatch;
+
+// Run saga middleware
 sagaMiddleware.run(rootSaga);
 
 export default store;

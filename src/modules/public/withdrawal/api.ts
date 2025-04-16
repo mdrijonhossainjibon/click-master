@@ -17,7 +17,7 @@ export const withdrawalApi = {
         network?: string;
     }) => {
         const { response } = await API_CALL({ url : '/withdrawals', method : 'POST',   body : data });
-        return response?.result
+        return response
         
     },
 

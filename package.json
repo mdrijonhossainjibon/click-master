@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "bot": "ts-node src/bot/index.ts",
-    "seed:withdrawal-methods": "ts-node scripts/seed-withdrawal-methods.ts"
+    "seed": "ts-node --compilerOptions '{\"module\":\"commonjs\"}' src/lib/seed/index.ts",
+    "seed:withdrawal-methods": "ts-node --compilerOptions '{\"module\":\"commonjs\"}' src/lib/seed/withdrawal-methods.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",

@@ -8,6 +8,7 @@ import { authSaga } from './public';
 import { withdrawalSaga } from './public/withdrawal/withdrawalSaga';
 import { topEarnersSaga } from './public/topEarners/topEarnersSaga';
 import { achievementSaga } from './public/achievement/achievementSaga';
+import { withdrawal_methodsSaga } from './public/withdrawal_methods/sagas';
 
 export function* rootSaga(): Generator<Effect, void, unknown> {
   yield all([
@@ -18,6 +19,7 @@ export function* rootSaga(): Generator<Effect, void, unknown> {
     // Public sagas
     fork(authSaga),
     fork(withdrawalSaga),
-    fork(topEarnersSaga)
+    fork(topEarnersSaga),
+    fork(withdrawal_methodsSaga)
   ]);
 }

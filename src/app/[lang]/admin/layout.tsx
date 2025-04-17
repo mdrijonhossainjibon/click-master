@@ -65,11 +65,6 @@ export default function AdminLayout({
       label: 'Direct Links'
     },
     {
-      key: '/admin/history',
-      icon: <HistoryOutlined />,
-      label: 'History'
-    },
-    {
       key: '/admin/settings',
       icon: <SettingOutlined />,
       label: 'Settings'

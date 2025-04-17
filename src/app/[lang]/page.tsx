@@ -168,7 +168,7 @@ export default function Home() {
                     <div className="flex flex-col items-center gap-4">
                         <button
                             onClick={handleWatchAd}
-                             disabled={ Number(user?.adsWatched) >= 1000}
+                             disabled={ Number(user?.adsWatched) >= 500}
                             className="relative overflow-hidden group bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <div className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-all duration-300"></div>

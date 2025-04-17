@@ -325,7 +325,7 @@ const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     </Dialog.Title>
                   
                   
-                     <HistoryOutlined className=" bg-amber-400" onClick={ () => setIsOpenHistoryModal(true) }/>
+                     <HistoryOutlined className="p-2 rounded-lg bg-white text-black hover:bg-gray-200 transition-colors cursor-pointer" onClick={() => setIsOpenHistoryModal(true)}/>
                     
                   </div>
                   <button

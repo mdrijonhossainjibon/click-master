@@ -15,7 +15,6 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   ClockCircleOutlined,
-  DollarCircleOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
 import { API_CALL } from '@/lib/client';

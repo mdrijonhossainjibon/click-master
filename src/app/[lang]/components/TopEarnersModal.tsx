@@ -106,9 +106,9 @@ export default function TopEarnersModal({ isOpen, onClose }: TopEarnersModalProp
                                     : 'bg-gray-800/30'
                                 }`}
                             >
-                                <div className="col-span-2 font-medium text-gray-300">#{entry.rank}</div>
+                                <div className="col-span-2 font-medium text-gray-300">#{entry?.rank}</div>
                                 <div className="col-span-6 font-medium text-white truncate  ">
-                                    {entry.name.slice(0,10)}
+                                    {entry?.name.slice(0,10)}
                                     {entry.isCurrentUser && (
                                         <span className="ml-1 text-xs text-purple-400">(You)</span>
                                     )}

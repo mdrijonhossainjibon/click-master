@@ -48,7 +48,7 @@ function convertBDTtoUSDT(bdtAmount: number): number {
 function validateBangladeshiPhoneNumber(number: string): boolean {
     // Remove any non-digit characters
     const cleanNumber = number.replace(/\D/g, '');
-    
+
     // Handle both local (01) and international (+880) formats
     let localFormat = cleanNumber;
     if (cleanNumber.startsWith('880')) {
@@ -59,7 +59,7 @@ function validateBangladeshiPhoneNumber(number: string): boolean {
     if (localFormat.startsWith('0')) {
         localFormat = localFormat.slice(1); // Remove leading 0
     }
-    
+
     // Now the number should be just 10 digits starting with 1
     if (localFormat.length !== 10 || !localFormat.startsWith('1')) {
         return false;
@@ -68,7 +68,7 @@ function validateBangladeshiPhoneNumber(number: string): boolean {
     // Check if it starts with valid Bangladesh operator codes
     const validPrefixes = ['13', '14', '15', '16', '17', '18', '19'];
     const prefix = localFormat.substring(0, 2);
-    
+
     return validPrefixes.includes(prefix);
 }
 
@@ -86,15 +86,28 @@ function validateCryptoAddress(address: string, method: string): boolean {
     return true; // For non-crypto methods
 }
 
-export async function GET( ) {
+export async function GET() {
     try {
-     
+
         await dbConnect();
 
-        const session : any = await getServerSession(authOptions);
+        const session: any = await getServerSession(authOptions);
 
-        if (session) {
+         
+        if (session.user?.role === 'admin') {
             const withdrawals = await WithdrawalHistory.find({}).sort({ createdAt: -1 });
+            const withdrawalsWithConversion = withdrawals.map(w => ({
+                ...w._doc,
+                bdtAmount: w.method.toLowerCase() === 'bkash' || w.method.toLowerCase() === 'nagad'
+                    ? w.amount
+                    : convertUSDTtoBDT(w.amount)
+            }));
+            return NextResponse.json({ result: withdrawalsWithConversion });
+        }
+
+
+        if (session && session.user?.role === 'user') {
+            const withdrawals = await WithdrawalHistory.find({ telegramId : session.user.telegramId }).sort({ createdAt: -1 });
             const withdrawalsWithConversion = withdrawals.map(w => ({
                 ...w._doc,
                 bdtAmount: w.method.toLowerCase() === 'bkash' || w.method.toLowerCase() === 'nagad'
@@ -105,8 +118,8 @@ export async function GET( ) {
             return NextResponse.json({ result: withdrawalsWithConversion });
         }
 
-       
- 
+
+
     } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -194,11 +207,11 @@ export async function POST(req: Request) {
             }
         }
 
-        const user = await User.findOne({ telegramId : session.user.telegramId })
+        const user = await User.findOne({ telegramId: session.user.telegramId })
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
-     
+
 
         // Check if user has sufficient balance (including fee)
         if (user.balance < (amountInUSDT + fee)) {
@@ -231,7 +244,7 @@ export async function POST(req: Request) {
         });
 
         // Update user balance (in USDT, including fee)
-        await User.findOneAndUpdate({ telegramId : session.user.telegramId  }, {
+        await User.findOneAndUpdate({ telegramId: session.user.telegramId }, {
             $inc: { balance: -(amountInUSDT + fee) }
         }, { new: true });
 
@@ -286,7 +299,7 @@ export async function PUT(req: Request) {
             method: withdrawal.method,
             recipient: withdrawal.recipient,
             status,
-            description: status === 'approved' 
+            description: status === 'approved'
                 ? `Withdrawal request approved for ${withdrawal.amount} USDT via ${withdrawal.method}`
                 : `Withdrawal request rejected for ${withdrawal.amount} USDT via ${withdrawal.method}`,
             metadata: {

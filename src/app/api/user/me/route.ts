@@ -24,13 +24,7 @@ export async function GET() {
         
         // Find all users who were referred by the current user
         const referredUsers = await User.find({ referredBy: user._id })
-            .select('_id fullName telegramId createdAt totalEarnings')
-            .lean();
-
-        // Get recent activity history
-        const recentHistory = await History.find({ userId: user._id })
-            .sort({ createdAt: -1 })
-            .limit(5);
+      
 
         // Get today's earnings
         const today = new Date();
@@ -108,7 +102,6 @@ export async function GET() {
             referralCount,
             referralEarnings: totalReferralEarnings,
             referredUsers: referredUsersWithCommission,
-            recentActivity: recentHistory,
             todayEarnings: todayEarnings[0]?.total || 0
         };
 

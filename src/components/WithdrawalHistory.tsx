@@ -12,7 +12,7 @@ import {
   ArrowPathIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
-import { Image } from 'antd-mobile';
+
 import { fetchWithdrawalHistory } from '@/modules/public/withdrawal/withdrawalActions';
 import { RootState } from '@/modules/store';
 
@@ -21,13 +21,16 @@ interface WithdrawalHistoryProps {
   onClose: () => void;
 }
 
+const USD_TO_BDT_RATE = 100; // Same rate as in WithdrawalModal
+
 interface WithdrawalRecord {
   id: string;
-  timestamp: string;
+  createdAt : string;
   amount: number;
   bdtAmount: number;
   method: string;
   status: 'pending' | 'completed' | 'failed';
+  recipient: string;
   metadata?: {
     network?: string;
     address?: string;
@@ -48,9 +51,16 @@ const WithdrawalDetails = ({ isOpen, onClose, withdrawal }: WithdrawalDetailsPro
     return withdrawal.amount - fee;
   };
 
+  const getDisplayAmount = (amount: number, includeConversion = true) => {
+   
+    return includeConversion ? 
+      `${amount.toLocaleString()} USDT (${(amount * USD_TO_BDT_RATE).toLocaleString()} BDT)` :
+      `${amount.toLocaleString()} USDT`;
+  };
+
   const isCryptoPayment = ['bitget', 'binance'].includes(withdrawal.method);
   const displayAmount = isCryptoPayment ? withdrawal.amount : withdrawal.bdtAmount;
-  const currency = isCryptoPayment ? 'USDT' : 'BDT';
+  const currency = 'USDT';  
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -130,13 +140,16 @@ const WithdrawalDetails = ({ isOpen, onClose, withdrawal }: WithdrawalDetailsPro
                              'Processing'}
                           </div>
                           <div className="text-sm text-[#848E9C]">
-                            {new Date(withdrawal.timestamp).toLocaleString()}
+                            {new Date(withdrawal.createdAt).toLocaleString()}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-[#EAECEF] font-medium">
-                          {displayAmount} {currency}
+                          {isCryptoPayment ? 
+                            `${displayAmount} ${currency} (${(displayAmount * USD_TO_BDT_RATE).toLocaleString()} BDT)` :
+                            `${displayAmount} ${currency}`
+                          }
                         </div>
                         {withdrawal.status === 'completed' && (
                           <div className="text-sm text-[#02C076]">
@@ -151,11 +164,11 @@ const WithdrawalDetails = ({ isOpen, onClose, withdrawal }: WithdrawalDetailsPro
                   <div className="space-y-4 bg-[#1E2329] rounded-lg p-4 border border-[#2E353F]">
                     <div>
                       <div className="text-sm text-[#848E9C] mb-1">Network</div>
-                      <div className="text-white font-medium">{withdrawal.metadata?.network || '-'}</div>
+                      <div className="text-white font-medium">{withdrawal.metadata?.network || withdrawal.method || '-'}</div>
                     </div>
                     <div>
                       <div className="text-sm text-[#848E9C] mb-1">Address</div>
-                      <div className="text-white font-mono break-all">{withdrawal.metadata?.address || '-'}</div>
+                      <div className="text-white font-mono break-all">{withdrawal.metadata?.address ||  withdrawal.recipient || '-'}</div>
                     </div>
                     {withdrawal.metadata?.txId && (
                       <div>
@@ -168,15 +181,15 @@ const WithdrawalDetails = ({ isOpen, onClose, withdrawal }: WithdrawalDetailsPro
                     <div className="pt-4 border-t border-[#2E353F] space-y-3">
                       <div className="flex justify-between">
                         <div className="text-sm text-[#848E9C]">Amount</div>
-                        <div className="text-white font-medium">{displayAmount} {currency}</div>
+                        <div className="text-white font-medium">{getDisplayAmount(displayAmount)}</div>
                       </div>
                       <div className="flex justify-between">
                         <div className="text-sm text-[#848E9C]">Network Fee</div>
-                        <div className="text-white">{withdrawal.metadata?.fee || 0} {currency}</div>
+                        <div className="text-white">{getDisplayAmount(withdrawal.metadata?.fee || 0)}</div>
                       </div>
                       <div className="flex justify-between pt-3 border-t border-[#2E353F]">
                         <div className="text-sm text-[#848E9C]">You Will Receive</div>
-                        <div className="text-white font-medium">{getReceivedAmount()} {currency}</div>
+                        <div className="text-white font-medium">{getDisplayAmount(getReceivedAmount())}</div>
                       </div>
                     </div>
                   </div>
@@ -320,10 +333,13 @@ export default function WithdrawalHistory({ isOpen, onClose }: WithdrawalHistory
                                 </div>
                                 <div className="text-left">
                                   <div className="text-[#EAECEF] font-medium">
-                                    {withdrawal.amount} {withdrawal.method === 'bdt' ? 'BDT' : 'USDT'}
+                                    {withdrawal.method === 'bdt' ? 
+                                      `${withdrawal.amount} BDT` : 
+                                      `${withdrawal.amount} USDT (${(withdrawal.amount * USD_TO_BDT_RATE).toLocaleString()} BDT)`
+                                    }
                                   </div>
                                   <div className="text-sm text-[#848E9C]">
-                                    {new Date(withdrawal.timestamp).toLocaleString()}
+                                    {new Date(withdrawal.createdAt).toLocaleString()}
                                   </div>
                                 </div>
                               </div>
